@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <!-- Placeholder for common header items (e.g., meta tags, common CSS links) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ============================================== -->
+    <!-- 1. HEADER (NAVBAR) FRAGMENT -->
+    <!-- ============================================== -->
+    <div th:fragment="header">
+        <style>
+            /* Glassmorphism Header Styles */
+            .glass-header {
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+                padding: 0.5rem 1.5rem;
+            }
+            
+            .navbar-brand img {
+                height: 45px;
+                width: auto;
+                filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.3));
+                transition: transform 0.3s ease;
+            }
+            
+            .navbar-brand:hover img {
+                transform: scale(1.02);
+            }
+
+            .glass-toggler {
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.05);
+                color: rgba(255, 255, 255, 0.8);
+                transition: all 0.2s;
+            }
+            .glass-toggler:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+            }
+
+            .user-pill {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 50px;
+                padding: 0.25rem 1rem 0.25rem 0.25rem;
+                transition: all 0.2s;
+            }
+            .user-pill:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+            
+            .dropdown-menu-glass {
+                background: rgba(20, 25, 40, 0.95);
+                backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+            .dropdown-menu-glass .dropdown-item {
+                color: #cbd5e1;
+            }
+            .dropdown-menu-glass .dropdown-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+            }
+            .dropdown-menu-glass .dropdown-divider {
+                border-top-color: rgba(255, 255, 255, 0.1);
+            }
+        </style>
+
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-header">
+            <div class="container-fluid">
+                <!-- Toggle Button for Sidebar -->
+                <button class="btn glass-toggler me-3" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#sidebarMenu" 
+                        aria-controls="sidebarMenu" aria-expanded="true" aria-label="Toggle navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                
+                <!-- Logo Image -->
+                <a class="navbar-brand p-0" href="/">
+                    <img th:src="@{/images/sciverse-logo.png}" alt="Sciverse Summit">
+                </a>
+                
+                <div class="ms-auto">
+                    <!-- Authenticated User: Show Email Dropdown -->
+                    <div sec:authorize="isAuthenticated()" class="dropdown">
+                        <button class="btn text-white dropdown-toggle user-pill d-flex align-items-center gap-2" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <span th:text="${currentUserEmail}" class="small fw-bold">user@example.com</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-glass mt-2" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-sliders me-2"></i>Preferences</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Anonymous User: Show Login Link -->
+                    <a sec:authorize="!isAuthenticated()" class="btn btn-outline-light rounded-pill px-4" href="/login">Login</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Logout Confirmation Modal -->
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to log out?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form th:action="@{/logout}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- 2. SIDEBAR FRAGMENT -->
+    <!-- ============================================== -->
+    <th:block th:fragment="sidebar">
+        <div class="sidebar d-flex flex-column p-3 collapse show" id="sidebarMenu">
+        
+            <ul class="nav nav-pills flex-column mb-auto">
+
+                <!-- Session Name Item (Only if session exists) -->
+                <li class="nav-item mb-3" th:if="${currentSession != null}">
+                    <div class="p-3 bg-primary text-white rounded text-center shadow-sm">
+                        <strong class="d-block mb-1" style="font-size: 0.9rem; opacity: 0.9;">SESSION</strong>
+                        <span th:text="${currentSession.name}" class="fw-bold text-uppercase" style="font-size: 1.2rem; letter-spacing: 0.5px;">Session Name</span>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a th:href="@{/}" class="nav-link link-dark">
+                        <i class="bi bi-list-task"></i> Delegates List
+                    </a>
+                </li>
+                
+                <!--  new Menu item -->
+            
+                <li>
+                <a href="/motions" class="nav-link link-dark"> 
+                <i 	class="bi bi-megaphone-fill"></i> Motions
+                </a>
+                </li>
+                <li><a href="/unmod" class="nav-link link-dark"> <i
+                        class="bi bi-hourglass-split"></i> Unmod
+                </a></li>
+                <!-- 
+                <li><a href="#" class="nav-link link-dark"> <i
+                        class="bi bi-people-fill"></i> Caucuses
+                </a></li>
+                -->
+                <li><a href="/speakers" class="nav-link link-dark"> <i
+                        class="bi bi-people-fill"></i> Speakers
+                </a></li>
+                <li><a href="#" class="nav-link link-dark" data-bs-toggle="modal" data-bs-target="#notesModal" th:if="${currentSession != null}"> <i
+                        class="bi bi-journal-text"></i> Notes
+                </a></li>
+                <!--  
+                <li><a href="#" class="nav-link link-dark"> <i
+                        class="bi bi-hourglass-split"></i> Posts
+                </a></li>
+                -->
+                <li><a href="/stats" class="nav-link link-dark"> <i
+                        class="bi bi-bar-chart-fill"></i> Stats
+                </a></li>
+                
+            </ul>
+            
+            <div class="mt-3">
+                <a href="/dashboard" class="btn btn-outline-secondary w-100 text-start">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            
+            <hr>
+            <div class="text-muted small">
+                Application Version 1.0
+            </div>
+        </div>
+
+        <!-- Notes Modal (Outside sidebar container) -->
+        <div class="modal fade" id="notesModal" tabindex="-1" aria-hidden="true" th:if="${currentSession != null}">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-light border-bottom-0">
+                        <h5 class="modal-title fw-bold text-primary">
+                            <i class="bi bi-journal-text me-2"></i>Give your notes
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form th:action="@{/session/notes}" method="post" id="notesForm">
+                            <input type="hidden" name="sessionId" th:value="${currentSession.id}" />
+                            <div class="mb-3">
+                                <label for="notesTextarea" class="form-label fw-semibold text-muted">Enter your session notes below:</label>
+                                <textarea class="form-control p-3" name="notes" id="notesTextarea" rows="12" 
+                                          style="resize: vertical; font-size: 1.1rem; line-height: 1.6; border-color: #dee2e6;" 
+                                          placeholder="Type your notes here..."
+                                          th:text="${currentSession.notes}"></textarea>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2 pt-2">
+                                <button type="button" class="btn btn-outline-secondary px-4" onclick="document.getElementById('notesTextarea').value = ''">
+                                    <i class="bi bi-eraser me-1"></i> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-save me-1"></i> Save
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>  
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../../../copilot-workspace"
+		},
+		{
+			"path": "../../../../../../../../springboot-itsm-app"
+		},
+		{
+			"path": "../../../../../../.."
+		},
+		{
+			"path": "../../../../../../../../python-flask-itsm-app"
+		},
+		{
+			"path": "../../../../../../../../python-ai-agent-client"
+		},
+		{
+			"path": "../../../../../../../../google-adk-projects"
+		},
+		{
+			"path": "../../../../../../../../python-stock-portfoilio-manager"
+		},
+		{
+			"path": "../../../../../../../../python-stock-portfolio-manager"
+		},
+		{
+			"path": "../../../../../../../../python-reinforcemnt-learn-trade-bot"
+		}
+	],
+	"settings": {}
+}

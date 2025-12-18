@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>General Speakers' List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Load Tone.js for audio generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* Define sidebar width and transition for content alignment */
+        :root { --sidebar-width: 250px; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100%; width: var(--sidebar-width); 
+            padding-top: 56px; background-color: #f8f9fa; z-index: 1000; transition: all 0.3s;
+        }
+        .content {
+            margin-left: var(--sidebar-width); padding: 80px 20px 20px 20px; 
+            position: relative; z-index: 1; transition: all 0.3s;
+        }
+        /* Handle sidebar collapse responsiveness */
+        @media (max-width: 991.98px) {
+            .sidebar { width: 0; }
+            .content { margin-left: 0; }
+        }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
+            /* This is critical for making the sidebar disappear on mobile/collapse */
+            transform: translateX(calc(-1 * var(--sidebar-width)));
+            margin-left: 0; /* Override content margin-left when collapsed */
+        }
+        .timer-display {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .progress-bar-container {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 100%;
+            background-color: #28a745;
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+        .queue-item {
+            padding: 8px 15px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-panel {
+            min-height: 100px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fcfcfc;
+        }
+        .speaker-box {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+        .alert-custom {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. HEADER (NAVBAR) FRAGMENT: Assumed to be included via Thymeleaf -->
+    <div th:replace="fragments :: header"></div>
+
+    <!-- 2. SIDEBAR FRAGMENT: Assumed to be included via Thymeleaf -->
+    <div th:replace="fragments :: sidebar"></div>
+
+    <!-- 3. MAIN CONTENT AREA -->
+    <div class="content">
+        <div class="container-fluid">
+
+            <div class="page-header">
+                <h2>General Speakers' List</h2>
+                <a href="#" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-up-right"></i> Open Public View</a>
+            </div>
+
+            <div class="row">
+                <!-- LEFT SIDE: Speaker Queue Management (7/12) -->
+                <div class="col-lg-7">
+                    <div class="card p-3 mb-4">
+                        <h4 class="mb-3">Speakers Queue Control</h4>
+                        <div class="row g-4">
+                            <!-- NOW SPEAKING -->
+                            <div class="col-12">
+                                <h5 class="fw-bold">Now speaking</h5>
+                                <div class="card-panel" id="now-speaking-panel">
+                                    <p class="text-muted mb-0" id="now-speaking-text">-- Empty --</p>
+                                </div>
+                            </div>
+
+                            <!-- NEXT SPEAKING -->
+                            <div class="col-12">
+                                <h5 class="fw-bold">Next speaking</h5>
+                                <div class="card-panel d-flex justify-content-between align-items-center" id="next-speaking-panel">
+                                    <span class="text-muted" id="next-speaking-text">-- Empty --</span>
+                                    <div id="next-speaking-actions" style="display: none;">
+                                        <button class="btn btn-sm btn-info text-white" onclick="moveToNowSpeaking()">Stage</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- QUEUE MANAGEMENT -->
+                        <h5 class="fw-bold mt-4">Queue</h5>
+                        <!-- Queue Input and Autocomplete -->
+                        <div class="input-group mb-3">
+                            <input type="text" id="queue-input" class="form-control form-control-lg" placeholder="Type speaker name..." list="presenter-names-list">
+                            <button class="btn btn-danger" type="button" id="add-to-queue-btn">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                        <!-- Datalist for Autocomplete (populated by script) -->
+                        <datalist id="presenter-names-list">
+                            <!-- Options populated via JavaScript -->
+                        </datalist>
+
+                        <div id="queue-list" class="mt-2 card-panel">
+                            <p class="text-muted mb-0">Queue is empty. Add a speaker above.</p>
+                        </div>
+
+                        <!-- Voting Checkbox and Buttons -->
+                        <div class="d-flex align-items-center gap-3 mt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="delegates-can-queue" checked>
+                                <label class="form-check-label" for="delegates-can-queue">
+                                    Delegates can queue
+                                </label>
+                            </div>
+                            <button class="btn btn-sm btn-success">For</button>
+                            <button class="btn btn-sm btn-secondary">Neutral</button>
+                            <button class="btn btn-sm btn-danger">Against</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: Timers (5/12) -->
+                <div class="col-lg-5">
+                    <!-- SPEAKER TIMER -->
+                    <div class="card p-3 mb-4">
+                        <h5 class="fw-bold">Speaker timer</h5>
+                        <div class="timer-display" id="speaker-timer-text">
+                            <span>1:00</span>
+                            <button class="btn btn-sm btn-light" id="speaker-mute-button" title="Mute/Unmute sound">
+                                <i class="bi bi-volume-up-fill"></i>
+                            </button>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" id="speaker-progress-fill" style="width: 100%;"></div></div>
+                        <div class="d-flex mb-3 gap-2 align-items-center justify-content-between">
+                            <input type="number" id="speaker-minutes-input" class="form-control" value="60" min="1" max="3600" style="width: 80px;">
+                            <select id="speaker-unit-select" class="form-select" style="width: 80px;">
+                                <option value="sec">sec</option>
+                                <option value="min">min</option>
+                            </select>
+                            <button class="btn btn-secondary btn-sm" id="speaker-set-button">Set</button>
+                            <button class="btn btn-success btn-sm" id="speaker-start-button"><i class="bi bi-play-fill"></i></button>
+                            <button class="btn btn-warning btn-sm" id="speaker-pause-button" disabled><i class="bi bi-pause-fill"></i></button>
+                            <button class="btn btn-secondary btn-sm" id="speaker-reset-button"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </div>
+                    </div>
+                    
+                    <!-- CAUCUS TIMER -->
+                    <div class="card p-3 mb-4">
+                        <h5 class="fw-bold">Caucus timer</h5>
+                        <div class="timer-display" id="caucus-timer-text">
+                            <span>10:00</span>
+                            <button class="btn btn-sm btn-light" id="caucus-mute-button" title="Mute/Unmute sound">
+                                <i class="bi bi-volume-up-fill"></i>
+                            </button>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" id="caucus-progress-fill" style="width: 100%;"></div></div>
+                        <div class="d-flex mb-3 gap-2 align-items-center justify-content-between">
+                            <input type="number" id="caucus-minutes-input" class="form-control" value="10" min="1" max="60" style="width: 80px;">
+                            <select id="caucus-unit-select" class="form-select" style="width: 80px;">
+                                <option value="min">min</option>
+                                <option value="sec">sec</option>
+                            </select>
+                            <button class="btn btn-secondary btn-sm" id="caucus-set-button">Set</button>
+                            <button class="btn btn-success btn-sm" id="caucus-start-button"><i class="bi bi-play-fill"></i></button>
+                            <button class="btn btn-warning btn-sm" id="caucus-pause-button" disabled><i class="bi bi-pause-fill"></i></button>
+                            <button class="btn btn-secondary btn-sm" id="caucus-reset-button"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom Modal for Alerts (replacing alert()) -->
+    <div class="alert alert-warning alert-dismissible fade show alert-custom d-none" role="alert" id="message-box">
+        <span id="message-text"></span>
+        <button type="button" class="btn-close" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close"></button>
+    </div>
+
+    <!-- JavaScript for Speakers List and Timer Logic -->
+    <script th:inline="javascript">
+        // Mock presenter names for local testing if the controller variable isn't set.
+        let presenterNamesString = /*[[${presenterNamesJson}]]*/ null;
+        if (!presenterNamesString) {
+             presenterNamesString = "'Brazil','China','Germany','India','Japan','Russia','USA'";
+        }
+
+        // 1. DATA AND QUEUE MANAGEMENT
+        let speakersQueue = [];
+        let nowSpeaking = null;
+        let nextSpeaking = null;
+        
+        // Convert the string into an actual array of strings
+        const allPresenterNames = presenterNamesString 
+            ? presenterNamesString.split(',').map(name => name.trim().replace(/^'|'$/g, ''))
+            : [];
+        
+        // DOM References
+        const nowSpeakingText = document.getElementById('now-speaking-text');
+        const nextSpeakingText = document.getElementById('next-speaking-text');
+        const nextSpeakingActions = document.getElementById('next-speaking-actions');
+        const queueList = document.getElementById('queue-list');
+        const queueInput = document.getElementById('queue-input');
+        const addToQueueBtn = document.getElementById('add-to-queue-btn');
+        const datalistEl = document.getElementById('presenter-names-list');
+
+        // Populate Datalist for Autocomplete
+        allPresenterNames.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            datalistEl.appendChild(option);
+        });
+
+        // Utility for messages
+        function showMessage(text) {
+            const msgBox = document.getElementById('message-box');
+            document.getElementById('message-text').textContent = text;
+            msgBox.classList.remove('d-none');
+            setTimeout(() => msgBox.classList.add('d-none'), 5000);
+        }
+        
+        function renderQueue() {
+            // Update Now Speaking panel
+            nowSpeakingText.innerHTML = nowSpeaking 
+                ? `<span class="speaker-box">${nowSpeaking}</span> <button class="btn btn-sm btn-danger float-end" onclick="removeFromNowSpeaking()">End</button>`
+                : '-- Empty --';
+
+            // Update Next Speaking panel
+            nextSpeakingText.textContent = nextSpeaking || '-- Empty --';
+            nextSpeakingActions.style.display = nextSpeaking ? 'block' : 'none';
+
+            // Update Queue List
+            queueList.innerHTML = '';
+            if (speakersQueue.length === 0) {
+                queueList.innerHTML = '<p class="text-muted mb-0">Queue is empty. Add a speaker above.</p>';
+            } else {
+                speakersQueue.forEach((speaker) => {
+                    const item = document.createElement('div');
+                    item.className = 'queue-item';
+                    
+                    // Sanitize name for use in function call
+                    const safeName = speaker.replace(/'/g, "\\'");
+                    
+                    item.innerHTML = `
+                        <span class="speaker-box">${speaker}</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-info" title="Move to Next" onclick="moveToNextSpeaking('${safeName}')">Next</button>
+                            <button class="btn btn-outline-danger" title="Remove" onclick="removeFromQueue('${safeName}')"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    `;
+                    queueList.appendChild(item);
+                });
+            }
+        }
+
+        function addToQueue() {
+            const name = queueInput.value.trim();
+            if (!name) return;
+
+            if (speakersQueue.includes(name) || name === nextSpeaking || name === nowSpeaking) {
+                showMessage(`"${name}" is already in the speaking panel or queue.`);
+            } else {
+                speakersQueue.push(name);
+                queueInput.value = '';
+                renderQueue();
+            }
+        }
+
+        window.moveToNextSpeaking = function(name) {
+            if (nextSpeaking === name) return;
+            
+            if (nextSpeaking) {
+                // If Next is occupied, move it back to the queue (top of queue)
+                speakersQueue.unshift(nextSpeaking);
+            }
+            nextSpeaking = name;
+            
+            // Remove from current queue position
+            speakersQueue = speakersQueue.filter(s => s !== name);
+            renderQueue();
+        }
+
+        window.moveToNowSpeaking = function() {
+            if (!nextSpeaking) return;
+            
+            // 1. Move current speaker (if any) to the back of the queue
+            if (nowSpeaking) {
+                 speakersQueue.push(nowSpeaking);
+            }
+
+            // 2. Set new speaker
+            nowSpeaking = nextSpeaking;
+            nextSpeaking = null;
+            
+            renderQueue();
+            
+            // Start the speaker timer when someone moves to Now Speaking
+            speakerTimer.reset(); 
+            speakerTimer.start();
+
+            // Increment Times Spoken immediately
+            fetch('/api/stats/increment-spoken', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `name=${encodeURIComponent(nowSpeaking)}`
+            }).catch(err => console.error('Error incrementing spoken count:', err));
+        }
+
+        window.removeFromNowSpeaking = function() {
+             if (nowSpeaking) {
+                // Calculate duration spoken
+                const duration = speakerTimer.totalSeconds - speakerTimer.timeRemaining;
+                
+                // Send stats update
+                if (duration > 0) {
+                    fetch('/api/stats/update-speaking', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `name=${encodeURIComponent(nowSpeaking)}&duration=${duration}`
+                    }).catch(err => console.error('Error updating stats:', err));
+                }
+            }
+
+            nowSpeaking = null;
+            speakerTimer.stop();
+            renderQueue();
+        }
+        
+        window.removeFromQueue = function(name) {
+            speakersQueue = speakersQueue.filter(s => s !== name);
+            if (nextSpeaking === name) {
+                nextSpeaking = null;
+            }
+            renderQueue();
+        }
+
+        // Event Listeners for Queue
+        addToQueueBtn.addEventListener('click', addToQueue);
+        queueInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                addToQueue();
+            }
+        });
+
+        // 2. GENERIC TIMER CLASS (Reusable for Speaker and Caucus)
+
+        class Timer {
+            constructor(idPrefix, defaultSeconds) {
+                this.idPrefix = idPrefix;
+                this.totalSeconds = defaultSeconds;
+                this.timeRemaining = defaultSeconds;
+                this.isRunning = false;
+                this.intervalId = null;
+                this.isMuted = false;
+                
+                // DOM references
+                this.textEl = document.getElementById(`${idPrefix}-timer-text`).querySelector('span');
+                this.muteBtn = document.getElementById(`${idPrefix}-mute-button`);
+                this.progressFill = document.getElementById(`${idPrefix}-progress-fill`);
+                this.input = document.getElementById(`${idPrefix}-minutes-input`);
+                this.unit = document.getElementById(`${idPrefix}-unit-select`);
+                this.setBtn = document.getElementById(`${idPrefix}-set-button`);
+                this.startBtn = document.getElementById(`${idPrefix}-start-button`);
+                this.pauseBtn = document.getElementById(`${idPrefix}-pause-button`);
+                this.resetBtn = document.getElementById(`${idPrefix}-reset-button`);
+
+                this.initListeners();
+                this.updateDisplay();
+            }
+
+            // Audio Setup (using Tone.js)
+            playEndSound() {
+                if (this.isMuted) return;
+                // Play a simple C-E-G chord
+                const chime = new Tone.PolySynth(Tone.Synth).toDestination();
+                chime.triggerAttackRelease(["C4", "E4", "G4"], "4n", Tone.now()); 
+            }
+
+            formatTime(seconds) {
+                const min = Math.floor(seconds / 60);
+                const sec = seconds % 60;
+                return `${min}:${String(sec).padStart(2, '0')}`;
+            }
+
+            updateDisplay() {
+                this.textEl.textContent = this.formatTime(this.timeRemaining);
+                const progress = (this.timeRemaining / this.totalSeconds) * 100;
+                this.progressFill.style.width = `${progress}%`;
+                // Color change based on time remaining
+                this.progressFill.style.backgroundColor = progress > 20 ? '#28a745' : progress > 5 ? '#ffc107' : '#dc3545';
+            }
+
+            start() {
+                if (this.isRunning || this.timeRemaining <= 0) return;
+                // Start Tone context on user interaction
+                if (Tone.context.state !== 'running') { Tone.start(); }
+
+                this.isRunning = true;
+                this.startBtn.disabled = true;
+                this.pauseBtn.disabled = false;
+                this.setBtn.disabled = true;
+
+                this.intervalId = setInterval(() => {
+                    this.timeRemaining--;
+                    this.updateDisplay();
+
+                    if (this.timeRemaining <= 0) {
+                        this.stop();
+                        this.playEndSound();
+                        showMessage(`${this.idPrefix} time is up!`);
+                        this.timeRemaining = 0;
+                        this.updateDisplay();
+                        
+                        // Specific logic for the speaker timer
+                        if (this.idPrefix === 'speaker') {
+                            window.removeFromNowSpeaking(); 
+                            if (speakersQueue.length > 0) {
+                                window.moveToNextSpeaking(speakersQueue[0]); 
+                            }
+                        }
+                    }
+                }, 1000);
+            }
+
+            pause() {
+                if (!this.isRunning) return;
+                this.stop();
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+            }
+
+            stop() {
+                clearInterval(this.intervalId);
+                this.isRunning = false;
+                this.setBtn.disabled = false;
+            }
+
+            reset() {
+                this.stop();
+                this.timeRemaining = this.totalSeconds;
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+                this.updateDisplay();
+            }
+
+            set() {
+                const inputVal = parseInt(this.input.value);
+                const unit = this.unit.value;
+                
+                if (isNaN(inputVal) || inputVal <= 0) {
+                    showMessage("Please enter a valid time (number greater than 0).");
+                    return;
+                }
+
+                this.totalSeconds = unit === 'min' ? inputVal * 60 : inputVal;
+                
+                if (this.totalSeconds > 3600) { 
+                    this.totalSeconds = 3600; 
+                    this.input.value = 60;
+                    this.unit.value = 'min';
+                    showMessage("Time limited to 60 minutes."); 
+                }
+
+                this.reset();
+            }
+
+            initListeners() {
+                this.setBtn.addEventListener('click', () => this.set());
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                
+                this.muteBtn.addEventListener('click', () => {
+                    this.isMuted = !this.isMuted;
+                    const icon = this.muteBtn.querySelector('i');
+                    icon.className = this.isMuted ? 'bi bi-volume-mute-fill' : 'bi bi-volume-up-fill';
+                    this.muteBtn.title = this.isMuted ? "Unmute sound" : "Mute sound";
+                });
+            }
+        }
+
+        // 3. INITIALIZATION
+
+        // Instantiate Timers (1 minute default for speaker, 10 minutes for caucus)
+        const speakerTimer = new Timer('speaker', 60); 
+        const caucusTimer = new Timer('caucus', 600);
+
+        // Initial render of the queue
+        renderQueue();
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
