@@ -2,6 +2,10 @@
 
 Sciverse Summit is a comprehensive conference management application built with **Spring Boot** and **Thymeleaf**. It is designed to streamline the management of conference sessions, delegates, motions, and speakers, providing a modern and intuitive user interface.
 
+## Tasks
+- [ ] Finish the glassmorphic design
+- [X] Clean up the code
+
 ## 🚀 Features
 
 ### 🔹 Session Management
@@ -19,7 +23,7 @@ Sciverse Summit is a comprehensive conference management application built with 
 - **Central Dashboard:** Quick access to all core functionalities.
 - **Smart Sidebar:** Context-aware sidebar that shows session-specific tools (like Notes) only when a session is active.
 - **Glassmorphism Design:** A modern, translucent header design for a premium look and feel.
-
+  
 ### 🔹 Security & User Management
 - **Authentication:** Secure Login/Logout functionality using Spring Security.
 - **Logout Confirmation:** Prevents accidental logouts with a confirmation dialog.
