@@ -123,4 +123,4 @@ summit/
 - **Interactive Modals:** Used for Notes and Logout confirmation to maintain context without page reloads.
 
 ---
-*Developed for Sciverse Summit*
+*Developed By MystiTheDev*
