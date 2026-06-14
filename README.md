@@ -22,13 +22,31 @@ Sciverse Summit is a comprehensive conference management application built with 
 ### 🔹 Dashboard & Navigation
 - **Central Dashboard:** Quick access to all core functionalities.
 - **Smart Sidebar:** Context-aware sidebar that shows session-specific tools (like Notes) only when a session is active.
-- **Glassmorphism Design:** A modern, translucent header design for a premium look and feel.
-  
+- **Glassmorphism Design:** Modern, translucent modals and header for a premium look and feel.
+- **Committee Options:** Curated list of committees (Mathematics removed to keep scope strictly scientific).
+
+### 🔹 🌗 Theme Support (Light / Dark Mode)
+- **Persistent Toggle:** Theme preference saved in `localStorage` and applied across all pages without flash.
+- **Pre-load Script:** Each page applies the saved theme before render to prevent the white-flash effect.
+- **Fully Themed Pages:**
+  - Dashboard
+  - History (modernized table with white heading in light mode, black heading in dark mode)
+  - Add / Edit Delegate
+  - Notes
+  - Login
+- **Smooth Transitions:** All color changes animate cleanly when the user toggles themes.
+
+### 🔹 Modern History Table
+- **Gradient Header:** White background in light mode / black in dark mode for crisp contrast.
+- **Status Badges:** Active vs. Ended sessions clearly distinguished with colored pill badges.
+- **Action Column:** Per-row delete button alongside view/resume actions.
+- **Responsive:** Works on desktop and tablet widths.
+
 ### 🔹 Security & User Management
 - **Authentication:** Secure Login/Logout functionality using Spring Security.
 - **Logout Confirmation:** Prevents accidental logouts with a confirmation dialog.
 - **User Context:** Displays current user information and profile options.
-
+- **User-Scoped Operations:** Session deletion is restricted to the owning user (server-side ownership check).
 ## 🛠️ Technology Stack
 
 ### Backend
