@@ -136,7 +136,7 @@ summit/
 
 ## 🎨 UI Highlights
 
-- **Glass Header:** A custom CSS implementation using `backdrop-filter` for a frosted glass effect.
+- **Glassmorphic UI:** A new, sleek UI based on Apple's "Glassmorphic UI". 
 - **Responsive Sidebar:** Collapsible sidebar for efficient navigation.
 - **Interactive Modals:** Used for Notes and Logout confirmation to maintain context without page reloads.
 
