@@ -4,6 +4,25 @@
     <!-- Placeholder for common header items (e.g., meta tags, common CSS links) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Dark Mode Flash Prevention - MUST execute before body renders -->
+    <script>
+        // Immediately check and apply saved theme before page renders
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+            }
+        })();
+    </script>
+    <style>
+        /* Apply dark mode immediately if class exists */
+        html.dark-mode-loading,
+        html.dark-mode-loading body {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -12,96 +31,214 @@
     <!-- ============================================== -->
     <div th:fragment="header">
         <style>
-            /* Glassmorphism Header Styles */
-            .glass-header {
-                background: rgba(15, 23, 42, 0.85);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-                padding: 0.5rem 1.5rem;
-            }
-            
-            .navbar-brand img {
-                height: 45px;
-                width: auto;
-                filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.3));
-                transition: transform 0.3s ease;
-            }
-            
-            .navbar-brand:hover img {
-                transform: scale(1.02);
+            /* ================================================
+               Apple-Style Floating Glass Morphism Header
+               ================================================ */
+
+            /* Floating pill container anchored to the top */
+            .apple-glass-header {
+                position: fixed !important;
+                top: 14px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 48px);
+                max-width: 1480px;
+                z-index: 1100;
+
+                /* True glass morphism */
+                background: rgba(12, 15, 30, 0.72) !important;
+                backdrop-filter: blur(24px) saturate(200%);
+                -webkit-backdrop-filter: blur(24px) saturate(200%);
+
+                /* Rounded apple-style corners */
+                border-radius: 22px !important;
+
+                /* Layered border — top highlight + full subtle border */
+                border: 1px solid rgba(255, 255, 255, 0.13) !important;
+                border-top-color: rgba(255, 255, 255, 0.22) !important;
+
+                /* Multi-layer shadow for depth */
+                box-shadow:
+                    0 24px 60px rgba(0, 0, 0, 0.5),
+                    0 6px 20px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+
+                padding: 0.45rem 1.25rem;
+                transition: box-shadow 0.3s ease, background 0.3s ease;
             }
 
+            .apple-glass-header:hover {
+                box-shadow:
+                    0 28px 70px rgba(0, 0, 0, 0.55),
+                    0 8px 24px rgba(0, 0, 0, 0.35),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+            }
+
+            /* Logo */
+            .navbar-brand img {
+                height: 42px;
+                width: auto;
+                filter: drop-shadow(0 0 6px rgba(120, 180, 255, 0.25));
+                transition: transform 0.3s ease, filter 0.3s ease;
+            }
+            .navbar-brand:hover img {
+                transform: scale(1.04);
+                filter: drop-shadow(0 0 10px rgba(120, 180, 255, 0.45));
+            }
+
+            /* Sidebar toggle button */
             .glass-toggler {
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                background: rgba(255, 255, 255, 0.05);
-                color: rgba(255, 255, 255, 0.8);
-                transition: all 0.2s;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                background: rgba(255, 255, 255, 0.07);
+                color: rgba(255, 255, 255, 0.85);
+                border-radius: 10px;
+                width: 38px;
+                height: 38px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.25s ease;
+                padding: 0;
             }
             .glass-toggler:hover {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.14);
+                border-color: rgba(255, 255, 255, 0.3);
                 color: #fff;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            }
+            .glass-toggler:active {
+                transform: scale(0.95);
             }
 
+            /* User pill / avatar button */
             .user-pill {
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.09);
+                border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 50px;
-                padding: 0.25rem 1rem 0.25rem 0.25rem;
-                transition: all 0.2s;
+                padding: 0.22rem 0.9rem 0.22rem 0.22rem;
+                transition: all 0.25s ease;
+                backdrop-filter: blur(8px);
             }
             .user-pill:hover {
-                background: rgba(255, 255, 255, 0.15);
-                border-color: rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.16);
+                border-color: rgba(255, 255, 255, 0.25);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
             }
-            
+            .user-pill .user-avatar {
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                border-radius: 50%;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.85rem;
+                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+            }
+            .user-pill .user-email {
+                font-size: 0.82rem;
+                font-weight: 600;
+                letter-spacing: 0.01em;
+                color: rgba(255, 255, 255, 0.92);
+            }
+            .user-pill .dropdown-caret {
+                font-size: 0.7rem;
+                color: rgba(255, 255, 255, 0.5);
+                margin-left: 2px;
+            }
+
+            /* Dropdown glass panel */
             .dropdown-menu-glass {
-                background: rgba(20, 25, 40, 0.95);
-                backdrop-filter: blur(16px);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                background: rgba(14, 18, 38, 0.92);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 14px;
+                box-shadow:
+                    0 16px 48px rgba(0, 0, 0, 0.45),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                padding: 6px;
+                min-width: 200px;
             }
             .dropdown-menu-glass .dropdown-item {
                 color: #cbd5e1;
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 0.88rem;
+                transition: background 0.15s ease, color 0.15s ease;
             }
             .dropdown-menu-glass .dropdown-item:hover {
                 background: rgba(255, 255, 255, 0.1);
                 color: #fff;
             }
+            .dropdown-menu-glass .dropdown-item.text-danger:hover {
+                background: rgba(239, 68, 68, 0.15);
+                color: #f87171;
+            }
             .dropdown-menu-glass .dropdown-divider {
-                border-top-color: rgba(255, 255, 255, 0.1);
+                border-top-color: rgba(255, 255, 255, 0.08);
+                margin: 4px 0;
+            }
+
+            /* Login button (anonymous state) */
+            .btn-glass-login {
+                background: rgba(59, 130, 246, 0.2);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                color: #93c5fd;
+                border-radius: 50px;
+                padding: 0.35rem 1.1rem;
+                font-size: 0.88rem;
+                font-weight: 600;
+                transition: all 0.25s ease;
+                backdrop-filter: blur(8px);
+            }
+            .btn-glass-login:hover {
+                background: rgba(59, 130, 246, 0.35);
+                border-color: rgba(59, 130, 246, 0.6);
+                color: #fff;
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
             }
         </style>
 
-        <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-header">
-            <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark apple-glass-header">
+            <div class="container-fluid px-1">
                 <!-- Toggle Button for Sidebar -->
                 <button class="btn glass-toggler me-3" type="button" 
                         data-bs-toggle="collapse" data-bs-target="#sidebarMenu" 
                         aria-controls="sidebarMenu" aria-expanded="true" aria-label="Toggle navigation">
-                    <i class="bi bi-list"></i>
+                    <i class="bi bi-list fs-5"></i>
                 </button>
                 
-                <!-- Logo Image -->
-                <a class="navbar-brand p-0" href="/">
-                    <img th:src="@{/images/sciverse-logo.png}" alt="Sciverse Summit">
+                <!-- Brand Text -->
+                <a class="navbar-brand p-0 fw-bold" href="/" style="font-size: 1.1rem; letter-spacing: 0.02em; color: #fff;">
+                    SciVerse Summit
                 </a>
                 
-                <div class="ms-auto">
+                <div class="ms-auto d-flex align-items-center gap-2">
                     <!-- Authenticated User: Show Email Dropdown -->
                     <div sec:authorize="isAuthenticated()" class="dropdown">
-                        <button class="btn text-white dropdown-toggle user-pill d-flex align-items-center gap-2" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                <i class="bi bi-person-fill"></i>
+                        <button class="btn text-white dropdown-toggle user-pill d-flex align-items-center gap-2"
+                                type="button" id="userDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar">
+                                <i class="bi bi-person-fill text-white"></i>
                             </div>
-                            <span th:text="${currentUserEmail}" class="small fw-bold">user@example.com</span>
+                            <span th:text="${currentUserEmail}" class="user-email">user@example.com</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-glass mt-2" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-sliders me-2"></i>Preferences</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-glass mt-2"
+                            aria-labelledby="userDropdown">
+                            <li>
+                                <button type="button" class="dropdown-item"
+                                        data-bs-toggle="modal" data-bs-target="#preferencesModal">
+                                    <i class="bi bi-sliders me-2 opacity-75"></i>Preferences
+                                </button>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                <button type="button" class="dropdown-item text-danger"
+                                        data-bs-toggle="modal" data-bs-target="#logoutModal">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </button>
                             </li>
@@ -109,7 +246,9 @@
                     </div>
 
                     <!-- Anonymous User: Show Login Link -->
-                    <a sec:authorize="!isAuthenticated()" class="btn btn-outline-light rounded-pill px-4" href="/login">Login</a>
+                    <a sec:authorize="!isAuthenticated()" class="btn-glass-login" href="/login">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </a>
                 </div>
             </div>
         </nav>
@@ -134,6 +273,153 @@
                 </div>
             </div>
         </div>
+
+        <!-- Preferences Modal -->
+        <div class="modal fade" id="preferencesModal" tabindex="-1" aria-labelledby="preferencesModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content border-0" style="
+                    background: rgba(255, 255, 255, 0.08);
+                    backdrop-filter: blur(28px) saturate(160%);
+                    -webkit-backdrop-filter: blur(28px) saturate(160%);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-top-color: rgba(255, 255, 255, 0.25);
+                    border-radius: 20px;
+                    box-shadow: 0 32px 72px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+                    color: #f0f0f0;
+                ">
+                    <!-- Header -->
+                    <div class="modal-header border-0 px-4 pt-4 pb-2 align-items-start">
+                        <div>
+                            <h5 class="modal-title fw-bold mb-1" id="preferencesModalLabel" style="color: rgba(255,255,255,0.95); font-size: 1.15rem;">
+                                <i class="bi bi-sliders me-2" style="opacity: 0.8;"></i>Preferences
+                            </h5>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.55); font-size: 0.82rem;">
+                                Make it yours — we won't judge your taste. 🎨
+                            </p>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white ms-auto mt-1" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="modal-body px-4 py-4 preferences-modal-body" style="max-height: 60vh; overflow-y: auto;">
+
+                        <!-- Divider label -->
+                        <p class="mb-3" style="font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,0.4);">
+                            Appearance
+                        </p>
+
+                        <!-- Theme cards -->
+                        <div class="d-flex gap-3 mb-4">
+                            <!-- Light Mode -->
+                            <div class="flex-fill theme-card" id="lightThemeCard" onclick="setTheme('light')" style="cursor: pointer;">
+                                <div class="rounded-3 p-3 d-flex flex-column align-items-center gap-2 text-center theme-card-inner" style="
+                                    background: rgba(255,255,255,0.07);
+                                    border: 1.5px solid rgba(255,255,255,0.35);
+                                    transition: all 0.2s;
+                                ">
+                                    <i class="bi bi-sun" style="font-size: 1.5rem; color: rgba(255,255,255,0.85);"></i>
+                                    <span style="font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.9);">Light</span>
+                                    <span id="lightBadge" style="font-size: 0.7rem; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.08); border-radius: 50px; padding: 1px 10px;">Active</span>
+                                </div>
+                            </div>
+                            <!-- Dark Mode -->
+                            <div class="flex-fill theme-card" id="darkThemeCard" onclick="setTheme('dark')" style="cursor: pointer;">
+                                <div class="rounded-3 p-3 d-flex flex-column align-items-center gap-2 text-center theme-card-inner" style="
+                                    background: rgba(255,255,255,0.04);
+                                    border: 1.5px solid rgba(255,255,255,0.1);
+                                    transition: all 0.2s;
+                                ">
+                                    <i class="bi bi-moon-stars" style="font-size: 1.5rem; color: rgba(255,255,255,0.5);"></i>
+                                    <span style="font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.5);">Dark</span>
+                                    <span id="darkBadge" style="font-size: 0.7rem; color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); border-radius: 50px; padding: 1px 10px; visibility: hidden;">Active</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Credits Section -->
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.25rem; margin-top: 1.5rem;">
+                            <p class="mb-3" style="font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,0.4);">
+                                Credits
+                            </p>
+                            
+                            <div class="text-center py-3" style="background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                                <p class="mb-2" style="font-size: 0.85rem; color: rgba(255,255,255,0.6); font-style: italic;">
+                                    "Crafted with passion, powered by code." ✨
+                                </p>
+                                <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                                    <i class="bi bi-code-slash" style="color: rgba(255,255,255,0.7); font-size: 1.2rem;"></i>
+                                    <span style="font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.95);">K.Ishan</span>
+                                </div>
+                                <p class="mb-0" style="font-size: 0.75rem; color: rgba(255,255,255,0.5); line-height: 1.6;">
+                                    <span class="d-block">UI Designer • Backend Developer</span>
+                                    <span class="d-block">Application Architect</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Placeholder space for future options -->
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.25rem; margin-top: 1.5rem;">
+                            <p class="mb-3" style="font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,0.4);">
+                                More settings coming soon...
+                            </p>
+                            
+                            <!-- Add placeholder items for better scrollbar visibility -->
+                            <div class="mb-3" style="opacity: 0.5;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-bell" style="color: rgba(255,255,255,0.6);"></i>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Notification Preferences</span>
+                                </div>
+                                <p class="mb-0 ps-4" style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                                    Manage when and how you receive notifications
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3" style="opacity: 0.5;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-globe" style="color: rgba(255,255,255,0.6);"></i>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Language Settings</span>
+                                </div>
+                                <p class="mb-0 ps-4" style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                                    Choose your preferred language
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3" style="opacity: 0.5;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-shield-check" style="color: rgba(255,255,255,0.6);"></i>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Privacy Controls</span>
+                                </div>
+                                <p class="mb-0 ps-4" style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                                    Control your data and privacy settings
+                                </p>
+                            </div>
+                            
+                            <div style="opacity: 0.5;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-download" style="color: rgba(255,255,255,0.6);"></i>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Export Data</span>
+                                </div>
+                                <p class="mb-0 ps-4" style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                                    Download your MUN session data
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                        <button type="button" class="btn btn-sm px-4" data-bs-dismiss="modal" style="
+                            background: rgba(255,255,255,0.1);
+                            border: 1px solid rgba(255,255,255,0.2);
+                            color: rgba(255,255,255,0.85);
+                            border-radius: 50px;
+                            font-size: 0.85rem;
+                        ">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 
@@ -141,65 +427,185 @@
     <!-- 2. SIDEBAR FRAGMENT -->
     <!-- ============================================== -->
     <th:block th:fragment="sidebar">
-        <div class="sidebar d-flex flex-column p-3 collapse show" id="sidebarMenu">
+        <!-- Dark Mode Script - Must load before preferences modal -->
+        <script>
+            // Dark/Light Mode Toggle - Define globally
+            window.setTheme = function(theme) {
+                console.log('setTheme called with:', theme);
+                const html = document.documentElement;
+                const body = document.body;
+                const lightCard = document.getElementById('lightThemeCard');
+                const darkCard = document.getElementById('darkThemeCard');
+                const lightBadge = document.getElementById('lightBadge');
+                const darkBadge = document.getElementById('darkBadge');
+                
+                console.log('Elements found:', {lightCard: !!lightCard, darkCard: !!darkCard});
+                
+                if (theme === 'dark') {
+                    // Apply dark mode to html and body
+                    html.classList.remove('dark-mode-loading');
+                    html.classList.add('dark-mode');
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                    console.log('Applied dark-mode class');
+                    
+                    // Update cards if they exist
+                    if (lightCard && darkCard) {
+                        // Update light card (inactive)
+                        const lightInner = lightCard.querySelector('.theme-card-inner');
+                        lightInner.style.background = 'rgba(255,255,255,0.04)';
+                        lightInner.style.borderColor = 'rgba(255,255,255,0.1)';
+                        lightCard.querySelector('.bi-sun').style.color = 'rgba(255,255,255,0.5)';
+                        lightCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.5)';
+                        if (lightBadge) lightBadge.style.visibility = 'hidden';
+                        
+                        // Update dark card (active)
+                        const darkInner = darkCard.querySelector('.theme-card-inner');
+                        darkInner.style.background = 'rgba(255,255,255,0.07)';
+                        darkInner.style.borderColor = 'rgba(255,255,255,0.35)';
+                        darkCard.querySelector('.bi-moon-stars').style.color = 'rgba(255,255,255,0.85)';
+                        darkCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.9)';
+                        if (darkBadge) darkBadge.style.visibility = 'visible';
+                    }
+                } else {
+                    // Remove dark mode from html and body
+                    html.classList.remove('dark-mode-loading');
+                    html.classList.remove('dark-mode');
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                    console.log('Removed dark-mode class');
+                    
+                    // Update cards if they exist
+                    if (lightCard && darkCard) {
+                        // Update light card (active)
+                        const lightInner = lightCard.querySelector('.theme-card-inner');
+                        lightInner.style.background = 'rgba(255,255,255,0.07)';
+                        lightInner.style.borderColor = 'rgba(255,255,255,0.35)';
+                        lightCard.querySelector('.bi-sun').style.color = 'rgba(255,255,255,0.85)';
+                        lightCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.9)';
+                        if (lightBadge) lightBadge.style.visibility = 'visible';
+                        
+                        // Update dark card (inactive)
+                        const darkInner = darkCard.querySelector('.theme-card-inner');
+                        darkInner.style.background = 'rgba(255,255,255,0.04)';
+                        darkInner.style.borderColor = 'rgba(255,255,255,0.1)';
+                        darkCard.querySelector('.bi-moon-stars').style.color = 'rgba(255,255,255,0.5)';
+                        darkCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.5)';
+                        if (darkBadge) darkBadge.style.visibility = 'hidden';
+                    }
+                }
+            };
+            
+            // Load saved theme on page load - immediately apply
+            document.addEventListener('DOMContentLoaded', function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                console.log('Loading saved theme:', savedTheme);
+                // Apply theme immediately, no timeout needed
+                setTheme(savedTheme);
+                
+                // Sidebar toggle functionality
+                const sidebarToggle = document.querySelector('[data-bs-target="#sidebarMenu"]');
+                const sidebar = document.getElementById('sidebarMenu');
+                const content = document.querySelector('.content');
+                
+                if (sidebar && sidebarToggle) {
+                    sidebar.addEventListener('hidden.bs.collapse', function () {
+                        console.log('Sidebar hidden');
+                        if (content) {
+                            content.style.marginLeft = '0';
+                        }
+                    });
+                    
+                    sidebar.addEventListener('shown.bs.collapse', function () {
+                        console.log('Sidebar shown');
+                        if (content) {
+                            content.style.marginLeft = '250px';
+                        }
+                    });
+                }
+            });
+        </script>
         
-            <ul class="nav nav-pills flex-column mb-auto">
+        <div class="sidebar d-flex flex-column p-3 collapse show modern-sidebar" id="sidebarMenu">
+        
+            <ul class="nav nav-pills flex-column mb-auto modern-nav">
 
                 <!-- Session Name Item (Only if session exists) -->
                 <li class="nav-item mb-3" th:if="${currentSession != null}">
-                    <div class="p-3 bg-primary text-white rounded text-center shadow-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.9rem; opacity: 0.9;">SESSION</strong>
-                        <span th:text="${currentSession.name}" class="fw-bold text-uppercase" style="font-size: 1.2rem; letter-spacing: 0.5px;">Session Name</span>
+                    <div class="modern-session-badge">
+                        <div class="session-icon-wrapper">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="session-text">
+                            <strong class="session-label">ACTIVE SESSION</strong>
+                            <span th:text="${currentSession.name}" class="session-name">Session Name</span>
+                        </div>
                     </div>
                 </li>
 
                 <li class="nav-item">
-                    <a th:href="@{/}" class="nav-link link-dark">
-                        <i class="bi bi-list-task"></i> Delegates List
+                    <a th:href="@{/}" class="nav-link modern-nav-link">
+                        <span class="nav-icon-wrapper">
+                            <i class="bi bi-people"></i>
+                        </span>
+                        <span class="nav-text">Delegates</span>
                     </a>
                 </li>
                 
                 <!--  new Menu item -->
             
-                <li>
-                <a href="/motions" class="nav-link link-dark"> 
-                <i 	class="bi bi-megaphone-fill"></i> Motions
-                </a>
+                <li class="nav-item">
+                    <a href="/motions" class="nav-link modern-nav-link"> 
+                        <span class="nav-icon-wrapper">
+                            <i class="bi bi-megaphone"></i>
+                        </span>
+                        <span class="nav-text">Motions</span>
+                    </a>
                 </li>
-                <li><a href="/unmod" class="nav-link link-dark"> <i
-                        class="bi bi-hourglass-split"></i> Unmod
-                </a></li>
-                <!-- 
-                <li><a href="#" class="nav-link link-dark"> <i
-                        class="bi bi-people-fill"></i> Caucuses
-                </a></li>
-                -->
-                <li><a href="/speakers" class="nav-link link-dark"> <i
-                        class="bi bi-people-fill"></i> Speakers
-                </a></li>
-                <li><a href="#" class="nav-link link-dark" data-bs-toggle="modal" data-bs-target="#notesModal" th:if="${currentSession != null}"> <i
-                        class="bi bi-journal-text"></i> Notes
-                </a></li>
-                <!--  
-                <li><a href="#" class="nav-link link-dark"> <i
-                        class="bi bi-hourglass-split"></i> Posts
-                </a></li>
-                -->
-                <li><a href="/stats" class="nav-link link-dark"> <i
-                        class="bi bi-bar-chart-fill"></i> Stats
-                </a></li>
+                <li class="nav-item">
+                    <a href="/unmod" class="nav-link modern-nav-link">
+                        <span class="nav-icon-wrapper">
+                            <i class="bi bi-clock-history"></i>
+                        </span>
+                        <span class="nav-text">Unmod</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/speakers" class="nav-link modern-nav-link">
+                        <span class="nav-icon-wrapper">
+                            <i class="bi bi-mic"></i>
+                        </span>
+                        <span class="nav-text">Speakers</span>
+                    </a>
+                </li>
+                <li class="nav-item" th:if="${currentSession != null}">
+                    <a href="/notes" class="nav-link modern-nav-link">
+                        <span class="nav-icon-wrapper">
+                            <i class="bi bi-journal-richtext"></i>
+                        </span>
+                        <span class="nav-text">Notes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/stats" class="nav-link modern-nav-link">
+                        <span class="nav-icon-wrapper">
+                            <i class="bi bi-bar-chart-line"></i>
+                        </span>
+                        <span class="nav-text">Statistics</span>
+                    </a>
+                </li>
                 
             </ul>
             
-            <div class="mt-3">
-                <a href="/dashboard" class="btn btn-outline-secondary w-100 text-start">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+            <div class="sidebar-footer">
+                <a href="/dashboard" class="btn modern-back-btn">
+                    <i class="bi bi-arrow-left-circle"></i>
+                    <span>Dashboard</span>
                 </a>
-            </div>
-            
-            <hr>
-            <div class="text-muted small">
-                Application Version 1.0
+                <div class="version-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <span>v2.0.0</span>
+                </div>
             </div>
         </div>
 
@@ -236,7 +642,481 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Dark Mode Styles - Must be inside sidebar fragment -->
+        <style>
+            /* Apple-style Custom Scrollbar - More specific and visible */
+            .preferences-modal-body::-webkit-scrollbar {
+                width: 12px !important;
+                height: 12px !important;
+            }
+            
+            .preferences-modal-body::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.3) !important;
+                border-radius: 6px !important;
+                margin: 8px 4px !important;
+            }
+            
+            .preferences-modal-body::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.4) !important;
+                border-radius: 6px !important;
+                border: 3px solid rgba(0, 0, 0, 0.3) !important;
+                transition: all 0.2s ease !important;
+            }
+            
+            .preferences-modal-body::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.6) !important;
+                border: 2px solid rgba(0, 0, 0, 0.3) !important;
+            }
+            
+            .preferences-modal-body::-webkit-scrollbar-thumb:active {
+                background: rgba(255, 255, 255, 0.75) !important;
+            }
+            
+            /* Firefox scrollbar */
+            .preferences-modal-body {
+                scrollbar-width: auto !important;
+                scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.3) !important;
+            }
+            
+            /* Dark mode scrollbar adjustments */
+            body.dark-mode .preferences-modal-body::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.5) !important;
+            }
+            
+            body.dark-mode .preferences-modal-body::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3) !important;
+            }
+            
+            body.dark-mode .preferences-modal-body::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.5) !important;
+            }
+            
+            /* Theme card hover effect */
+            .theme-card:hover .theme-card-inner {
+                transform: scale(1.03) !important;
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+            }
+            
+            .theme-card:active .theme-card-inner {
+                transform: scale(0.98) !important;
+            }
+            
+            /* Dark Mode Variables and Styles */
+            html.dark-mode,
+            html.dark-mode body,
+            body.dark-mode {
+                background: #0f172a !important;
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode .sidebar {
+                background-color: #1e293b !important;
+                border-right: 1px solid #334155 !important;
+            }
+            
+            /* Sidebar navigation links */
+            body.dark-mode .sidebar .nav-link {
+                color: #cbd5e1 !important;
+            }
+            
+            body.dark-mode .sidebar .nav-link:hover {
+                color: #f1f5f9 !important;
+                background-color: #334155 !important;
+            }
+            
+            body.dark-mode .sidebar .nav-link.active {
+                background-color: #3b82f6 !important;
+                color: #ffffff !important;
+            }
+            
+            body.dark-mode .sidebar .link-dark {
+                color: #cbd5e1 !important;
+            }
+            
+            body.dark-mode .sidebar .link-dark:hover {
+                color: #f1f5f9 !important;
+            }
+            
+            /* Sidebar session name box */
+            body.dark-mode .sidebar .bg-primary {
+                background-color: #1e40af !important;
+            }
+            
+            /* Sidebar icons */
+            body.dark-mode .sidebar .bi {
+                color: #cbd5e1 !important;
+            }
+            
+            /* Sidebar preferences button */
+            body.dark-mode .sidebar .btn-outline-secondary {
+                color: #cbd5e1 !important;
+                border-color: #475569 !important;
+            }
+            
+            body.dark-mode .sidebar .btn-outline-secondary:hover {
+                background-color: #475569 !important;
+                border-color: #64748b !important;
+                color: #f1f5f9 !important;
+            }
+            
+            /* Other dark mode styles */
+            body.dark-mode .eval-card,
+            body.dark-mode .note-pill-card,
+            body.dark-mode .table-responsive {
+                background: #1e293b !important;
+                border-color: #334155 !important;
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode .metric-input,
+            body.dark-mode .eval-search-input {
+                background: #0f172a !important;
+                border-color: #475569 !important;
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode .section-heading,
+            body.dark-mode .eval-delegate-name,
+            body.dark-mode .metric-label {
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode table {
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode thead {
+                background: #0f172a !important;
+            }
+            
+            body.dark-mode tbody tr:hover {
+                background: #334155 !important;
+            }
+            
+            body.dark-mode .text-muted {
+                color: #94a3b8 !important;
+            }
+            
+            body.dark-mode .btn-outline-primary {
+                color: #60a5fa !important;
+                border-color: #60a5fa !important;
+            }
+            
+            body.dark-mode .btn-outline-primary:hover {
+                background: #60a5fa !important;
+                color: #0f172a !important;
+            }
+            
+            body.dark-mode .btn-outline-primary.active {
+                background: #3b82f6 !important;
+                border-color: #3b82f6 !important;
+                color: white !important;
+            }
+            
+            /* Dark mode for navbar */
+            body.dark-mode .navbar,
+            body.dark-mode .apple-glass-header {
+                background: rgba(30, 41, 59, 0.8) !important;
+                border-color: rgba(71, 85, 105, 0.5) !important;
+            }
+            
+            body.dark-mode .navbar-brand,
+            body.dark-mode .navbar .nav-link {
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode .user-pill {
+                background: rgba(30, 41, 59, 0.8) !important;
+                border-color: rgba(71, 85, 105, 0.5) !important;
+            }
+            
+            body.dark-mode .user-email {
+                color: #cbd5e1 !important;
+            }
+            
+            /* Dark mode for modals */
+            body.dark-mode .modal-content {
+                background: #1e293b !important;
+                color: #e2e8f0 !important;
+                border-color: #334155 !important;
+            }
+            
+            body.dark-mode .modal-header,
+            body.dark-mode .modal-footer {
+                border-color: #334155 !important;
+            }
+            
+            body.dark-mode .btn-close {
+                filter: invert(1) grayscale(100%) brightness(200%);
+            }
+            
+            /* ================================================
+               MODERN SIDEBAR STYLES - 2026 DESIGN TRENDS
+               ================================================ */
+            
+            .modern-sidebar {
+                border-radius: 24px 0 0 24px !important;
+                background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%) !important;
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05) !important;
+                padding: 1.5rem !important;
+                margin: 0 !important;
+                transition: transform 0.3s ease, opacity 0.3s ease !important;
+            }
+            
+            /* Collapsed state for sidebar */
+            .modern-sidebar.collapsing {
+                transition: transform 0.35s ease, opacity 0.35s ease, width 0.35s ease !important;
+            }
+            
+            .modern-sidebar:not(.show) {
+                transform: translateX(-100%);
+                opacity: 0;
+                width: 0 !important;
+                padding: 0 !important;
+                overflow: hidden;
+            }
+            
+            /* Modern Navigation */
+            .modern-nav {
+                gap: 6px;
+            }
+            
+            .modern-nav-link {
+                display: flex !important;
+                align-items: center !important;
+                padding: 12px 16px !important;
+                border-radius: 12px !important;
+                color: #475569 !important;
+                font-weight: 500 !important;
+                font-size: 0.95rem !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                text-decoration: none !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+            
+            .modern-nav-link::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+                transform: scaleY(0);
+                transition: transform 0.2s ease;
+            }
+            
+            .modern-nav-link:hover {
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+                color: #1e40af !important;
+                transform: translateX(4px) !important;
+            }
+            
+            .modern-nav-link:hover::before {
+                transform: scaleY(1);
+            }
+            
+            .modern-nav-link.active,
+            .modern-nav-link:active {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+            }
+            
+            .nav-icon-wrapper {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                border-radius: 10px;
+                background: rgba(59, 130, 246, 0.1);
+                margin-right: 12px;
+                transition: all 0.2s ease;
+            }
+            
+            .modern-nav-link:hover .nav-icon-wrapper {
+                background: rgba(59, 130, 246, 0.15);
+                transform: scale(1.1);
+            }
+            
+            .modern-nav-link.active .nav-icon-wrapper,
+            .modern-nav-link:active .nav-icon-wrapper {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .nav-icon-wrapper i {
+                font-size: 1.1rem;
+            }
+            
+            .nav-text {
+                letter-spacing: 0.01em;
+            }
+            
+            /* Modern Session Badge */
+            .modern-session-badge {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                border-radius: 16px;
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .modern-session-badge::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                animation: pulse 3s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 1; }
+            }
+            
+            .session-icon-wrapper {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            
+            .session-icon-wrapper i {
+                font-size: 1.3rem;
+                color: #ffffff;
+            }
+            
+            .session-text {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                flex: 1;
+            }
+            
+            .session-label {
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                color: rgba(255, 255, 255, 0.8);
+                text-transform: uppercase;
+            }
+            
+            .session-name {
+                font-size: 1rem;
+                font-weight: 700;
+                color: #ffffff;
+                letter-spacing: 0.02em;
+                line-height: 1.2;
+            }
+            
+            /* Sidebar Footer */
+            .sidebar-footer {
+                margin-top: auto;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(0, 0, 0, 0.08);
+            }
+            
+            .modern-back-btn {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 10px 16px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                border: none;
+                color: #475569;
+                font-weight: 600;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            
+            .modern-back-btn:hover {
+                background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+                color: #1e293b;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .modern-back-btn i {
+                font-size: 1.1rem;
+            }
+            
+            .version-info {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 12px;
+                padding: 8px;
+                font-size: 0.75rem;
+                color: #94a3b8;
+                font-weight: 500;
+            }
+            
+            /* Dark Mode - Modern Sidebar */
+            body.dark-mode .modern-sidebar {
+                background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+                box-shadow: 2px 0 30px rgba(0, 0, 0, 0.5) !important;
+            }
+            
+            body.dark-mode .modern-nav-link {
+                color: #cbd5e1 !important;
+            }
+            
+            body.dark-mode .modern-nav-link:hover {
+                background: linear-gradient(135deg, #334155 0%, #475569 100%) !important;
+                color: #f1f5f9 !important;
+            }
+            
+            body.dark-mode .modern-nav-link.active,
+            body.dark-mode .modern-nav-link:active {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+                color: #ffffff !important;
+            }
+            
+            body.dark-mode .nav-icon-wrapper {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            body.dark-mode .modern-nav-link:hover .nav-icon-wrapper {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            
+            body.dark-mode .modern-back-btn {
+                background: linear-gradient(135deg, #334155 0%, #475569 100%);
+                color: #cbd5e1;
+            }
+            
+            body.dark-mode .modern-back-btn:hover {
+                background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+                color: #f1f5f9;
+            }
+            
+            body.dark-mode .version-info {
+                color: #64748b;
+            }
+            
+            body.dark-mode .sidebar-footer {
+                border-top-color: rgba(255, 255, 255, 0.05);
+            }
+        </style>
     </th:block>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>  
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

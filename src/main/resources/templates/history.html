@@ -4,13 +4,25 @@
     <title>Session History - Sciverse Summit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Theme initialization script - prevents flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
+    
     <style>
         /* Styles for the Layout Structure */
         :root {
             --sidebar-width: 250px;
         }
         .content {
-            padding: 80px 20px 20px 20px; 
+            padding: 95px 20px 20px 20px; 
             min-height: 100vh;
         }
         
@@ -23,9 +35,246 @@
         
         .table-container {
             background-color: white;
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 20px;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        /* Modern Table Styles */
+        .modern-table {
+            margin-bottom: 0;
+        }
+        
+        .modern-table thead {
+            background: #ffffff !important;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .modern-table thead th {
+            padding: 18px 16px;
+            font-weight: 700;
+            color: #1e293b !important;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none !important;
+            background: #ffffff !important;
+        }
+        
+        .modern-table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.92rem;
+            color: #334155;
+        }
+        
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .modern-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        /* Session Name Column */
+        .session-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        /* Committee Badge */
+        .committee-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* Participants Badge */
+        .participants-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        /* Date styling */
+        .date-text {
+            color: #64748b;
+            font-size: 0.88rem;
+        }
+        
+        /* View Notes Button */
+        .btn-view-note {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid #0ea5e9;
+            color: #0ea5e9;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        
+        .btn-view-note:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state-text {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+        
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: #0f172a !important;
+        }
+        
+        body.dark-mode .content {
+            background: #0f172a !important;
+        }
+        
+        body.dark-mode .page-title {
+            color: #f1f5f9 !important;
+        }
+        
+        body.dark-mode .table-container {
+            background-color: #000000 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        body.dark-mode .table-responsive {
+            background-color: #000000 !important;
+        }
+        
+        body.dark-mode .modern-table {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .modern-table thead {
+            background: #000000 !important;
+            border-bottom: 2px solid #334155 !important;
+        }
+        
+        body.dark-mode .modern-table thead th {
+            color: #ffffff !important;
+            background: #000000 !important;
+        }
+        
+        body.dark-mode .modern-table tbody {
+            background-color: #000000 !important;
+        }
+        
+        body.dark-mode .modern-table tbody td {
+            color: #ffffff !important;
+            border-bottom-color: #334155 !important;
+            background-color: transparent !important;
+        }
+        
+        body.dark-mode .modern-table tbody tr:hover {
+            background-color: #334155 !important;
+        }
+        
+        body.dark-mode .session-name {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .committee-badge {
+            background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%) !important;
+        }
+        
+        body.dark-mode .participants-badge {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .date-text {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .text-muted {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .btn-outline-secondary {
+            color: #ffffff !important;
+            border-color: #475569 !important;
+        }
+        
+        body.dark-mode .btn-outline-secondary:hover {
+            background-color: #475569 !important;
+            border-color: #64748b !important;
+            color: #f1f5f9 !important;
+        }
+        
+        body.dark-mode .btn-view-note {
+            color: #ffffff !important;
+            border-color: #0ea5e9 !important;
+        }
+        
+        body.dark-mode .btn-view-note:hover {
+            background-color: #0ea5e9 !important;
+            border-color: #0ea5e9 !important;
+            color: #fff !important;
+        }
+        
+        body.dark-mode .empty-state-icon {
+            color: #94a3b8 !important;
+        }
+        
+        body.dark-mode .empty-state-text {
+            color: #ffffff !important;
+        }
+        
+        /* Modal Dark Mode */
+        body.dark-mode .modal-content {
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        
+        body.dark-mode .modal-header {
+            border-bottom-color: #334155 !important;
+        }
+        
+        body.dark-mode .modal-footer {
+            border-top-color: #334155 !important;
+        }
+        
+        body.dark-mode .modal-title {
+            color: #f1f5f9 !important;
+        }
+        
+        body.dark-mode #viewNoteContent {
+            color: #e2e8f0 !important;
+        }
+        
+        body.dark-mode .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
         }
     </style>
 </head>
@@ -39,46 +288,73 @@
         
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="page-title">Session History</h1>
-            <a href="/dashboard" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-danger" onclick="deleteAllSessions()" th:if="${!#lists.isEmpty(sessions)}">
+                    <i class="bi bi-trash3 me-1"></i> Delete All Sessions
+                </button>
+                <a href="/dashboard" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
         </div>
         
         <div class="table-container">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+                <table class="table modern-table">
+                    <thead>
                         <tr>
                             <th>Session Name</th>
                             <th>Committee</th>
                             <th>Topic</th>
                             <th>Participants</th>
                             <th>Created At</th>
-                            <th>Notes</th>
+                            <th style="text-align: center;">Notes</th>
+                            <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="item : ${sessions}">
-                            <td th:text="${item.name}">Session Name</td>
-                            <td th:text="${item.committee}">Committee</td>
-                            <td th:text="${item.topic}">Topic</td>
-                            <td th:text="${item.strength}">0</td>
-                            <td th:text="${item.createdAt != null ? #temporals.format(item.createdAt, 'dd-MM-yyyy HH:mm') : 'N/A'}">Date</td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-outline-info" 
-                                        data-bs-toggle="popover" 
-                                        data-bs-trigger="focus" 
-                                        th:data-bs-content="${item.notes}" 
-                                        title="Session Notes"
-                                        th:if="${item.notes != null and !#strings.isEmpty(item.notes)}">
-                                    View Notes
+                                <span class="session-name" th:text="${item.name}">Session Name</span>
+                            </td>
+                            <td>
+                                <span class="committee-badge" th:text="${item.committee}">Committee</span>
+                            </td>
+                            <td th:text="${item.topic}">Topic</td>
+                            <td>
+                                <span class="participants-badge">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span th:text="${item.strength}">0</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="date-text" th:text="${item.createdAt != null ? #temporals.format(item.createdAt, 'dd-MM-yyyy HH:mm') : 'N/A'}">Date</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn btn-sm btn-view-note"
+                                        th:if="${item.notes != null and !#strings.isEmpty(item.notes)}"
+                                        th:attr="data-note=${item.notes}"
+                                        onclick="viewNote(this)">
+                                    <i class="bi bi-eye me-1"></i>View
                                 </button>
-                                <span th:if="${item.notes == null or #strings.isEmpty(item.notes)}" class="text-muted">-</span>
+                                <span th:if="${item.notes == null or #strings.isEmpty(item.notes)}" class="text-muted">—</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        th:attr="data-session-id=${item.id}"
+                                        onclick="deleteSession(this)">
+                                    <i class="bi bi-trash me-1"></i>Delete
+                                </button>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(sessions)}">
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                No session history found.
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-inbox"></i>
+                                </div>
+                                <div class="empty-state-text">
+                                    No session history found.
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -88,12 +364,149 @@
 
     </div>
 
+    <!-- View Note Modal -->
+    <div class="modal fade" id="viewNoteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-journal-text me-2 text-primary"></i>Session Note
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="viewNoteContent"
+                       style="white-space: pre-wrap; line-height: 1.75; margin: 0; font-size: 0.96rem; color: #1e293b;"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-          return new bootstrap.Popover(popoverTriggerEl)
-        })
+        function viewNote(btn) {
+            document.getElementById('viewNoteContent').textContent = btn.getAttribute('data-note');
+            new bootstrap.Modal(document.getElementById('viewNoteModal')).show();
+        }
+        
+        function deleteSession(btn) {
+            const sessionId = btn.getAttribute('data-session-id');
+            
+            if (!confirm('⚠️ Delete this session?\n\nThis will permanently delete:\n• Session data\n• All delegates in this session\n• All evaluations\n• Session notes\n\nThis action CANNOT be undone!\n\nAre you sure?')) {
+                return;
+            }
+            
+            fetch('/api/session/delete?sessionId=' + sessionId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('✅ Session deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('❌ Failed to delete session. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ An error occurred while deleting the session.');
+            });
+        }
+        
+        function deleteAllSessions() {
+            if (!confirm('⚠️ Delete ALL sessions?\n\nThis will permanently delete:\n• All session data\n• All delegates\n• All evaluations\n• All notes\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?')) {
+                return;
+            }
+            
+            // Second confirmation for safety
+            if (!confirm('Final confirmation: Delete ALL sessions permanently?')) {
+                return;
+            }
+            
+            fetch('/api/sessions/delete-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('✅ All sessions deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('❌ Failed to delete sessions. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ An error occurred while deleting sessions.');
+            });
+        }
+        
+        // Theme Toggle Function
+        window.setTheme = function(theme) {
+            console.log('setTheme called with:', theme);
+            const html = document.documentElement;
+            const body = document.body;
+            const lightCard = document.getElementById('lightThemeCard');
+            const darkCard = document.getElementById('darkThemeCard');
+            const lightBadge = document.getElementById('lightBadge');
+            const darkBadge = document.getElementById('darkBadge');
+            
+            if (theme === 'dark') {
+                html.classList.remove('dark-mode-loading');
+                html.classList.add('dark-mode');
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+                
+                if (lightCard && darkCard) {
+                    const lightInner = lightCard.querySelector('.theme-card-inner');
+                    lightInner.style.background = 'rgba(255,255,255,0.04)';
+                    lightInner.style.borderColor = 'rgba(255,255,255,0.1)';
+                    lightCard.querySelector('.bi-sun').style.color = 'rgba(255,255,255,0.5)';
+                    lightCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.5)';
+                    if (lightBadge) lightBadge.style.visibility = 'hidden';
+                    
+                    const darkInner = darkCard.querySelector('.theme-card-inner');
+                    darkInner.style.background = 'rgba(255,255,255,0.07)';
+                    darkInner.style.borderColor = 'rgba(255,255,255,0.35)';
+                    darkCard.querySelector('.bi-moon-stars').style.color = 'rgba(255,255,255,0.85)';
+                    darkCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.9)';
+                    if (darkBadge) darkBadge.style.visibility = 'visible';
+                }
+            } else {
+                html.classList.remove('dark-mode-loading');
+                html.classList.remove('dark-mode');
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+                
+                if (lightCard && darkCard) {
+                    const lightInner = lightCard.querySelector('.theme-card-inner');
+                    lightInner.style.background = 'rgba(255,255,255,0.07)';
+                    lightInner.style.borderColor = 'rgba(255,255,255,0.35)';
+                    lightCard.querySelector('.bi-sun').style.color = 'rgba(255,255,255,0.85)';
+                    lightCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.9)';
+                    if (lightBadge) lightBadge.style.visibility = 'visible';
+                    
+                    const darkInner = darkCard.querySelector('.theme-card-inner');
+                    darkInner.style.background = 'rgba(255,255,255,0.04)';
+                    darkInner.style.borderColor = 'rgba(255,255,255,0.1)';
+                    darkCard.querySelector('.bi-moon-stars').style.color = 'rgba(255,255,255,0.5)';
+                    darkCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.5)';
+                    if (darkBadge) darkBadge.style.visibility = 'hidden';
+                }
+            }
+        };
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            }
+        });
     </script>
 </body>
 </html>

@@ -18,7 +18,10 @@ public class AuthController {
     private UserService userService;
 
     @GetMapping("/login")
-    public String login() {
+    public String login(@org.springframework.web.bind.annotation.RequestParam(value = "error", required = false) String error, Model model) {
+        if (error != null) {
+            model.addAttribute("error", "Incorrect username, email or password");
+        }
         return "login";
     }
 
@@ -35,12 +38,12 @@ public class AuthController {
         }
 
         if (userService.isUsernameTaken(user.getUsername())) {
-            model.addAttribute("registrationError", "Username already exists.");
+            model.addAttribute("registrationError", "This username already exists. Try another one.");
             return "register";
         }
 
         if (userService.isEmailTaken(user.getEmail())) {
-            model.addAttribute("registrationError", "Email already exists.");
+            model.addAttribute("registrationError", "This email already exists. Try another one.");
             return "register";
         }
 

@@ -18,7 +18,10 @@ public class GlobalControllerAdvice {
     public Object getCurrentSession() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
-            return sessionService.getLatestSession().orElse(null);
+            // Try to get active session first, fall back to latest session
+            return sessionService.getActiveSession()
+                    .or(() -> sessionService.getLatestSession())
+                    .orElse(null);
         }
         return null;
     }

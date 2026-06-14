@@ -21,11 +21,23 @@ public class PresentationController {
 
     @Autowired
     private PresentationRepository presentationRepository;
+    
+    @Autowired
+    private com.ishan.sciverse.summit.service.SessionService sessionService;
 
     // READ: Display list of all presentations
     @GetMapping("/")
     public String listPresentations(Model model) {
-    	model.addAttribute("presentations", presentationRepository.findAllByOrderByIdDesc());
+        // Show delegates for current session only
+        var sessionOpt = sessionService.getActiveSession()
+                .or(() -> sessionService.getLatestSession());
+        
+        if (sessionOpt.isPresent()) {
+            model.addAttribute("presentations", 
+                presentationRepository.findBySessionOrderByIdAsc(sessionOpt.get()));
+        } else {
+            model.addAttribute("presentations", java.util.Collections.emptyList());
+        }
         return "index"; // Corresponds to src/main/resources/templates/index.html
     }
 
@@ -58,6 +70,34 @@ public class PresentationController {
     // CREATE/UPDATE: Handle form submission to save/update a presentation
     @PostMapping("/save")
     public String savePresentation(Presentation presentation) {
+        // Link to current session if it's a new delegate
+        if (presentation.getId() == null) {
+            var sessionOpt = sessionService.getActiveSession()
+                    .or(() -> sessionService.getLatestSession());
+            sessionOpt.ifPresent(presentation::setSession);
+        } else {
+            // For existing delegates, preserve the session and stats
+            Presentation existing = presentationRepository.findById(presentation.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid presentation Id:" + presentation.getId()));
+            
+            // Preserve session relationship
+            presentation.setSession(existing.getSession());
+            
+            // Preserve stats that shouldn't be modified through this form
+            presentation.setTimesSpoken(existing.getTimesSpoken());
+            presentation.setTotalSpeakingTime(existing.getTotalSpeakingTime());
+            presentation.setMotionProposals(existing.getMotionProposals());
+            presentation.setAmendmentProposals(existing.getAmendmentProposals());
+            
+            // Preserve evaluation scores
+            presentation.setSciKnowledge(existing.getSciKnowledge());
+            presentation.setRepresentationAccuracy(existing.getRepresentationAccuracy());
+            presentation.setPublicSpeaking(existing.getPublicSpeaking());
+            presentation.setParticipation(existing.getParticipation());
+            presentation.setResolutionDrafting(existing.getResolutionDrafting());
+            presentation.setCollaboration(existing.getCollaboration());
+            presentation.setLeadershipMatrix(existing.getLeadershipMatrix());
+        }
         presentationRepository.save(presentation);
         return "redirect:/"; // Redirect back to the list view
     }
@@ -111,8 +151,35 @@ public class PresentationController {
     // ⬇️ STATS PAGE HANDLER ⬇️
     @GetMapping("/stats")
     public String showStats(Model model) {
-        model.addAttribute("delegates", presentationRepository.findAll());
+        // Get current session
+        var sessionOpt = sessionService.getActiveSession()
+                .or(() -> sessionService.getLatestSession());
+        
+        if (sessionOpt.isPresent()) {
+            com.ishan.sciverse.summit.entity.Session session = sessionOpt.get();
+            // Only get delegates for THIS session
+            model.addAttribute("delegates", presentationRepository.findBySessionOrderByIdAsc(session));
+        } else {
+            model.addAttribute("delegates", java.util.Collections.emptyList());
+        }
         return "stats";
+    }
+
+    // ⬇️ NOTES PAGE HANDLER ⬇️
+    @GetMapping("/notes")
+    public String showNotes(Model model) {
+        // Get current session
+        var sessionOpt = sessionService.getActiveSession()
+                .or(() -> sessionService.getLatestSession());
+        
+        if (sessionOpt.isPresent()) {
+            com.ishan.sciverse.summit.entity.Session session = sessionOpt.get();
+            // Only get delegates for THIS session
+            model.addAttribute("delegates", presentationRepository.findBySessionOrderByIdAsc(session));
+        } else {
+            model.addAttribute("delegates", java.util.Collections.emptyList());
+        }
+        return "notes";
     }
 
     // API to update speaking stats (Duration only)
@@ -166,6 +233,34 @@ public class PresentationController {
                 delegate.setMotionProposals(delegate.getMotionProposals() + 1);
             }
             presentationRepository.save(delegate);
+            return "Success";
+        }
+        return "Delegate not found";
+    }
+
+    // ⬇️ EVALUATION SCORES UPDATE ⬇️
+    @PostMapping("/api/evaluation/update")
+    @ResponseBody
+    public String updateEvaluation(
+            @RequestParam("id") Long id,
+            @RequestParam("sciKnowledge") int sciKnowledge,
+            @RequestParam("representationAccuracy") int representationAccuracy,
+            @RequestParam("publicSpeaking") int publicSpeaking,
+            @RequestParam("participation") int participation,
+            @RequestParam("resolutionDrafting") int resolutionDrafting,
+            @RequestParam("collaboration") int collaboration,
+            @RequestParam("leadershipMatrix") int leadershipMatrix) {
+        Optional<Presentation> opt = presentationRepository.findById(id);
+        if (opt.isPresent()) {
+            Presentation p = opt.get();
+            p.setSciKnowledge(sciKnowledge);
+            p.setRepresentationAccuracy(representationAccuracy);
+            p.setPublicSpeaking(publicSpeaking);
+            p.setParticipation(participation);
+            p.setResolutionDrafting(resolutionDrafting);
+            p.setCollaboration(collaboration);
+            p.setLeadershipMatrix(leadershipMatrix);
+            presentationRepository.save(p);
             return "Success";
         }
         return "Delegate not found";

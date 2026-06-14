@@ -26,6 +26,54 @@
 		},
 		{
 			"path": "../../../../../../../../python-reinforcemnt-learn-trade-bot"
+		},
+		{
+			"path": "../../../../../../../../python-streamlit-creative-writer-prj"
+		},
+		{
+			"path": "../../../../../../../../python-kite-prj-2026"
+		},
+		{
+			"path": "../../../../../../../../video-project"
+		},
+		{
+			"path": "../../../../../../../../msp-project"
+		},
+		{
+			"path": "../../../../../../../../hcso-poc"
+		},
+		{
+			"path": "../../../../../../../../langchain-rag-ollama"
+		},
+		{
+			"path": "../../../../../../../../java-ecommerce-monitoring"
+		},
+		{
+			"path": "../../../../../../../../oss-full-stack-observability"
+		},
+		{
+			"path": "../../../../../../../../crewai-multiagent-ollama"
+		},
+		{
+			"path": "../../../../../../../../on-prem-vmware-fullstack"
+		},
+		{
+			"path": "../../../../../../../../unified-observability-dashboard"
+		},
+		{
+			"path": "../../../../../../../../visual-workload-designer"
+		},
+		{
+			"path": "../../../../../../../../lz-assist"
+		},
+		{
+			"path": "../../../../../../../../cloud-cost-analysis-dashboard"
+		},
+		{
+			"path": "../../../../../../../../finops-for-ai-cost-analyzer"
+		},
+		{
+			"path": "../../../../../../../../pii-data-anonymizer"
 		}
 	],
 	"settings": {}

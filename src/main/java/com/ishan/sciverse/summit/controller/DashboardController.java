@@ -46,8 +46,46 @@ public class DashboardController {
     public String saveNotes(@org.springframework.web.bind.annotation.RequestParam Long sessionId, 
                           @org.springframework.web.bind.annotation.RequestParam String notes,
                           jakarta.servlet.http.HttpServletRequest request) {
-        sessionService.saveNotes(sessionId, notes);
+        System.out.println("DEBUG: Saving notes for session ID: " + sessionId);
+        System.out.println("DEBUG: Notes content: " + notes);
+        
+        if (sessionId != null && sessionId > 0) {
+            sessionService.saveNotes(sessionId, notes);
+            System.out.println("DEBUG: Notes saved successfully");
+        } else {
+            System.err.println("ERROR: Invalid session ID: " + sessionId);
+        }
+        
         String referer = request.getHeader("Referer");
-        return "redirect:" + (referer != null ? referer : "/dashboard");
+        return "redirect:" + (referer != null ? referer : "/notes");
+    }
+
+    @PostMapping("/api/session/notes/delete")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public String deleteNotes(@org.springframework.web.bind.annotation.RequestParam Long sessionId) {
+        sessionService.saveNotes(sessionId, null);
+        return "deleted";
+    }
+
+    @GetMapping("/api/session/notes/get")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public String getNotes(@org.springframework.web.bind.annotation.RequestParam Long sessionId) {
+        return sessionService.getSessionById(sessionId)
+                .map(session -> session.getNotes() != null ? session.getNotes() : "")
+                .orElse("");
+    }
+
+    @PostMapping("/api/sessions/delete-all")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public String deleteAllSessions() {
+        sessionService.deleteAllSessions();
+        return "deleted";
+    }
+
+    @PostMapping("/api/session/delete")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public String deleteSession(@org.springframework.web.bind.annotation.RequestParam Long sessionId) {
+        sessionService.deleteSession(sessionId);
+        return "deleted";
     }
 }
