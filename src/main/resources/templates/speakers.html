@@ -4,79 +4,474 @@
     <title>General Speakers' List - SciVerse Summit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Theme initialization script - prevents flash of wrong theme -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+
     <!-- Load Tone.js for audio generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
-        /* Define sidebar width and transition for content alignment */
-        :root { --sidebar-width: 250px; }
+        /* ================================
+           THEME VARIABLES (Light Default)
+           ================================ */
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-secondary: #f1f5f9;
+            --bg-elevated: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --accent-primary: #3b82f6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        body.dark-mode {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-secondary: #334155;
+            --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ================================
+           SIDEBAR LAYOUT
+           ================================ */
         .sidebar {
-            position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width); 
-            padding-top: 0.5rem; background-color: #f8f9fa; z-index: 1000; transition: all 0.3s;
+            position: fixed; top: 80px; left: 0;
+            height: calc(100% - 80px); width: var(--sidebar-width);
+            padding-top: 0.5rem;
+            background-color: var(--bg-secondary);
+            z-index: 1000; transition: all 0.3s;
         }
         .content {
-            margin-left: var(--sidebar-width); padding: 95px 20px 20px 20px; 
-            position: relative; z-index: 1; transition: all 0.3s;
+            margin-left: var(--sidebar-width);
+            padding: 95px 20px 20px 20px;
+            position: relative; z-index: 1;
+            transition: all 0.3s;
         }
-        /* Handle sidebar collapse responsiveness */
         @media (max-width: 991.98px) {
             .sidebar { width: 0; }
             .content { margin-left: 0; }
         }
         #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
-            /* This is critical for making the sidebar disappear on mobile/collapse */
             transform: translateX(calc(-1 * var(--sidebar-width)));
-            margin-left: 0; /* Override content margin-left when collapsed */
+            margin-left: 0;
         }
+
+        .container-fluid { max-width: 1400px; }
+
+        /* ================================
+           PAGE HEADING
+           ================================ */
+        .page-heading {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-heading i { color: var(--accent-primary); }
+
+        /* ================================
+           MODERN CARDS
+           ================================ */
+        .card {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--shadow-md);
+            transition: box-shadow 0.2s, transform 0.2s;
+            color: var(--text-primary);
+        }
+        .card:hover { box-shadow: var(--shadow-lg); }
+
+        /* Card titles (h4) */
+        .card-title-modern {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .card-title-modern i {
+            color: var(--accent-primary);
+            font-size: 1.2rem;
+        }
+
+        /* Section titles (h5) */
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i {
+            color: var(--accent-primary);
+            font-size: 1rem;
+        }
+
+        /* ================================
+           TIMER DISPLAY
+           ================================ */
         .timer-display {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            color: var(--text-primary);
+            padding: 20px 24px;
+            border-radius: 14px;
             font-size: 3rem;
             font-weight: 700;
             text-align: center;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid var(--border-color);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
         }
+        .timer-display .btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+        .timer-display .btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* ================================
+           PROGRESS BAR
+           ================================ */
         .progress-bar-container {
             height: 8px;
-            background-color: #e0e0e0;
+            background-color: var(--bg-secondary);
             border-radius: 5px;
-            margin: 10px 0;
+            margin: 12px 0 16px 0;
+            overflow: hidden;
         }
         .progress-bar-fill {
             height: 100%;
             width: 100%;
-            background-color: #28a745;
+            background: linear-gradient(90deg, #10b981, #059669);
             border-radius: 5px;
-            transition: width 0.1s linear;
+            transition: width 0.3s linear, background-color 0.3s;
         }
+
+        /* ================================
+           QUEUE LIST + ITEMS
+           ================================ */
+        .card-panel {
+            min-height: 80px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            transition: all 0.2s;
+        }
+        .card-panel .text-muted {
+            color: var(--text-muted) !important;
+        }
+
         .queue-item {
-            padding: 8px 15px;
-            margin-bottom: 5px;
-            border-radius: 6px;
-            background-color: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.15s;
+            box-shadow: var(--shadow-sm);
         }
-        .card-panel {
-            min-height: 100px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #fcfcfc;
+        .queue-item:hover {
+            background: var(--bg-elevated);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
         }
+        .queue-item:last-child { margin-bottom: 0; }
+
+        /* Now / Next speaking panels - special highlight */
+        #now-speaking-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.10), rgba(5, 150, 105, 0.04));
+            border: 2px solid var(--accent-success);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+        }
+        #next-speaking-panel {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.10), rgba(37, 99, 235, 0.04));
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+        }
+
         .speaker-box {
-            font-size: 1.25rem;
-            font-weight: 500;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
+
+        /* ================================
+           FORM CONTROLS
+           ================================ */
+        .form-control, .form-select {
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.15s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .form-control::placeholder { color: var(--text-muted); }
+
+        /* Add to queue button (replaces btn-danger styling here) */
+        #add-to-queue-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            color: white !important;
+            border: none !important;
+            padding: 0 24px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #add-to-queue-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        /* ================================
+           TIMER CONTROL BUTTONS
+           ================================ */
+        .timer-controls .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.15s;
+            padding: 6px 12px;
+        }
+        .timer-controls .btn-secondary {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+        .timer-controls .btn-secondary:hover:not(:disabled) {
+            background: var(--border-color);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        .timer-controls .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+        }
+        .timer-controls .btn-success:hover:not(:disabled) {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .timer-controls .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            color: white;
+        }
+        .timer-controls .btn-warning:hover:not(:disabled) {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        .timer-controls .btn:disabled {
+            opacity: 0.45;
+            transform: none !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+        }
+
+        /* ================================
+           QUEUE ITEM ACTION BUTTONS
+           ================================ */
+        .queue-item .btn-outline-info {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            background: transparent;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+        .queue-item .btn-outline-info:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .queue-item .btn-outline-danger {
+            color: var(--accent-danger);
+            border-color: var(--accent-danger);
+            background: transparent;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .queue-item .btn-outline-danger:hover {
+            background: var(--accent-danger);
+            color: white;
+            border-color: var(--accent-danger);
+            transform: translateY(-1px);
+        }
+
+        /* Stage button (Next speaking) */
+        #next-speaking-actions .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            border: none !important;
+            color: white !important;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 16px;
+            transition: all 0.2s;
+        }
+        #next-speaking-actions .btn-info:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* End button (Now speaking) */
+        #now-speaking-panel .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            border: none !important;
+            color: white !important;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 14px;
+            transition: all 0.2s;
+        }
+        #now-speaking-panel .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* ================================
+           ALERT BOX
+           ================================ */
         .alert-custom {
             position: fixed;
-            top: 70px;
+            top: 90px;
             right: 20px;
             z-index: 2000;
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+            background: rgba(254, 243, 199, 0.95);
+            color: #92400e;
+            padding: 14px 18px;
+        }
+        body.dark-mode .alert-custom {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* ================================
+           SCROLLBAR (subtle)
+           ================================ */
+        .card-panel::-webkit-scrollbar { width: 6px; }
+        .card-panel::-webkit-scrollbar-track { background: transparent; }
+        .card-panel::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        .card-panel::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+        /* ================================
+           DARK MODE OVERRIDES
+           ================================ */
+        body.dark-mode .timer-display .btn {
+            background: var(--bg-secondary);
+            border-color: var(--border-strong);
+            color: var(--text-secondary);
+        }
+        body.dark-mode .timer-display .btn:hover {
+            background: var(--border-strong);
+            color: var(--text-primary);
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background: var(--bg-secondary);
+        }
+        body.dark-mode .form-control:focus,
+        body.dark-mode .form-select:focus {
+            background: var(--bg-secondary);
+        }
+        body.dark-mode .progress-bar-container {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        body.dark-mode #now-speaking-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.08));
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);
+        }
+        body.dark-mode #next-speaking-panel {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.08));
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.18);
+        }
+        body.dark-mode .queue-item {
+            background: var(--bg-secondary);
+        }
+        body.dark-mode .queue-item:hover {
+            background: var(--border-strong);
         }
     </style>
 </head>
@@ -92,43 +487,28 @@
     <div class="content">
         <div class="container-fluid">
 
-            <div class="page-header">
-                <h2>General Speakers' List</h2>
-                <a href="#" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-up-right"></i> Open Public View</a>
-            </div>
+            <h2 class="page-heading">
+                <i class="bi bi-megaphone-fill"></i>
+                <span>General Disclosure List</span>
+            </h2>
 
             <div class="row">
                 <!-- LEFT SIDE: Speaker Queue Management (7/12) -->
                 <div class="col-lg-7">
-                    <div class="card p-3 mb-4">
-                        <h4 class="mb-3">Speakers Queue Control</h4>
-                        <div class="row g-4">
-                            <!-- NOW SPEAKING -->
-                            <div class="col-12">
-                                <h5 class="fw-bold">Now speaking</h5>
-                                <div class="card-panel" id="now-speaking-panel">
-                                    <p class="text-muted mb-0" id="now-speaking-text">-- Empty --</p>
-                                </div>
-                            </div>
-
-                            <!-- NEXT SPEAKING -->
-                            <div class="col-12">
-                                <h5 class="fw-bold">Next speaking</h5>
-                                <div class="card-panel d-flex justify-content-between align-items-center" id="next-speaking-panel">
-                                    <span class="text-muted" id="next-speaking-text">-- Empty --</span>
-                                    <div id="next-speaking-actions" style="display: none;">
-                                        <button class="btn btn-sm btn-info text-white" onclick="moveToNowSpeaking()">Stage</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                    <div class="card p-4 mb-4">
+                        <h4 class="card-title-modern">
+                            <i class="bi bi-list-ol"></i>
+                            <span>Speakers Queue Control</span>
+                        </h4>
                         <!-- QUEUE MANAGEMENT -->
-                        <h5 class="fw-bold mt-4">Queue</h5>
+                        <h5 class="section-title">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Queue</span>
+                        </h5>
                         <!-- Queue Input and Autocomplete -->
                         <div class="input-group mb-3">
                             <input type="text" id="queue-input" class="form-control form-control-lg" placeholder="Type speaker name..." list="presenter-names-list">
-                            <button class="btn btn-danger" type="button" id="add-to-queue-btn">
+                            <button class="btn" type="button" id="add-to-queue-btn">
                                 <i class="bi bi-plus-lg"></i> Add
                             </button>
                         </div>
@@ -141,8 +521,37 @@
                             <p class="text-muted mb-0">Queue is empty. Add a speaker above.</p>
                         </div>
 
+                        <div class="row g-4">
+                            <!-- NEXT SPEAKING -->
+                            <div class="col-12">
+                                <h5 class="section-title">
+                                    <i class="bi bi-arrow-right-circle-fill"></i>
+                                    <span>Next Speaking</span>
+                                </h5>
+                                <div class="card-panel d-flex justify-content-between align-items-center" id="next-speaking-panel">
+                                    <span class="text-muted" id="next-speaking-text">-- Empty --</span>
+                                    <div id="next-speaking-actions" style="display: none;">
+                                        <button class="btn btn-sm btn-info text-white" onclick="moveToNowSpeaking()">
+                                            <i class="bi bi-mic-fill me-1"></i>Stage
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- NOW SPEAKING -->
+                            <div class="col-12">
+                                <h5 class="section-title">
+                                    <i class="bi bi-broadcast-pin"></i>
+                                    <span>Now Speaking</span>
+                                </h5>
+                                <div class="card-panel" id="now-speaking-panel">
+                                    <p class="text-muted mb-0" id="now-speaking-text">-- Empty --</p>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Voting Checkbox and Buttons -->
-                        <div class="d-flex align-items-center gap-3 mt-4">
+                        <!--<div class="d-flex align-items-center gap-3 mt-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="delegates-can-queue" checked>
                                 <label class="form-check-label" for="delegates-can-queue">
@@ -152,23 +561,26 @@
                             <button class="btn btn-sm btn-success">For</button>
                             <button class="btn btn-sm btn-secondary">Neutral</button>
                             <button class="btn btn-sm btn-danger">Against</button>
-                        </div>
+                        </div>-->
                     </div>
                 </div>
 
                 <!-- RIGHT SIDE: Timers (5/12) -->
                 <div class="col-lg-5">
                     <!-- SPEAKER TIMER -->
-                    <div class="card p-3 mb-4">
-                        <h5 class="fw-bold">Speaker timer</h5>
+                    <div class="card p-4 mb-4">
+                        <h5 class="card-title-modern">
+                            <i class="bi bi-stopwatch-fill"></i>
+                            <span>Speaker Timer</span>
+                        </h5>
                         <div class="timer-display" id="speaker-timer-text">
                             <span>1:00</span>
-                            <button class="btn btn-sm btn-light" id="speaker-mute-button" title="Mute/Unmute sound">
+                            <button class="btn btn-sm" id="speaker-mute-button" title="Mute/Unmute sound">
                                 <i class="bi bi-volume-up-fill"></i>
                             </button>
                         </div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" id="speaker-progress-fill" style="width: 100%;"></div></div>
-                        <div class="d-flex mb-3 gap-2 align-items-center justify-content-between">
+                        <div class="d-flex mb-1 gap-2 align-items-center justify-content-between timer-controls">
                             <input type="number" id="speaker-minutes-input" class="form-control" value="60" min="1" max="3600" style="width: 80px;">
                             <select id="speaker-unit-select" class="form-select" style="width: 80px;">
                                 <option value="sec">sec</option>
@@ -180,18 +592,21 @@
                             <button class="btn btn-secondary btn-sm" id="speaker-reset-button"><i class="bi bi-arrow-counterclockwise"></i></button>
                         </div>
                     </div>
-                    
+
                     <!-- CAUCUS TIMER -->
-                    <div class="card p-3 mb-4">
-                        <h5 class="fw-bold">Caucus timer</h5>
+                    <div class="card p-4 mb-4">
+                        <h5 class="card-title-modern">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Caucus Timer</span>
+                        </h5>
                         <div class="timer-display" id="caucus-timer-text">
                             <span>10:00</span>
-                            <button class="btn btn-sm btn-light" id="caucus-mute-button" title="Mute/Unmute sound">
+                            <button class="btn btn-sm" id="caucus-mute-button" title="Mute/Unmute sound">
                                 <i class="bi bi-volume-up-fill"></i>
                             </button>
                         </div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" id="caucus-progress-fill" style="width: 100%;"></div></div>
-                        <div class="d-flex mb-3 gap-2 align-items-center justify-content-between">
+                        <div class="d-flex mb-1 gap-2 align-items-center justify-content-between timer-controls">
                             <input type="number" id="caucus-minutes-input" class="form-control" value="10" min="1" max="60" style="width: 80px;">
                             <select id="caucus-unit-select" class="form-select" style="width: 80px;">
                                 <option value="min">min</option>
@@ -281,7 +696,7 @@
                     item.innerHTML = `
                         <span class="speaker-box">${speaker}</span>
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-info" title="Move to Next" onclick="moveToNextSpeaking('${safeName}')">Next</button>
+                            <button class="btn btn-outline-info" title="Move to Next" onclick="moveToNextSpeaking('${safeName}')"><i class="bi bi-arrow-right me-1"></i>Next</button>
                             <button class="btn btn-outline-danger" title="Remove" onclick="removeFromQueue('${safeName}')"><i class="bi bi-x-lg"></i></button>
                         </div>
                     `;
@@ -334,6 +749,14 @@
             // Start the speaker timer when someone moves to Now Speaking
             speakerTimer.reset(); 
             speakerTimer.start();
+
+            // Auto-start the Caucus timer ONLY if it's not already running.
+            // This ensures the caucus timer keeps running across multiple speakers
+            // until the user manually stops it or the time runs out (it is NOT reset
+            // when a new speaker is moved into Now Speaking).
+            if (!caucusTimer.isRunning) {
+                caucusTimer.start();
+            }
 
             // Increment Times Spoken immediately
             fetch('/api/stats/increment-spoken', {
@@ -520,9 +943,57 @@
 
         // 3. INITIALIZATION
 
-        // Instantiate Timers (1 minute default for speaker, 10 minutes for caucus)
-        const speakerTimer = new Timer('speaker', 60); 
-        const caucusTimer = new Timer('caucus', 600);
+        // Read caucus timer duration that may have been set from the Motions page.
+        // motions.html stores { seconds, rawValue, unit } in localStorage under
+        // key 'caucusTimerDuration' whenever the user clicks the '+' button there.
+        let caucusInitialSeconds = 600; // default: 10 minutes
+        try {
+            const savedCaucus = localStorage.getItem('caucusTimerDuration');
+            if (savedCaucus) {
+                const parsed = JSON.parse(savedCaucus);
+                if (parsed && typeof parsed.seconds === 'number' && parsed.seconds > 0) {
+                    caucusInitialSeconds = parsed.seconds;
+                    // Reflect the synced value in the input fields so the UI is consistent.
+                    const caucusInput = document.getElementById('caucus-minutes-input');
+                    const caucusUnit = document.getElementById('caucus-unit-select');
+                    if (caucusInput && caucusUnit && parsed.rawValue && parsed.unit) {
+                        caucusInput.value = parsed.rawValue;
+                        caucusUnit.value = parsed.unit;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Could not read caucus duration from localStorage:', e);
+        }
+
+        // Instantiate Timers (1 minute default for speaker, synced or 10-min default for caucus)
+        const speakerTimer = new Timer('speaker', 60);
+        const caucusTimer = new Timer('caucus', caucusInitialSeconds);
+
+        // Live cross-tab sync: if the user is on this page and updates the duration
+        // from the Motions page in another tab, reflect it here too — but only if
+        // the caucus timer is NOT currently running (so we don't disrupt an active session).
+        window.addEventListener('storage', (event) => {
+            if (event.key !== 'caucusTimerDuration' || !event.newValue) return;
+            try {
+                const parsed = JSON.parse(event.newValue);
+                if (!parsed || typeof parsed.seconds !== 'number' || parsed.seconds <= 0) return;
+                if (caucusTimer.isRunning) return; // don't interrupt an in-progress caucus
+
+                caucusTimer.totalSeconds = parsed.seconds;
+                caucusTimer.timeRemaining = parsed.seconds;
+                caucusTimer.updateDisplay();
+
+                const caucusInput = document.getElementById('caucus-minutes-input');
+                const caucusUnit = document.getElementById('caucus-unit-select');
+                if (caucusInput && caucusUnit && parsed.rawValue && parsed.unit) {
+                    caucusInput.value = parsed.rawValue;
+                    caucusUnit.value = parsed.unit;
+                }
+            } catch (err) {
+                console.warn('Could not apply live caucus duration update:', err);
+            }
+        });
 
         // Initial render of the queue
         renderQueue();

@@ -74,6 +74,9 @@
 		},
 		{
 			"path": "../../../../../../../../pii-data-anonymizer"
+		},
+		{
+			"path": "../../../../../../../../aws-lambda-prj"
 		}
 	],
 	"settings": {}

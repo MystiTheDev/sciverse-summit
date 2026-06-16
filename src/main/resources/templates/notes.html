@@ -200,6 +200,92 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        /* ================================
+           DARK MODE — GRID VIEW TABLE
+           ================================
+           These rules use !important to override the inline `style="color: #1e293b"` etc.
+           attributes set on the static <thead> HTML and the JS-generated <td> cells in
+           populateGridView(). The general body.dark-mode rules in fragments.html
+           (`thead { background: ... }`, `table { color: ... }`) are not specific enough
+           to beat inline styles, so we target the table by ID here.
+        */
+        body.dark-mode #evaluationTable thead,
+        body.dark-mode #evaluationTable thead tr {
+            background: #0f172a !important;
+            border-bottom-color: #334155 !important;
+        }
+        body.dark-mode #evaluationTable thead th {
+            color: #f1f5f9 !important;
+            background: transparent !important;
+            border-color: #334155 !important;
+        }
+        /* "(max XX)" sub-label inside each header */
+        body.dark-mode #evaluationTable thead th span {
+            color: #94a3b8 !important;
+        }
+        /* Total Score column header keeps a brighter blue accent */
+        body.dark-mode #evaluationTable thead th:nth-child(9) {
+            color: #60a5fa !important;
+        }
+        body.dark-mode #evaluationTable tbody tr {
+            background: transparent !important;
+        }
+        body.dark-mode #evaluationTable tbody td {
+            color: #cbd5e1 !important;
+            background: transparent !important;
+            border-color: #334155 !important;
+        }
+        /* Delegate Name column (1st col) — emphasized */
+        body.dark-mode #evaluationTable tbody td:first-child {
+            color: #f1f5f9 !important;
+        }
+        /* Total Score column (9th col) — blue accent */
+        body.dark-mode #evaluationTable tbody td:nth-child(9) {
+            color: #60a5fa !important;
+        }
+        body.dark-mode #evaluationTable tbody tr:hover td {
+            background: rgba(59, 130, 246, 0.10) !important;
+        }
+        /* Edit button inside grid view rows */
+        body.dark-mode #evaluationTable .btn-outline-primary {
+            color: #60a5fa !important;
+            border-color: #3b82f6 !important;
+            background: transparent !important;
+        }
+        body.dark-mode #evaluationTable .btn-outline-primary:hover {
+            background: #3b82f6 !important;
+            color: #ffffff !important;
+            border-color: #3b82f6 !important;
+        }
+        /* Export to CSV button stays vibrant in dark mode */
+        body.dark-mode #gridView .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: #ffffff;
+        }
+        body.dark-mode #gridView .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: #ffffff;
+        }
+
+        /* ================================
+           DARK MODE — UPDATE METRICS BUTTON (Panel View)
+           ================================
+           The default dark slate background (#1e293b) is nearly identical to the page
+           background in dark mode (#0f172a), making the button blend in. Switch to a
+           bright blue gradient for high contrast.
+        */
+        body.dark-mode .btn-update-metrics {
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.30);
+        }
+        body.dark-mode .btn-update-metrics:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>

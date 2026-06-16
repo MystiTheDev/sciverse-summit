@@ -115,34 +115,56 @@ public class PresentationController {
  // ⬇️ NEW SPEAKERS' LIST PAGE HANDLER ⬇️
     @GetMapping("/speakers")
     public String showSpeakersList(Model model) {
-        // Fetch all Presentation names to be used for autocompletion in the queue
-        List<String> presenterNames = presentationRepository.findAll().stream()
-            .map(Presentation::getName)
-            .distinct()
-            .collect(Collectors.toList());
-            
+        // Get current session (active first, otherwise the latest)
+        var sessionOpt = sessionService.getActiveSession()
+                .or(() -> sessionService.getLatestSession());
+
+        // Fetch ONLY delegates linked to the current session for autocompletion
+        List<String> presenterNames;
+        if (sessionOpt.isPresent()) {
+            presenterNames = presentationRepository
+                    .findBySessionOrderByIdAsc(sessionOpt.get())
+                    .stream()
+                    .map(Presentation::getName)
+                    .distinct()
+                    .collect(Collectors.toList());
+        } else {
+            presenterNames = java.util.Collections.emptyList();
+        }
+
         // Convert list to a JSON string for easy use in JavaScript
         String namesJson = presenterNames.stream()
             .map(name -> "'" + name.replace("'", "\\'") + "'") // Simple escaping
             .collect(Collectors.joining(","));
-            
+
         model.addAttribute("presenterNamesJson", namesJson);
         return "speakers";
     }
     
     @GetMapping("/motions")
     public String showMotions(Model model) {
-        // Fetch all Presentation names to be used for autocompletion in the queue
-        List<String> presenterNames = presentationRepository.findAll().stream()
-            .map(Presentation::getName)
-            .distinct()
-            .collect(Collectors.toList());
-            
+        // Get current session (active first, otherwise the latest)
+        var sessionOpt = sessionService.getActiveSession()
+                .or(() -> sessionService.getLatestSession());
+
+        // Fetch ONLY delegates linked to the current session for autocompletion
+        List<String> presenterNames;
+        if (sessionOpt.isPresent()) {
+            presenterNames = presentationRepository
+                    .findBySessionOrderByIdAsc(sessionOpt.get())
+                    .stream()
+                    .map(Presentation::getName)
+                    .distinct()
+                    .collect(Collectors.toList());
+        } else {
+            presenterNames = java.util.Collections.emptyList();
+        }
+
         // Convert list to a JSON string for easy use in JavaScript
         String namesJson = presenterNames.stream()
             .map(name -> "'" + name.replace("'", "\\'") + "'") // Simple escaping
             .collect(Collectors.joining(","));
-            
+
         model.addAttribute("presenterNamesJson", namesJson);
         model.addAttribute("delegateList", presenterNames);
         return "motions";
