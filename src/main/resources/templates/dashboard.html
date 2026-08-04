@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Dashboard - Sciverse Summit</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
     
     <!-- Theme initialization script - prevents flash -->
     <script>
@@ -91,8 +91,10 @@
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
         }
 
-        /* Glassmorphism Modal Styles */
-        .modal-content {
+        /* Glassmorphism Modal Styles — scoped to dashboard modals only */
+        #createSessionModal .modal-content,
+        #continueSessionModal .modal-content,
+        #ebReviewModal .modal-content {
             background: rgba(255, 255, 255, 0.1) !important;
             backdrop-filter: blur(28px) saturate(160%);
             -webkit-backdrop-filter: blur(28px) saturate(160%);
@@ -102,20 +104,28 @@
             box-shadow: 0 32px 72px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
-        .modal-header {
+        #createSessionModal .modal-header,
+        #continueSessionModal .modal-header,
+        #ebReviewModal .modal-header {
             border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
         }
 
-        .modal-title {
+        #createSessionModal .modal-title,
+        #continueSessionModal .modal-title,
+        #ebReviewModal .modal-title {
             color: rgba(255, 255, 255, 0.95);
             font-size: 1.25rem;
         }
 
-        .modal-body {
+        #createSessionModal .modal-body,
+        #continueSessionModal .modal-body,
+        #ebReviewModal .modal-body {
             color: rgba(255, 255, 255, 0.88);
         }
 
-        .form-label {
+        #createSessionModal .form-label,
+        #continueSessionModal .form-label,
+        #ebReviewModal .form-label {
             color: rgba(255, 255, 255, 0.85);
             font-size: 0.9rem;
             font-weight: 600;
@@ -123,7 +133,12 @@
             letter-spacing: 0.05em;
         }
 
-        .form-control, .form-select {
+        #createSessionModal .form-control,
+        #createSessionModal .form-select,
+        #continueSessionModal .form-control,
+        #continueSessionModal .form-select,
+        #ebReviewModal .form-control,
+        #ebReviewModal .form-select {
             background: rgba(255, 255, 255, 0.08) !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             border-radius: 10px !important;
@@ -131,18 +146,27 @@
             padding: 12px 16px;
         }
 
-        .form-control::placeholder {
+        #createSessionModal .form-control::placeholder,
+        #continueSessionModal .form-control::placeholder,
+        #ebReviewModal .form-control::placeholder {
             color: rgba(255, 255, 255, 0.4);
         }
 
-        .form-control:focus, .form-select:focus {
+        #createSessionModal .form-control:focus,
+        #createSessionModal .form-select:focus,
+        #continueSessionModal .form-control:focus,
+        #continueSessionModal .form-select:focus,
+        #ebReviewModal .form-control:focus,
+        #ebReviewModal .form-select:focus {
             background: rgba(255, 255, 255, 0.12) !important;
             border-color: rgba(255, 255, 255, 0.4) !important;
             box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1) !important;
             color: rgba(255, 255, 255, 0.95) !important;
         }
 
-        .form-select option {
+        #createSessionModal .form-select option,
+        #continueSessionModal .form-select option,
+        #ebReviewModal .form-select option {
             background: #1e293b;
             color: #fff;
         }
@@ -157,39 +181,51 @@
         }
 
         /* Modal Buttons */
-        .modal .btn-primary {
+        #createSessionModal .modal .btn-primary,
+        #continueSessionModal .modal .btn-primary,
+        #ebReviewModal .modal .btn-primary {
             background: rgba(79, 70, 229, 0.9);
             border: 1px solid rgba(79, 70, 229, 0.5);
             color: rgba(255, 255, 255, 0.95);
             font-weight: 600;
         }
 
-        .modal .btn-primary:hover {
+        #createSessionModal .modal .btn-primary:hover,
+        #continueSessionModal .modal .btn-primary:hover,
+        #ebReviewModal .modal .btn-primary:hover {
             background: rgba(79, 70, 229, 1);
             border-color: rgba(79, 70, 229, 0.8);
         }
 
-        .modal .btn-success {
+        #createSessionModal .btn-success,
+        #continueSessionModal .btn-success,
+        #ebReviewModal .btn-success {
             background: linear-gradient(135deg, #10b981, #059669);
             border: 1px solid rgba(16, 185, 129, 0.5);
             color: rgba(255, 255, 255, 0.95);
             font-weight: 700;
         }
 
-        .modal .btn-success:hover {
+        #createSessionModal .btn-success:hover,
+        #continueSessionModal .btn-success:hover,
+        #ebReviewModal .btn-success:hover {
             background: linear-gradient(135deg, #059669, #047857);
             border-color: rgba(16, 185, 129, 0.8);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
-        .modal .btn-outline-danger {
+        #createSessionModal .btn-outline-danger,
+        #continueSessionModal .btn-outline-danger,
+        #ebReviewModal .btn-outline-danger {
             background: rgba(239, 68, 68, 0.15);
             border: 1px solid rgba(239, 68, 68, 0.4);
             color: #fca5a5;
         }
 
-        .modal .btn-outline-danger:hover {
+        #createSessionModal .btn-outline-danger:hover,
+        #continueSessionModal .btn-outline-danger:hover,
+        #ebReviewModal .btn-outline-danger:hover {
             background: rgba(239, 68, 68, 0.25);
             border-color: rgba(239, 68, 68, 0.6);
             color: #fecaca;
@@ -267,43 +303,104 @@
     <!-- Continue Session Modal -->
     <div class="modal fade" id="continueSessionModal" tabindex="-1" aria-hidden="true" th:if="${activeSession != null}">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-gear-fill me-2" style="opacity: 0.75;"></i>Manage Session
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:18px;color:rgba(255,255,255,0.9);">
+                <div class="modal-header" style="background:rgba(59,130,246,0.10);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:18px 18px 0 0;padding:18px 24px 14px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;"><i class="bi bi-gear-fill"></i></div>
+                        <h5 class="modal-title fw-bold mb-0" style="color:#fff;font-size:1.05rem;">Manage Session</h5>
+                    </div>
+                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center py-4">
-                    <h4 class="mb-4" th:text="${activeSession.name}">Session Name</h4>
-                    <p class="mb-4" style="color: rgba(255,255,255,0.7);">What would you like to do with this session?</p>
-                    
+                <div class="modal-body text-center" style="padding:28px 24px;">
+                    <h4 class="mb-3 fw-bold" th:text="${activeSession.name}" style="color:#fff;">Session Name</h4>
+                    <p class="mb-4" style="color:rgba(255,255,255,0.6);font-size:0.9rem;">What would you like to do with this session?</p>
                     <div class="d-grid gap-3 col-8 mx-auto">
-                        <a href="/" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center gap-2">
+                        <a href="/" class="btn btn-lg d-flex align-items-center justify-content-center gap-2"
+                           style="background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;color:#fff;font-weight:700;border-radius:12px;padding:12px;">
                             <i class="bi bi-arrow-right-circle-fill"></i> Continue Session
                         </a>
-                        
-                        <form th:action="@{/session/end}" method="post">
-                            <input type="hidden" name="sessionId" th:value="${activeSession.id}" />
-                            <button type="submit" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-stop-circle-fill"></i> End Session
-                            </button>
-                        </form>
+                        <button type="button"
+                                class="btn btn-lg d-flex align-items-center justify-content-center gap-2"
+                                style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-weight:700;border-radius:12px;padding:12px;"
+                                onclick="openEbReviewModal()">
+                            <i class="bi bi-stop-circle-fill"></i> End Session
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- EB Review Modal (shown when user clicks End Session) -->
+    <div class="modal fade" id="ebReviewModal" tabindex="-1" aria-labelledby="ebReviewModalLabel" aria-hidden="true"
+         th:if="${activeSession != null}">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0 px-4 pt-4 pb-2">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-1" id="ebReviewModalLabel"
+                            style="color: rgba(255,255,255,0.95); font-size: 1.15rem;">
+                            <i class="bi bi-journal-check me-2" style="opacity:0.75;"></i>End Session — EB Review
+                        </h5>
+                        <p class="mb-0" style="color:rgba(255,255,255,0.5); font-size:0.82rem;">
+                            Write your Executive Board review before closing this session. This will be saved in history.
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-auto mt-1"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <label for="ebReviewTextarea" class="form-label mb-2"
+                           style="font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase;
+                                  font-weight:600; color:rgba(255,255,255,0.45);">
+                        <i class="bi bi-pencil-fill me-1"></i>EB Review Notes
+                    </label>
+                    <textarea id="ebReviewTextarea" rows="10" class="form-control"
+                              placeholder="Write the EB review for this session..."
+                              style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.18);
+                                     border-radius:12px; color:rgba(255,255,255,0.9) !important; font-size:1rem;
+                                     line-height:1.65; resize:vertical; padding:14px 16px;"></textarea>
+                    <style>
+                        #ebReviewTextarea::placeholder { color:rgba(255,255,255,0.3); }
+                        #ebReviewTextarea:focus { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.35);
+                            box-shadow:0 0 0 3px rgba(255,255,255,0.08); color:rgba(255,255,255,0.95) !important; outline:none; }
+                    </style>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 d-flex gap-2 justify-content-end">
+                    <button type="button" data-bs-dismiss="modal"
+                            class="btn btn-sm px-4"
+                            style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.18);
+                                   color:rgba(255,255,255,0.7); border-radius:50px; font-size:0.85rem;">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="button" onclick="confirmEndSession()"
+                            class="btn btn-sm px-4"
+                            style="background:rgba(239,68,68,0.75); border:1px solid rgba(239,68,68,0.5);
+                                   color:white; border-radius:50px; font-size:0.85rem; font-weight:700;">
+                        <i class="bi bi-stop-circle-fill me-1"></i>Confirm End Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden form used by confirmEndSession() to POST /session/end with ebReview -->
+    <form id="endSessionForm" th:if="${activeSession != null}"
+          th:action="@{/session/end}" method="post" style="display:none;">
+        <input type="hidden" name="sessionId" th:value="${activeSession.id}" />
+        <input type="hidden" name="ebReview"  id="endSessionEbReview" value="" />
+    </form>
+
     <!-- Create Session Modal -->
     <div class="modal fade" id="createSessionModal" tabindex="-1" aria-labelledby="createSessionModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="createSessionModalLabel">
-                        <i class="bi bi-plus-square-fill me-2" style="opacity: 0.75;"></i>Create New Session
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:18px;color:rgba(255,255,255,0.9);">
+                <div class="modal-header" style="background:rgba(16,185,129,0.10);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:18px 18px 0 0;padding:18px 24px 14px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;"><i class="bi bi-plus-square-fill"></i></div>
+                        <h5 class="modal-title fw-bold mb-0" id="createSessionModalLabel" style="color:#fff;font-size:1.05rem;">Create New Session</h5>
+                    </div>
+                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form th:action="@{/session/create}" th:object="${newSession}" method="post">
@@ -349,84 +446,55 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <!-- EB Review modal helpers -->
+    <script>
+        function openEbReviewModal() {
+            // Close the continue-session modal first
+            const contModal = bootstrap.Modal.getInstance(document.getElementById('continueSessionModal'));
+            if (contModal) contModal.hide();
+            // Wait for it to finish hiding before showing the review modal
+            const ebModalEl = document.getElementById('ebReviewModal');
+            if (!ebModalEl) return;
+            const contModalEl = document.getElementById('continueSessionModal');
+            const openReview = () => new bootstrap.Modal(ebModalEl).show();
+            if (contModalEl) {
+                contModalEl.addEventListener('hidden.bs.modal', openReview, { once: true });
+            } else {
+                openReview();
+            }
+        }
+
+        function confirmEndSession() {
+            const review = document.getElementById('ebReviewTextarea')?.value ?? '';
+            document.getElementById('endSessionEbReview').value = review;
+            document.getElementById('endSessionForm').submit();
+        }
+    </script>
+
     <!-- Theme Toggle Script -->
     <script>
-        // Dark/Light Mode Toggle Function
+        // Simplified setTheme — the navbar toggle pill handles visuals via CSS body.dark-mode
         window.setTheme = function(theme) {
-            console.log('setTheme called with:', theme);
             const html = document.documentElement;
             const body = document.body;
-            const lightCard = document.getElementById('lightThemeCard');
-            const darkCard = document.getElementById('darkThemeCard');
-            const lightBadge = document.getElementById('lightBadge');
-            const darkBadge = document.getElementById('darkBadge');
-            
-            console.log('Elements found:', {lightCard: !!lightCard, darkCard: !!darkCard});
-            
             if (theme === 'dark') {
-                // Apply dark mode to html and body
                 html.classList.remove('dark-mode-loading');
                 html.classList.add('dark-mode');
                 body.classList.add('dark-mode');
                 localStorage.setItem('theme', 'dark');
-                console.log('Applied dark-mode class');
-                
-                // Update cards if they exist
-                if (lightCard && darkCard) {
-                    // Update light card (inactive)
-                    const lightInner = lightCard.querySelector('.theme-card-inner');
-                    lightInner.style.background = 'rgba(255,255,255,0.04)';
-                    lightInner.style.borderColor = 'rgba(255,255,255,0.1)';
-                    lightCard.querySelector('.bi-sun').style.color = 'rgba(255,255,255,0.5)';
-                    lightCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.5)';
-                    if (lightBadge) lightBadge.style.visibility = 'hidden';
-                    
-                    // Update dark card (active)
-                    const darkInner = darkCard.querySelector('.theme-card-inner');
-                    darkInner.style.background = 'rgba(255,255,255,0.07)';
-                    darkInner.style.borderColor = 'rgba(255,255,255,0.35)';
-                    darkCard.querySelector('.bi-moon-stars').style.color = 'rgba(255,255,255,0.85)';
-                    darkCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.9)';
-                    if (darkBadge) darkBadge.style.visibility = 'visible';
-                }
             } else {
-                // Remove dark mode from html and body
                 html.classList.remove('dark-mode-loading');
                 html.classList.remove('dark-mode');
                 body.classList.remove('dark-mode');
                 localStorage.setItem('theme', 'light');
-                console.log('Removed dark-mode class');
-                
-                // Update cards if they exist
-                if (lightCard && darkCard) {
-                    // Update light card (active)
-                    const lightInner = lightCard.querySelector('.theme-card-inner');
-                    lightInner.style.background = 'rgba(255,255,255,0.07)';
-                    lightInner.style.borderColor = 'rgba(255,255,255,0.35)';
-                    lightCard.querySelector('.bi-sun').style.color = 'rgba(255,255,255,0.85)';
-                    lightCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.9)';
-                    if (lightBadge) lightBadge.style.visibility = 'visible';
-                    
-                    // Update dark card (inactive)
-                    const darkInner = darkCard.querySelector('.theme-card-inner');
-                    darkInner.style.background = 'rgba(255,255,255,0.04)';
-                    darkInner.style.borderColor = 'rgba(255,255,255,0.1)';
-                    darkCard.querySelector('.bi-moon-stars').style.color = 'rgba(255,255,255,0.5)';
-                    darkCard.querySelectorAll('span')[0].style.color = 'rgba(255,255,255,0.5)';
-                    if (darkBadge) darkBadge.style.visibility = 'hidden';
-                }
             }
         };
-        
-        // Load saved theme on page load
+
         document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('theme');
-            console.log('DOMContentLoaded - savedTheme:', savedTheme);
-            if (savedTheme) {
-                setTheme(savedTheme);
-            }
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
         });
     </script>
 </body>

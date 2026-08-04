@@ -27,6 +27,25 @@ public class GlobalControllerAdvice {
     }
     
     @Autowired
+    private com.ishan.sciverse.summit.repository.PresentationRepository presentationRepository;
+
+    /** Number of delegates in the current session — used by sidebar to gate Speakers/Motions links. */
+    @ModelAttribute("delegateCount")
+    public int getDelegateCount() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+                var sessionOpt = sessionService.getActiveSession()
+                        .or(() -> sessionService.getLatestSession());
+                if (sessionOpt.isPresent()) {
+                    return presentationRepository.findBySessionOrderByIdAsc(sessionOpt.get()).size();
+                }
+            }
+        } catch (Exception ignored) {}
+        return 0;
+    }
+    
+    @Autowired
     private com.ishan.sciverse.summit.repository.UserRepository userRepository;
 
     @ModelAttribute("currentUserEmail")
@@ -36,6 +55,42 @@ public class GlobalControllerAdvice {
              return userRepository.findByUsername(authentication.getName())
                  .map(com.ishan.sciverse.summit.entity.User::getEmail)
                  .orElse(authentication.getName());
+        }
+        return null;
+    }
+
+    @ModelAttribute("currentUsername")
+    public String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+            return authentication.getName();
+        }
+        return null;
+    }
+
+    @ModelAttribute("currentUserFullName")
+    public String getCurrentUserFullName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+            return userRepository.findByUsername(authentication.getName())
+                .map(com.ishan.sciverse.summit.entity.User::getFullName)
+                .orElse(null);
+        }
+        return null;
+    }
+
+    @ModelAttribute("currentUserMaskedEmail")
+    public String getCurrentUserMaskedEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+            return userRepository.findByUsername(authentication.getName()).map(u -> {
+                String e = u.getEmail();
+                if (e == null || !e.contains("@")) return e;
+                String[] p = e.split("@", 2);
+                String local = p[0];
+                if (local.length() <= 2) return local.charAt(0) + "***@" + p[1];
+                return local.charAt(0) + "***" + local.charAt(local.length() - 1) + "@" + p[1];
+            }).orElse(null);
         }
         return null;
     }

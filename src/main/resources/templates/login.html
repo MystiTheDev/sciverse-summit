@@ -3,9 +3,9 @@
 <head>
     <title>Welcome Back - Sign In</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/inter.css" rel="stylesheet">
     
     <style>
         body {
@@ -91,6 +91,23 @@
             font-weight: 500;
             text-align: center;
         }
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper .form-control {
+            padding-right: 44px;
+        }
+        .password-eye-btn {
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 42px;
+            display: flex; align-items: center; justify-content: center;
+            background: none; border: none;
+            color: #94a3b8; cursor: pointer;
+            font-size: 1rem; transition: color 0.15s;
+            border-radius: 0 8px 8px 0;
+        }
+        .password-eye-btn:hover { color: #475569; }
 
     </style>
 </head>
@@ -111,7 +128,7 @@
             <!-- Username / Email Field -->
             <div class="mb-4">
                 <label for="username" class="form-label-custom">
-                    <i class="bi bi-person"></i> User name / Email
+                    <i class="user-avatar"></i> User name / Email
                 </label>
                 <input type="text" class="form-control" id="username" name="username" required aria-label="Username or Email">
             </div>
@@ -121,13 +138,20 @@
                 <label for="password" class="form-label-custom">
                     <i class="bi bi-lock"></i> Password
                 </label>
-                <input type="password" class="form-control" id="password" name="password" required aria-label="Password">
+                <div class="password-wrapper">
+                    <input type="password" class="form-control" id="password" name="password" required aria-label="Password">
+                    <button type="button" class="password-eye-btn" id="passwordEyeBtn"
+                            onclick="togglePasswordVisibility()" tabindex="-1" aria-label="Show/hide password">
+                        <i class="bi bi-eye" id="passwordEyeIcon"></i>
+                    </button>
+                </div>
             </div>
             
             <!-- Account Links -->
             <div class="link-group">
                 <a href="/register" class="link-text text-secondary text-decoration-none">Create Account</a>
-                <a href="#" class="link-text text-secondary text-decoration-none">Forgot Password?</a>
+                <a href="#" class="link-text text-secondary text-decoration-none"
+                   data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
             </div>
 
             <!-- Sign In Button -->
@@ -137,6 +161,193 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function togglePasswordVisibility() {
+            var input = document.getElementById('password');
+            var icon  = document.getElementById('passwordEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+            input.focus();
+        }
+    </script>
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content" style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 50px rgba(0,0,0,0.12);">
+
+                <!-- Header -->
+                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;box-shadow:0 4px 12px rgba(99,102,241,0.35);flex-shrink:0;">
+                            <i class="bi bi-key-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" style="color:#1e293b;font-size:1.05rem;">Account Recovery</h5>
+                            <p class="mb-0" style="font-size:0.78rem;color:#64748b;">Find your account details</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="fpModalClose"></button>
+                </div>
+
+                <div class="modal-body px-4 py-4">
+
+                    <!-- STEP 1: Lookup form -->
+                    <div id="forgotStep1">
+                        <p style="font-size:0.88rem;color:#475569;margin-bottom:20px;">
+                            Enter your <strong>username</strong>, <strong>email</strong>, or both.
+                            We&rsquo;ll look up your account.
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label-custom">
+                                <i class="bi bi-person me-1"></i>Username <span style="font-size:0.78rem;color:#94a3b8;">(optional)</span>
+                            </label>
+                            <input type="text" id="fpUsername" class="form-control" placeholder="e.g. john_doe" autocomplete="username">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-custom">
+                                <i class="bi bi-envelope me-1"></i>Email <span style="font-size:0.78rem;color:#94a3b8;">(optional)</span>
+                            </label>
+                            <input type="email" id="fpEmail" class="form-control" placeholder="e.g. john@example.com" autocomplete="email">
+                        </div>
+                        <div id="fpError" class="mb-3 p-2 rounded" style="background:#fee2e2;color:#991b1b;font-size:0.82rem;display:none;"></div>
+                        <button id="fpLookupBtn" onclick="fpLookup()" class="btn sign-in-btn text-white" style="font-size:1rem;padding:10px 20px;">
+                            <i class="bi bi-search me-1"></i>Look Up Account
+                        </button>
+                    </div>
+
+                    <!-- STEP 2: Results -->
+                    <div id="forgotStep2" style="display:none;">
+                        <div class="mb-3 p-2 rounded" style="background:#dcfce7;color:#14532d;font-size:0.82rem;">
+                            <i class="bi bi-check-circle-fill me-1"></i>Account found!
+                        </div>
+                        <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:10px 0;color:#64748b;font-weight:600;width:130px;"><i class="bi bi-person me-2"></i>Full Name</td>
+                                <td style="padding:10px 0;color:#1e293b;font-weight:600;" id="fpResFullName"></td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:10px 0;color:#64748b;font-weight:600;"><i class="bi bi-at me-2"></i>Username</td>
+                                <td style="padding:10px 0;color:#1e293b;font-weight:600;" id="fpResUsername"></td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:10px 0;color:#64748b;font-weight:600;"><i class="bi bi-envelope me-2"></i>Email</td>
+                                <td style="padding:10px 0;color:#1e293b;font-weight:600;" id="fpResEmail"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:10px 0;color:#64748b;font-weight:600;"><i class="bi bi-lock me-2"></i>Password</td>
+                                <td style="padding:10px 0;" id="fpResPassword">
+                                    <span id="fpPassMask" style="letter-spacing:0.12em;color:#1e293b;"></span>
+                                    <button onclick="fpTogglePass()" class="btn btn-sm btn-link p-0 ms-2" style="font-size:0.75rem;color:#3b82f6;" id="fpPassToggleBtn">
+                                        <i class="bi bi-eye" id="fpPassEye"></i> Show
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="d-flex gap-2 mt-4">
+                            <button onclick="fpReset()" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="bi bi-arrow-left me-1"></i>Search Again
+                            </button>
+                            <button class="btn btn-sm flex-fill text-white" style="background:linear-gradient(135deg,#3b82f6,#6366f1);"
+                                    data-bs-dismiss="modal">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Go to Login
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var _fpRawPassword = '';
+        var _fpPassVisible = false;
+
+        function fpLookup() {
+            var username = document.getElementById('fpUsername').value.trim();
+            var email    = document.getElementById('fpEmail').value.trim();
+            var errorEl  = document.getElementById('fpError');
+            errorEl.style.display = 'none';
+
+            if (!username && !email) {
+                errorEl.textContent = 'Please enter at least a username or email.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            var btn = document.getElementById('fpLookupBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Looking up...';
+
+            fetch('/api/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'username=' + encodeURIComponent(username) + '&email=' + encodeURIComponent(email)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-search me-1"></i>Look Up Account';
+                if (data.found) {
+                    _fpRawPassword  = data.password || '';
+                    _fpPassVisible  = false;
+                    document.getElementById('fpResFullName').textContent  = data.fullName  || '—';
+                    document.getElementById('fpResUsername').textContent  = data.username  || '—';
+                    document.getElementById('fpResEmail').textContent     = data.email     || '—';
+                    document.getElementById('fpPassMask').textContent     = '•'.repeat(Math.min(_fpRawPassword.length, 12));
+                    document.getElementById('forgotStep1').style.display  = 'none';
+                    document.getElementById('forgotStep2').style.display  = 'block';
+                } else {
+                    errorEl.textContent = data.message || 'Account not found.';
+                    errorEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-search me-1"></i>Look Up Account';
+                errorEl.textContent = 'An error occurred. Please try again.';
+                errorEl.style.display = 'block';
+            });
+        }
+
+        function fpTogglePass() {
+            _fpPassVisible = !_fpPassVisible;
+            var mask = document.getElementById('fpPassMask');
+            var eye  = document.getElementById('fpPassEye');
+            var btn  = document.getElementById('fpPassToggleBtn');
+            if (_fpPassVisible) {
+                mask.textContent = _fpRawPassword;
+                mask.style.letterSpacing = '0';
+                eye.className  = 'bi bi-eye-slash';
+                btn.innerHTML  = '<i class="bi bi-eye-slash" id="fpPassEye"></i> Hide';
+            } else {
+                mask.textContent = '•'.repeat(Math.min(_fpRawPassword.length, 12));
+                mask.style.letterSpacing = '0.12em';
+                eye.className  = 'bi bi-eye';
+                btn.innerHTML  = '<i class="bi bi-eye" id="fpPassEye"></i> Show';
+            }
+        }
+
+        function fpReset() {
+            document.getElementById('fpUsername').value   = '';
+            document.getElementById('fpEmail').value      = '';
+            document.getElementById('fpError').style.display = 'none';
+            document.getElementById('forgotStep1').style.display = 'block';
+            document.getElementById('forgotStep2').style.display = 'none';
+            _fpPassVisible = false;
+        }
+
+        // Reset the modal when it's closed
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = document.getElementById('forgotPasswordModal');
+            if (modal) modal.addEventListener('hidden.bs.modal', fpReset);
+        });
+    </script>
 </body>
 </html>

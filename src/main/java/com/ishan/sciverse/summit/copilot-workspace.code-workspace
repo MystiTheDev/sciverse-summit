@@ -77,6 +77,18 @@
 		},
 		{
 			"path": "../../../../../../../../aws-lambda-prj"
+		},
+		{
+			"path": "../../../../../../../../uod-grafana-prj"
+		},
+		{
+			"path": "../../../../../../../../springboot-ecommerce-app-java-thymeleaf"
+		},
+		{
+			"path": "../../../../../../../../hcso-docs-git"
+		},
+		{
+			"path": "../../../../../../../../ai-cloud-assist"
 		}
 	],
 	"settings": {}

@@ -39,6 +39,9 @@ public class Session {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "eb_review", columnDefinition = "TEXT")
+    private String ebReview;
+
     @PrePersist
     protected void onCreate() {
         createdAt = java.time.LocalDateTime.now();

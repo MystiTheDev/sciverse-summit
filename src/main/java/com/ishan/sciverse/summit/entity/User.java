@@ -38,4 +38,7 @@ public class User {
     private String gender;
 
     private String role;
+
+    // Stored in plain text temporarily for account recovery — not used for authentication
+    private String rawPassword;
 }

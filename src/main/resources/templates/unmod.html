@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Unmoderated Caucus Timer - SciVerse Summit</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Kolloqium Timer - SciVerse Summit</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Theme initialization script - prevents flash of wrong theme -->
     <script>
@@ -17,8 +17,7 @@
         })();
     </script>
 
-    <!-- Load Tone.js for audio generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Tone.js removed: timer-end sound handled by global _playTimerEndChime (Web Audio API) -->
     <style>
         /* ================================
            THEME VARIABLES (Light Default)
@@ -209,7 +208,14 @@
             width: 100%;
             background: linear-gradient(90deg, #10b981, #059669);
             border-radius: 5px;
-            transition: width 0.3s linear, background-color 0.3s;
+            transition: background 0.5s ease; /* width driven by rAF, no CSS transition needed */
+        }
+        @keyframes warn-flash {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.35; }
+        }
+        .progress-bar-fill.warn-flashing {
+            animation: warn-flash 0.6s ease-in-out infinite;
         }
 
         /* ================================
@@ -392,7 +398,7 @@
 
             <span class="badge" id="caucus-title">
                 <i class="bi bi-people-fill"></i>
-                <span>Unmoderated Caucus</span>
+                <span>Kolloqium Timer</span>
             </span>
 
             <!-- Timer Display -->
@@ -444,10 +450,12 @@
         </div>
     </div>
     
-    <!-- Custom Modal for Alerts (replacing alert()) -->
-    <div class="alert alert-warning alert-dismissible fade show alert-custom d-none" role="alert" id="message-box">
+    <!-- Notification toast -->
+    <div class="alert-custom d-none" role="alert" id="message-box">
         <span id="message-text"></span>
-        <button type="button" class="btn-close" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close"></button>
+        <button type="button" style="background:none;border:none;padding:0 0 0 10px;cursor:pointer;opacity:0.6;font-size:1rem;line-height:1;color:inherit;" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
 
     <!-- JavaScript for Timer Logic and Audio -->
@@ -471,16 +479,14 @@
         let intervalId = null;
         let isMuted = false;
 
-        // Audio Setup (using Tone.js)
-        const synth = new Tone.MembraneSynth().toDestination();
-        const chime = new Tone.PolySynth(Tone.Synth).toDestination();
+        // rAF state for smooth progress bar
+        let _rafId = null;
+        let _rafStart = null;
+        let _rafRemaining = 0;
 
         function playEndSound() {
             if (isMuted) return;
-            // Play a noticeable, simple chime sequence
-            chime.triggerAttackRelease(["C4", "E4", "G4"], "3n"); 
-            // Also play a deep, simple drum hit
-            synth.triggerAttackRelease("C1", "8n"); 
+            if (typeof window._playTimerEndChime === 'function') window._playTimerEndChime();
         }
 
         // Utility Functions
@@ -492,34 +498,56 @@
 
         function updateDisplay() {
             timerText.textContent = formatTime(timeRemaining);
-            const progress = (timeRemaining / totalSeconds) * 100;
-            progressFill.style.width = `${progress}%`;
-            // Color shift: green > amber > red as time runs out
-            if (progress > 20) {
+            if (!isRunning) {
+                // Only update bar directly when not running; rAF handles it while running
+                const pct = totalSeconds > 0 ? Math.max(0, (timeRemaining / totalSeconds) * 100) : 0;
+                progressFill.style.width = `${pct}%`;
+                if (pct > 20) {
+                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+                } else if (pct > 10) {
+                    progressFill.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+                } else {
+                    progressFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+                }
+            }
+        }
+
+        // rAF loop: 60 fps smooth progress bar while timer is running
+        function _animateProgress() {
+            if (!isRunning) return;
+            const elapsed   = (Date.now() - _rafStart) / 1000;
+            const remaining = Math.max(0, _rafRemaining - elapsed);
+            const pct       = totalSeconds > 0 ? (remaining / totalSeconds) * 100 : 0;
+            if (pct > 20) {
                 progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
-            } else if (progress > 10) {
+            } else if (pct > 10) {
                 progressFill.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
             } else {
                 progressFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
             }
+            progressFill.style.width = `${pct}%`;
+            // Warning flash when ≤10 s remain
+            const shouldFlash = remaining <= 10 && remaining > 0 &&
+                typeof window.getSetting === 'function' && window.getSetting('timerWarningFlash');
+            progressFill.classList.toggle('warn-flashing', !!shouldFlash);
+            _rafId = requestAnimationFrame(_animateProgress);
         }
 
-        function showMessage(text) {
+        function showMessage(text, type) {
             const msgBox = document.getElementById('message-box');
             document.getElementById('message-text').textContent = text;
             msgBox.classList.remove('d-none');
-            // Hide after 5 seconds
             setTimeout(() => msgBox.classList.add('d-none'), 5000);
+            // Also push to the notification bell
+            if (typeof window.addNotification === 'function') {
+                var iconMap = { success: 'bi-check-circle-fill', warning: 'bi-exclamation-triangle-fill', error: 'bi-x-circle-fill', info: 'bi-info-circle-fill' };
+                window.addNotification(iconMap[type] || 'bi-info-circle-fill', text, type || 'info');
+            }
         }
 
         // Timer Core Logic
         function startTimer() {
             if (isRunning || timeRemaining <= 0) return;
-            
-            // Start audio context on first user interaction
-            if (Tone.context.state !== 'running') {
-                Tone.start();
-            }
 
             isRunning = true;
             startButton.disabled = true;
@@ -529,12 +557,22 @@
             unitSelect.disabled = true;
             if (timerDisplayBox) timerDisplayBox.classList.add('running');
 
+            // Register with the global persistent timer engine
+            window.SummitTimer && window.SummitTimer.start(
+                'unmod', 'Kolloqium Timer', '/unmod', totalSeconds, timeRemaining);
+
+            // Start rAF smooth progress bar
+            _rafStart     = Date.now();
+            _rafRemaining = timeRemaining;
+            _animateProgress();
+
             intervalId = setInterval(() => {
                 timeRemaining--;
-                updateDisplay();
+                timerText.textContent = formatTime(timeRemaining);
 
                 if (timeRemaining <= 0) {
                     clearInterval(intervalId);
+                    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
                     isRunning = false;
                     startButton.disabled = false;
                     pauseButton.disabled = true;
@@ -542,18 +580,27 @@
                     minutesInput.disabled = false;
                     unitSelect.disabled = false;
                     if (timerDisplayBox) timerDisplayBox.classList.remove('running');
-                    
-                    playEndSound();
+
+                    window.SummitTimer && window.SummitTimer.reset('unmod');
+                    // Call chime + toast directly — reliable from setInterval context
+                    var _detail = { id: 'unmod', label: 'Kolloqium Timer', sourcePage: '/unmod' };
+                    if (window._playTimerEndChime) window._playTimerEndChime();
+                    if (window._showTimerEndedToast) window._showTimerEndedToast(_detail);
                     showMessage("TIME IS UP! Caucus complete.");
-                    timeRemaining = 0; // Ensure it stays at 00:00
+                    timeRemaining = 0;
                     updateDisplay();
+                } else {
+                    window.SummitTimer && window.SummitTimer.sync(
+                        'unmod', timeRemaining, totalSeconds);
                 }
             }, 1000);
         }
 
         function pauseTimer() {
             if (!isRunning) return;
+            window.SummitTimer && window.SummitTimer.pause('unmod');
             clearInterval(intervalId);
+            if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
             isRunning = false;
             startButton.disabled = false;
             pauseButton.disabled = true;
@@ -562,16 +609,16 @@
 
         function resetTimer() {
             clearInterval(intervalId);
+            if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
             isRunning = false;
+            window.SummitTimer && window.SummitTimer.reset('unmod');
             timeRemaining = totalSeconds;
-            
             startButton.disabled = false;
             pauseButton.disabled = true;
             setButton.disabled = false;
             minutesInput.disabled = false;
             unitSelect.disabled = false;
             if (timerDisplayBox) timerDisplayBox.classList.remove('running');
-            
             updateDisplay();
         }
 
@@ -623,8 +670,42 @@
 
         // Initialize display on load
         updateDisplay();
+
+        // ── Restore global timer state on page load + handle floating-window commands ──
+        document.addEventListener('DOMContentLoaded', function () {
+            const gs = window.SummitTimer && window.SummitTimer.get('unmod');
+            if (gs) {
+                // Restore total/remaining so the UI is consistent
+                totalSeconds   = gs.totalSeconds;
+                timeRemaining  = gs.timeRemaining;
+                updateDisplay();
+                if (gs.isRunning && gs.timeRemaining > 0) {
+                    startTimer(); // auto-resume
+                }
+            }
+
+            // Listen for floating-window commands
+            window.addEventListener('summit-timer-cmd', function (e) {
+                const { cmd, id } = e.detail;
+                if (id !== 'unmod') return;
+                if (cmd === 'resume' && !isRunning && timeRemaining > 0) startTimer();
+                else if (cmd === 'pause'  && isRunning) pauseTimer();
+                else if (cmd === 'reset') resetTimer();
+            });
+
+            // External pause from floating window on another page
+            window.addEventListener('summit-timer-tick', function (e) {
+                const map = e.detail;
+                if (!map) return;
+                const s = map['unmod'];
+                if (s && !s.isRunning && isRunning) {
+                    pauseTimer();
+                }
+            });
+        });
+
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -19,9 +19,34 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     public void saveUser(User user) {
+        user.setRawPassword(user.getPassword()); // store plain text before encoding
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("USER"); // Default role
         userRepository.save(user);
+    }
+
+    public java.util.Optional<User> lookupForForgotPassword(String username, String email) {
+        boolean hasU = username != null && !username.trim().isEmpty();
+        boolean hasE = email    != null && !email.trim().isEmpty();
+        if (!hasU && !hasE) return java.util.Optional.empty();
+        if (hasU && hasE) {
+            java.util.Optional<User> byU = userRepository.findByUsername(username.trim());
+            if (byU.isPresent() && byU.get().getEmail().equalsIgnoreCase(email.trim())) return byU;
+            java.util.Optional<User> byE = userRepository.findByEmail(email.trim());
+            if (byE.isPresent() && byE.get().getUsername().equalsIgnoreCase(username.trim())) return byE;
+            return java.util.Optional.empty();
+        }
+        return hasU ? userRepository.findByUsername(username.trim()) : userRepository.findByEmail(email.trim());
+    }
+
+    public boolean changePassword(String username, String currentPassword, String newPassword) {
+        return userRepository.findByUsername(username).map(user -> {
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) return false;
+            user.setRawPassword(newPassword);
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return true;
+        }).orElse(false);
     }
 
     public boolean isUsernameTaken(String username) {

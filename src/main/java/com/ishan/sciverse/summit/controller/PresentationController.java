@@ -74,7 +74,17 @@ public class PresentationController {
         if (presentation.getId() == null) {
             var sessionOpt = sessionService.getActiveSession()
                     .or(() -> sessionService.getLatestSession());
-            sessionOpt.ifPresent(presentation::setSession);
+            if (sessionOpt.isPresent()) {
+                var session = sessionOpt.get();
+                // Server-side delegate limit enforcement
+                if (session.getStrength() > 0) {
+                    int currentCount = presentationRepository.findBySessionOrderByIdAsc(session).size();
+                    if (currentCount >= session.getStrength()) {
+                        return "redirect:/add"; // Limit reached — refuse silently (UI already blocks)
+                    }
+                }
+                presentation.setSession(session);
+            }
         } else {
             // For existing delegates, preserve the session and stats
             Presentation existing = presentationRepository.findById(presentation.getId())
@@ -119,25 +129,43 @@ public class PresentationController {
         var sessionOpt = sessionService.getActiveSession()
                 .or(() -> sessionService.getLatestSession());
 
-        // Fetch ONLY delegates linked to the current session for autocompletion
-        List<String> presenterNames;
+        // Fetch ONLY delegates linked to the current session
+        List<Presentation> allDelegates;
         if (sessionOpt.isPresent()) {
-            presenterNames = presentationRepository
-                    .findBySessionOrderByIdAsc(sessionOpt.get())
-                    .stream()
-                    .map(Presentation::getName)
-                    .distinct()
-                    .collect(Collectors.toList());
+            allDelegates = presentationRepository
+                    .findBySessionOrderByIdAsc(sessionOpt.get());
         } else {
-            presenterNames = java.util.Collections.emptyList();
+            allDelegates = java.util.Collections.emptyList();
         }
 
-        // Convert list to a JSON string for easy use in JavaScript
+        List<String> presenterNames = allDelegates.stream()
+                .map(Presentation::getName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Block access when there are no delegates
+        if (presenterNames.isEmpty()) {
+            return "redirect:/?noDelegates=speakers";
+        }
+
+        // Convert lists to JSON strings for use in JavaScript
         String namesJson = presenterNames.stream()
-            .map(name -> "'" + name.replace("'", "\\'") + "'") // Simple escaping
+            .map(name -> "'" + name.replace("'", "\\'") + "'")
+            .collect(Collectors.joining(","));
+
+        String presentingNamesJson = allDelegates.stream()
+            .filter(Presentation::isPresenting)
+            .map(p -> "'" + p.getName().replace("'", "\\'") + "'")
+            .collect(Collectors.joining(","));
+
+        String votingNamesJson = allDelegates.stream()
+            .filter(Presentation::isVoting)
+            .map(p -> "'" + p.getName().replace("'", "\\'") + "'")
             .collect(Collectors.joining(","));
 
         model.addAttribute("presenterNamesJson", namesJson);
+        model.addAttribute("presentingNamesJson", presentingNamesJson);
+        model.addAttribute("votingNamesJson", votingNamesJson);
         return "speakers";
     }
     
@@ -158,6 +186,11 @@ public class PresentationController {
                     .collect(Collectors.toList());
         } else {
             presenterNames = java.util.Collections.emptyList();
+        }
+
+        // Block access when there are no delegates
+        if (presenterNames.isEmpty()) {
+            return "redirect:/?noDelegates=motions";
         }
 
         // Convert list to a JSON string for easy use in JavaScript

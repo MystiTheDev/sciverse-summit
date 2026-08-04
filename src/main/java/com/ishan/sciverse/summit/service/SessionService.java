@@ -56,9 +56,12 @@ public class SessionService {
         return sessionRepository.findTopByUserAndActiveTrueOrderByIdDesc(user);
     }
 
-    public void endSession(Long sessionId) {
+    public void endSession(Long sessionId, String ebReview) {
         sessionRepository.findById(sessionId).ifPresent(session -> {
             session.setActive(false);
+            if (ebReview != null && !ebReview.isBlank()) {
+                session.setEbReview(ebReview.trim());
+            }
             sessionRepository.save(session);
         });
     }

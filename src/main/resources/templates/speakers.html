@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>General Speakers' List - SciVerse Summit</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Theme initialization script - prevents flash of wrong theme -->
     <script>
@@ -17,8 +17,7 @@
         })();
     </script>
 
-    <!-- Load Tone.js for audio generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Tone.js removed: timer-end sound handled by global _playTimerEndChime (Web Audio API) -->
     <style>
         /* ================================
            THEME VARIABLES (Light Default)
@@ -201,7 +200,14 @@
             width: 100%;
             background: linear-gradient(90deg, #10b981, #059669);
             border-radius: 5px;
-            transition: width 0.3s linear, background-color 0.3s;
+            transition: background 0.5s ease; /* width driven by rAF, no CSS transition needed */
+        }
+        @keyframes warn-flash {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.35; }
+        }
+        .progress-bar-fill.warn-flashing {
+            animation: warn-flash 0.6s ease-in-out infinite;
         }
 
         /* ================================
@@ -371,20 +377,115 @@
             transform: translateY(-1px);
         }
 
-        /* Stage button (Next speaking) */
-        #next-speaking-actions .btn-info {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-            border: none !important;
-            color: white !important;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 6px 16px;
-            transition: all 0.2s;
+        /* Next-queue items (inside #next-speaking-panel) */
+        .next-queue-item {
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            border-radius: 9px;
+            background: rgba(59, 130, 246, 0.07);
+            border: 1px solid rgba(59, 130, 246, 0.22);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
         }
-        #next-speaking-actions .btn-info:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+        .next-queue-item:last-child { margin-bottom: 0; }
+        .next-queue-item:hover {
+            background: rgba(59, 130, 246, 0.14);
+            transform: translateX(3px);
+        }
+        .next-queue-item .nq-rank {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: rgba(59, 130, 246, 0.25);
+            color: #3b82f6; font-size: 0.72rem; font-weight: 700;
+            flex-shrink: 0; margin-right: 10px;
+        }
+        .next-queue-item .nq-name {
+            font-size: 1rem; font-weight: 600; color: var(--text-primary); flex: 1;
+        }
+        .next-queue-item .btn-stage {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none; color: white; font-weight: 600;
+            border-radius: 7px; padding: 4px 13px; font-size: 0.82rem;
+            transition: all 0.18s;
+        }
+        .next-queue-item .btn-stage:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
+        }
+        .next-queue-item .btn-nq-remove {
+            color: var(--accent-danger); background: transparent;
+            border: 1px solid rgba(239,68,68,0.3); border-radius: 6px;
+            padding: 3px 8px; font-size: 0.78rem; transition: all 0.15s;
+            margin-left: 6px;
+        }
+        .next-queue-item .btn-nq-remove:hover {
+            background: var(--accent-danger); color: white;
+            border-color: var(--accent-danger);
+        }
+        body.dark-mode .next-queue-item {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        body.dark-mode .next-queue-item:hover { background: rgba(59, 130, 246, 0.2); }
+
+        /* Auto-advance confirmation modal */
+        .auto-advance-modal .modal-content {
+            background: rgba(10, 15, 30, 0.92) !important;
+            backdrop-filter: blur(48px) saturate(160%);
+            -webkit-backdrop-filter: blur(48px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.15) !important;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+            color: rgba(255,255,255,0.92);
+        }
+        .auto-advance-modal .modal-header {
+            background: rgba(8,12,26,0.5);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-radius: 18px 18px 0 0;
+            padding: 18px 24px 14px;
+        }
+        .auto-advance-modal .modal-title { font-weight: 700; font-size: 1.05rem; color: #fff; }
+        .auto-advance-modal .modal-body { padding: 20px 24px 8px; }
+        .auto-advance-modal .modal-footer {
+            background: rgba(8,12,26,0.35);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0 0 18px 18px;
+            padding: 14px 20px;
+        }
+        .auto-advance-modal .nq-speaker-chip {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(99,102,241,0.18));
+            border: 1px solid rgba(99,102,241,0.4);
+            border-radius: 50px;
+            padding: 4px 16px;
+            font-size: 1.05rem; font-weight: 700;
+            color: #a5b4fc; letter-spacing: 0.02em;
+        }
+        .auto-advance-modal .btn-yes-speak {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none; color: white; font-weight: 700;
+            border-radius: 9px; padding: 7px 22px;
+            box-shadow: 0 3px 10px rgba(16,185,129,0.3);
+            transition: all 0.18s;
+        }
+        .auto-advance-modal .btn-yes-speak:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(16,185,129,0.4);
+        }
+        .auto-advance-modal .btn-not-yet {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.75); font-weight: 600;
+            border-radius: 9px; padding: 7px 18px;
+            transition: all 0.18s;
+        }
+        .auto-advance-modal .btn-not-yet:hover {
+            background: rgba(255,255,255,0.14);
+            color: rgba(255,255,255,0.95);
         }
 
         /* End button (Now speaking) */
@@ -501,10 +602,15 @@
                             <span>Speakers Queue Control</span>
                         </h4>
                         <!-- QUEUE MANAGEMENT -->
-                        <h5 class="section-title">
-                            <i class="bi bi-people-fill"></i>
-                            <span>Queue</span>
-                        </h5>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h5 class="section-title mb-0">
+                                <i class="bi bi-people-fill"></i>
+                                <span>Queue</span>
+                            </h5>
+                            <button class="btn btn-sm" id="clear-queue-btn" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.28);border-radius:8px;font-size:0.8rem;font-weight:600;padding:4px 12px;transition:all 0.18s;" title="Clear all speakers from the queue">
+                                <i class="bi bi-trash3 me-1"></i>Clear Queue
+                            </button>
+                        </div>
                         <!-- Queue Input and Autocomplete -->
                         <div class="input-group mb-3">
                             <input type="text" id="queue-input" class="form-control form-control-lg" placeholder="Type speaker name..." list="presenter-names-list">
@@ -517,6 +623,23 @@
                             <!-- Options populated via JavaScript -->
                         </datalist>
 
+                        <!-- Quick-queue all delegates of a given category -->
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-2" id="queue-all-bar">
+                            <span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">Queue all:</span>
+                            <button class="btn btn-sm" id="queue-presenting-btn" onclick="queueAllByCategory('presenting')"
+                                style="background:rgba(59,130,246,0.12);color:#3b82f6;border:1px solid rgba(59,130,246,0.28);border-radius:7px;font-size:0.78rem;font-weight:600;padding:3px 11px;transition:all 0.18s;">
+                                <i class="bi bi-mic-fill me-1"></i>Presenting
+                            </button>
+                            <button class="btn btn-sm" id="queue-voting-btn" onclick="queueAllByCategory('voting')"
+                                style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.28);border-radius:7px;font-size:0.78rem;font-weight:600;padding:3px 11px;transition:all 0.18s;">
+                                <i class="bi bi-check-circle-fill me-1"></i>Voting
+                            </button>
+                            <button class="btn btn-sm" id="queue-both-btn" onclick="queueAllByCategory('both')"
+                                style="background:rgba(99,102,241,0.12);color:#6366f1;border:1px solid rgba(99,102,241,0.28);border-radius:7px;font-size:0.78rem;font-weight:600;padding:3px 11px;transition:all 0.18s;">
+                                <i class="bi bi-people-fill me-1"></i>Both
+                            </button>
+                        </div>
+
                         <div id="queue-list" class="mt-2 card-panel">
                             <p class="text-muted mb-0">Queue is empty. Add a speaker above.</p>
                         </div>
@@ -528,13 +651,9 @@
                                     <i class="bi bi-arrow-right-circle-fill"></i>
                                     <span>Next Speaking</span>
                                 </h5>
-                                <div class="card-panel d-flex justify-content-between align-items-center" id="next-speaking-panel">
-                                    <span class="text-muted" id="next-speaking-text">-- Empty --</span>
-                                    <div id="next-speaking-actions" style="display: none;">
-                                        <button class="btn btn-sm btn-info text-white" onclick="moveToNowSpeaking()">
-                                            <i class="bi bi-mic-fill me-1"></i>Stage
-                                        </button>
-                                    </div>
+                                <div class="card-panel" id="next-speaking-panel">
+                                    <p class="text-muted mb-0" id="next-speaking-empty">-- Empty --</p>
+                                    <div id="next-queue-list"></div>
                                 </div>
                             </div>
 
@@ -597,7 +716,7 @@
                     <div class="card p-4 mb-4">
                         <h5 class="card-title-modern">
                             <i class="bi bi-clock-history"></i>
-                            <span>Caucus Timer</span>
+                            <span>Segment Timer</span>
                         </h5>
                         <div class="timer-display" id="caucus-timer-text">
                             <span>10:00</span>
@@ -623,10 +742,97 @@
         </div>
     </div>
     
-    <!-- Custom Modal for Alerts (replacing alert()) -->
-    <div class="alert alert-warning alert-dismissible fade show alert-custom d-none" role="alert" id="message-box">
+    <!-- Stage-interrupt confirmation modal: shown when staging someone while another person is already speaking -->
+    <div class="modal fade" id="stageInterruptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:18px;color:rgba(255,255,255,0.9);">
+                <div class="modal-header" style="background:rgba(245,158,11,0.10);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:18px 18px 0 0;padding:18px 24px 14px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        <div>
+                            <div style="font-weight:700;font-size:1.05rem;color:#fff;">Interrupt Current Speaker?</div>
+                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:1px;">Someone is already speaking</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:20px 24px 8px;">
+                    <div style="color:rgba(255,255,255,0.75);margin-bottom:14px;font-size:0.9rem;line-height:1.7;">
+                        <span style="display:inline-block;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:50px;padding:2px 14px;color:#f87171;font-weight:700;" id="stageInterruptCurrentName"></span>
+                        &nbsp;is currently speaking. Their elapsed time will be saved and they will be returned to the queue.
+                    </div>
+                    <div style="color:rgba(255,255,255,0.75);font-size:0.9rem;">
+                        Stage &nbsp;<span style="display:inline-block;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:50px;padding:2px 14px;color:#6ee7b7;font-weight:700;" id="stageInterruptNextName"></span>&nbsp; instead?
+                    </div>
+                </div>
+                <div class="modal-footer" style="background:rgba(8,12,26,0.35);border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 18px 18px;padding:14px 20px;display:flex;justify-content:flex-end;gap:8px;">
+                    <button type="button" class="btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);border-radius:9px;font-weight:600;padding:7px 18px;" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="stageInterruptYesBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;font-weight:700;border-radius:9px;padding:7px 22px;cursor:pointer;">
+                        <i class="bi bi-mic-fill me-1"></i>Yes, Stage Them
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear-queue confirmation modal -->
+    <div class="modal fade" id="clearQueueModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:16px;color:rgba(255,255,255,0.9);">
+                <div class="modal-header" style="background:rgba(8,12,26,0.5);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:16px 16px 0 0;padding:16px 20px 12px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;"><i class="bi bi-trash3-fill"></i></div>
+                        <div style="font-weight:700;font-size:0.98rem;">Clear Queue?</div>
+                    </div>
+                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:16px 20px 8px;font-size:0.88rem;color:rgba(255,255,255,0.7);">
+                    This will remove <strong id="clearQueueCount" style="color:#f87171;"></strong> speaker(s) from the queue. This cannot be undone.
+                </div>
+                <div class="modal-footer" style="background:rgba(8,12,26,0.35);border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 16px 16px;padding:12px 16px;">
+                    <button type="button" class="btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);border-radius:8px;font-weight:600;padding:6px 16px;" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn" id="clearQueueConfirmBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-weight:700;border-radius:8px;padding:6px 18px;">Clear All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-advance confirmation modal -->
+    <div class="modal fade auto-advance-modal" id="autoAdvanceModal" tabindex="-1" aria-labelledby="autoAdvanceModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0;"><i class="bi bi-person-raised-hand"></i></div>
+                        <div>
+                            <div class="modal-title" id="autoAdvanceModalLabel">Next Speaker Ready?</div>
+                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:1px;">Timer has ended &mdash; proceed to next speaker?</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color:rgba(255,255,255,0.75);margin-bottom:12px;">The speaker timer ended. Is this person ready to speak?</p>
+                    <div class="text-center" style="margin:16px 0;">
+                        <span class="nq-speaker-chip" id="autoAdvanceName">&nbsp;</span>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-end gap-2">
+                    <button type="button" class="btn-not-yet" data-bs-dismiss="modal">Not Yet</button>
+                    <button type="button" class="btn-yes-speak" id="autoAdvanceYesBtn">
+                        <i class="bi bi-mic-fill me-1"></i>Yes, Start Speaking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification toast -->
+    <div class="alert-custom d-none" role="alert" id="message-box">
         <span id="message-text"></span>
-        <button type="button" class="btn-close" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close"></button>
+        <button type="button" style="background:none;border:none;padding:0 0 0 10px;cursor:pointer;opacity:0.6;font-size:1rem;line-height:1;color:inherit;" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
 
     <!-- JavaScript for Speakers List and Timer Logic -->
@@ -640,21 +846,32 @@
         // 1. DATA AND QUEUE MANAGEMENT
         let speakersQueue = [];
         let nowSpeaking = null;
-        let nextSpeaking = null;
+        let nextQueue = [];   // multi-person "next speaking" queue
         
         // Convert the string into an actual array of strings
         const allPresenterNames = presenterNamesString 
             ? presenterNamesString.split(',').map(name => name.trim().replace(/^'|'$/g, ''))
             : [];
+
+        // Presenting / voting name lists — used by the Queue-All-by-Category buttons
+        let presentingNamesString = /*[[${presentingNamesJson}]]*/ null;
+        let votingNamesString     = /*[[${votingNamesJson}]]*/ null;
+        const presentingNames = (presentingNamesString && presentingNamesString.trim().length > 0)
+            ? presentingNamesString.split(',').map(n => n.trim().replace(/^'|'$/g, '')).filter(Boolean)
+            : [];
+        const votingNames = (votingNamesString && votingNamesString.trim().length > 0)
+            ? votingNamesString.split(',').map(n => n.trim().replace(/^'|'$/g, '')).filter(Boolean)
+            : [];
         
         // DOM References
-        const nowSpeakingText = document.getElementById('now-speaking-text');
-        const nextSpeakingText = document.getElementById('next-speaking-text');
-        const nextSpeakingActions = document.getElementById('next-speaking-actions');
-        const queueList = document.getElementById('queue-list');
-        const queueInput = document.getElementById('queue-input');
-        const addToQueueBtn = document.getElementById('add-to-queue-btn');
-        const datalistEl = document.getElementById('presenter-names-list');
+        const nowSpeakingText   = document.getElementById('now-speaking-text');
+        const nextQueueList     = document.getElementById('next-queue-list');
+        const nextSpeakingEmpty = document.getElementById('next-speaking-empty');
+        const queueList         = document.getElementById('queue-list');
+        const queueInput        = document.getElementById('queue-input');
+        const addToQueueBtn     = document.getElementById('add-to-queue-btn');
+        const datalistEl        = document.getElementById('presenter-names-list');
+        const clearQueueBtn     = document.getElementById('clear-queue-btn');
 
         // Populate Datalist for Autocomplete
         allPresenterNames.forEach(name => {
@@ -664,11 +881,16 @@
         });
 
         // Utility for messages
-        function showMessage(text) {
+        function showMessage(text, type) {
             const msgBox = document.getElementById('message-box');
             document.getElementById('message-text').textContent = text;
             msgBox.classList.remove('d-none');
             setTimeout(() => msgBox.classList.add('d-none'), 5000);
+            // Also push to the notification bell
+            if (typeof window.addNotification === 'function') {
+                var iconMap = { success: 'bi-check-circle-fill', warning: 'bi-exclamation-triangle-fill', error: 'bi-x-circle-fill', info: 'bi-info-circle-fill' };
+                window.addNotification(iconMap[type] || 'bi-info-circle-fill', text, type || 'info');
+            }
         }
         
         function renderQueue() {
@@ -677,24 +899,48 @@
                 ? `<span class="speaker-box">${nowSpeaking}</span> <button class="btn btn-sm btn-danger float-end" onclick="removeFromNowSpeaking()">End</button>`
                 : '-- Empty --';
 
-            // Update Next Speaking panel
-            nextSpeakingText.textContent = nextSpeaking || '-- Empty --';
-            nextSpeakingActions.style.display = nextSpeaking ? 'block' : 'none';
+            // Update Next Speaking panel (multi-person queue)
+            if (nextQueue.length === 0) {
+                nextSpeakingEmpty.style.display = '';
+                nextQueueList.innerHTML = '';
+            } else {
+                nextSpeakingEmpty.style.display = 'none';
+                nextQueueList.innerHTML = '';
+                nextQueue.forEach(function(speaker, idx) {
+                    const item = document.createElement('div');
+                    item.className = 'next-queue-item';
+                    const safeName = speaker.replace(/'/g, "\\'");
+                    const isFirst  = idx === 0;
+                    item.innerHTML = `
+                        <span class="nq-rank">${idx + 1}</span>
+                        <span class="nq-name">${speaker}</span>
+                        <div class="d-flex align-items-center gap-1">
+                            ${isFirst ? `<button class="btn btn-stage" title="Stage this speaker" onclick="moveToNowSpeaking()"><i class="bi bi-mic-fill me-1"></i>Stage</button>` : ''}
+                            <button class="btn btn-nq-remove" title="Remove from next queue" onclick="removeFromNextQueue('${safeName}')"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    `;
+                    nextQueueList.appendChild(item);
+                });
+            }
 
             // Update Queue List
             queueList.innerHTML = '';
+            const autoNum = typeof window.getSetting === 'function' && window.getSetting('autoNumberQueue');
             if (speakersQueue.length === 0) {
                 queueList.innerHTML = '<p class="text-muted mb-0">Queue is empty. Add a speaker above.</p>';
             } else {
-                speakersQueue.forEach((speaker) => {
+                speakersQueue.forEach((speaker, idx) => {
                     const item = document.createElement('div');
                     item.className = 'queue-item';
                     
                     // Sanitize name for use in function call
                     const safeName = speaker.replace(/'/g, "\\'");
+                    const numBadge = autoNum
+                        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(99,102,241,0.15);color:#6366f1;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-right:8px;">${idx + 1}</span>`
+                        : '';
                     
                     item.innerHTML = `
-                        <span class="speaker-box">${speaker}</span>
+                        <span class="speaker-box d-flex align-items-center">${numBadge}${speaker}</span>
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-info" title="Move to Next" onclick="moveToNextSpeaking('${safeName}')"><i class="bi bi-arrow-right me-1"></i>Next</button>
                             <button class="btn btn-outline-danger" title="Remove" onclick="removeFromQueue('${safeName}')"><i class="bi bi-x-lg"></i></button>
@@ -703,13 +949,38 @@
                     queueList.appendChild(item);
                 });
             }
+
+            // Persist queue count to localStorage so the sidebar badge can read it on other pages
+            try { localStorage.setItem('speakersQueueCount', speakersQueue.length); } catch(e){}
+
+            // Persist full queue state so it survives page navigation
+            try {
+                localStorage.setItem('speakersState', JSON.stringify({
+                    queue:      speakersQueue,
+                    nowSpeaking: nowSpeaking,
+                    nextQueue:  nextQueue
+                }));
+            } catch(e){}
+
+            // Update Clear Queue button visibility
+            if (clearQueueBtn) clearQueueBtn.style.display = speakersQueue.length === 0 ? 'none' : '';
         }
 
         function addToQueue() {
             const name = queueInput.value.trim();
             if (!name) return;
 
-            if (speakersQueue.includes(name) || name === nextSpeaking || name === nowSpeaking) {
+            // Only allow names from the official delegate list
+            const isDelegate = allPresenterNames.some(
+                n => n.toLowerCase() === name.toLowerCase()
+            );
+            if (!isDelegate) {
+                showMessage(`"${name}" is not on the delegate list. Only registered delegates can be added.`);
+                queueInput.value = '';
+                return;
+            }
+
+            if (speakersQueue.includes(name) || nextQueue.includes(name) || name === nowSpeaking) {
                 showMessage(`"${name}" is already in the speaking panel or queue.`);
             } else {
                 speakersQueue.push(name);
@@ -719,30 +990,43 @@
         }
 
         window.moveToNextSpeaking = function(name) {
-            if (nextSpeaking === name) return;
-            
-            if (nextSpeaking) {
-                // If Next is occupied, move it back to the queue (top of queue)
-                speakersQueue.unshift(nextSpeaking);
-            }
-            nextSpeaking = name;
-            
-            // Remove from current queue position
+            // If already in next queue, ignore
+            if (nextQueue.includes(name)) return;
+
+            // Add to the end of the next-speaking queue
+            nextQueue.push(name);
+
+            // Remove from the main speakers queue
             speakersQueue = speakersQueue.filter(s => s !== name);
             renderQueue();
         }
 
-        window.moveToNowSpeaking = function() {
-            if (!nextSpeaking) return;
-            
-            // 1. Move current speaker (if any) to the back of the queue
+        // Internal: performs the actual staging without any confirmation guard.
+        // Called by moveToNowSpeaking (after user confirms if someone was already speaking)
+        // and indirectly by the auto-advance modal when nowSpeaking is already null.
+        function _doMoveToNowSpeaking() {
+            if (nextQueue.length === 0) return;
+
+            // If someone is mid-speech, save their elapsed stats before interrupting
             if (nowSpeaking) {
-                 speakersQueue.push(nowSpeaking);
+                const elapsed = speakerTimer.totalSeconds - speakerTimer.timeRemaining;
+                if (elapsed > 0) {
+                    fetch('/api/stats/update-speaking', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `name=${encodeURIComponent(nowSpeaking)}&duration=${elapsed}`
+                    }).catch(err => console.error('Error saving interrupted speaker stats:', err));
+                }
+                speakerTimer.stop();
             }
 
-            // 2. Set new speaker
-            nowSpeaking = nextSpeaking;
-            nextSpeaking = null;
+            // 1. Return current speaker (if any) to the back of the main queue
+            if (nowSpeaking) {
+                speakersQueue.push(nowSpeaking);
+            }
+
+            // 2. Shift the first person from the next-speaking queue
+            nowSpeaking = nextQueue.shift();
             
             renderQueue();
             
@@ -765,6 +1049,56 @@
                 body: `name=${encodeURIComponent(nowSpeaking)}`
             }).catch(err => console.error('Error incrementing spoken count:', err));
         }
+
+        window.moveToNowSpeaking = function() {
+            if (nextQueue.length === 0) return;
+
+            if (nowSpeaking) {
+                // Someone is already speaking — show confirmation before interrupting
+                const curEl  = document.getElementById('stageInterruptCurrentName');
+                const nextEl = document.getElementById('stageInterruptNextName');
+                if (curEl)  curEl.textContent  = nowSpeaking;
+                if (nextEl) nextEl.textContent = nextQueue[0];
+                const interruptModal = new bootstrap.Modal(document.getElementById('stageInterruptModal'));
+                document.getElementById('stageInterruptYesBtn').onclick = function() {
+                    interruptModal.hide();
+                    _doMoveToNowSpeaking();
+                };
+                interruptModal.show();
+            } else {
+                _doMoveToNowSpeaking();
+            }
+        }
+
+        window.queueAllByCategory = function(category) {
+            var toAdd = [];
+            if (category === 'presenting')     toAdd = presentingNames.slice();
+            else if (category === 'voting')    toAdd = votingNames.slice();
+            else if (category === 'both') {
+                // Intersection: only delegates who are BOTH presenting AND voting
+                var votingSet = new Set(votingNames);
+                toAdd = presentingNames.filter(function(n) { return n && votingSet.has(n); });
+            }
+
+            // Clear the existing queue first, then add the selected category
+            speakersQueue = [];
+
+            var added = 0;
+            toAdd.forEach(function(name) {
+                // Skip anyone already in Next Speaking or currently speaking
+                if (name && !nextQueue.includes(name) && name !== nowSpeaking) {
+                    speakersQueue.push(name);
+                    added++;
+                }
+            });
+            if (added > 0) {
+                renderQueue();
+                showMessage('Queue replaced with ' + added + ' delegate(s) (' + category + ').');
+            } else {
+                renderQueue();
+                showMessage('No delegates to add for that category (all are speaking or in Next Speaking).');
+            }
+        };
 
         window.removeFromNowSpeaking = function() {
              if (nowSpeaking) {
@@ -790,9 +1124,12 @@
         
         window.removeFromQueue = function(name) {
             speakersQueue = speakersQueue.filter(s => s !== name);
-            if (nextSpeaking === name) {
-                nextSpeaking = null;
-            }
+            nextQueue      = nextQueue.filter(s => s !== name);
+            renderQueue();
+        }
+
+        window.removeFromNextQueue = function(name) {
+            nextQueue = nextQueue.filter(s => s !== name);
             renderQueue();
         }
 
@@ -804,6 +1141,30 @@
             }
         });
 
+        // Clear Queue button — respects confirmClearQueue setting
+        if (clearQueueBtn) {
+            clearQueueBtn.style.display = 'none'; // hidden until queue has items
+            clearQueueBtn.addEventListener('click', function() {
+                if (speakersQueue.length === 0) return;
+                const needsConfirm = typeof window.getSetting === 'function'
+                    ? window.getSetting('confirmClearQueue')
+                    : true; // default: confirm
+                if (needsConfirm) {
+                    const countEl = document.getElementById('clearQueueCount');
+                    if (countEl) countEl.textContent = speakersQueue.length;
+                    new bootstrap.Modal(document.getElementById('clearQueueModal')).show();
+                } else {
+                    speakersQueue = [];
+                    renderQueue();
+                }
+            });
+            document.getElementById('clearQueueConfirmBtn').addEventListener('click', function() {
+                bootstrap.Modal.getInstance(document.getElementById('clearQueueModal')).hide();
+                speakersQueue = [];
+                renderQueue();
+            });
+        }
+
         // 2. GENERIC TIMER CLASS (Reusable for Speaker and Caucus)
 
         class Timer {
@@ -814,6 +1175,9 @@
                 this.isRunning = false;
                 this.intervalId = null;
                 this.isMuted = false;
+                this._rafId = null;
+                this._rafStart = null;
+                this._rafRemaining = 0;
                 
                 // DOM references
                 this.textEl = document.getElementById(`${idPrefix}-timer-text`).querySelector('span');
@@ -830,12 +1194,10 @@
                 this.updateDisplay();
             }
 
-            // Audio Setup (using Tone.js)
+            // Timer-end sound: delegate to the global Web Audio chime
             playEndSound() {
                 if (this.isMuted) return;
-                // Play a simple C-E-G chord
-                const chime = new Tone.PolySynth(Tone.Synth).toDestination();
-                chime.triggerAttackRelease(["C4", "E4", "G4"], "4n", Tone.now()); 
+                if (typeof window._playTimerEndChime === 'function') window._playTimerEndChime();
             }
 
             formatTime(seconds) {
@@ -844,48 +1206,116 @@
                 return `${min}:${String(sec).padStart(2, '0')}`;
             }
 
+            // Update time-text display only; progress bar is driven by _animateProgress (rAF)
             updateDisplay() {
                 this.textEl.textContent = this.formatTime(this.timeRemaining);
-                const progress = (this.timeRemaining / this.totalSeconds) * 100;
-                this.progressFill.style.width = `${progress}%`;
-                // Color change based on time remaining
-                this.progressFill.style.backgroundColor = progress > 20 ? '#28a745' : progress > 5 ? '#ffc107' : '#dc3545';
+                if (!this.isRunning) {
+                    const pct = this.totalSeconds > 0
+                        ? Math.max(0, (this.timeRemaining / this.totalSeconds) * 100) : 0;
+                    const grad = pct > 20
+                        ? 'linear-gradient(90deg,#28a745,#20c997)'
+                        : pct > 5
+                        ? 'linear-gradient(90deg,#ffc107,#fd7e14)'
+                        : 'linear-gradient(90deg,#dc3545,#c82333)';
+                    this.progressFill.style.width = `${pct}%`;
+                    this.progressFill.style.background = grad;
+                }
+            }
+
+            // rAF loop: smooth 60 fps progress bar while timer is running
+            _animateProgress() {
+                if (!this.isRunning) return;
+                const elapsed   = (Date.now() - this._rafStart) / 1000;
+                const remaining = Math.max(0, this._rafRemaining - elapsed);
+                const pct       = this.totalSeconds > 0 ? (remaining / this.totalSeconds) * 100 : 0;
+                const grad = pct > 20
+                    ? 'linear-gradient(90deg,#28a745,#20c997)'
+                    : pct > 5
+                    ? 'linear-gradient(90deg,#ffc107,#fd7e14)'
+                    : 'linear-gradient(90deg,#dc3545,#c82333)';
+                this.progressFill.style.width    = `${pct}%`;
+                this.progressFill.style.background = grad;
+                // Warning flash: pulse the bar when ≤10 s remain (if setting enabled)
+                const shouldFlash = remaining <= 10 && remaining > 0 &&
+                    typeof window.getSetting === 'function' && window.getSetting('timerWarningFlash');
+                this.progressFill.classList.toggle('warn-flashing', !!shouldFlash);
+                this._rafId = requestAnimationFrame(() => this._animateProgress());
             }
 
             start() {
                 if (this.isRunning || this.timeRemaining <= 0) return;
-                // Start Tone context on user interaction
-                if (Tone.context.state !== 'running') { Tone.start(); }
 
                 this.isRunning = true;
                 this.startBtn.disabled = true;
                 this.pauseBtn.disabled = false;
                 this.setBtn.disabled = true;
 
+                // Register with the global persistent timer engine
+                if (window.SummitTimer) {
+                    var _lbl = { speaker: 'Speaker Timer', caucus: 'Segment Timer' };
+                    window.SummitTimer.start(
+                        this.idPrefix,
+                        _lbl[this.idPrefix] || (this.idPrefix + ' Timer'),
+                        '/speakers',
+                        this.totalSeconds,
+                        this.timeRemaining
+                    );
+                }
+
+                // Anchor rAF to wall-clock
+                this._rafStart     = Date.now();
+                this._rafRemaining = this.timeRemaining;
+                this._animateProgress();
+
                 this.intervalId = setInterval(() => {
                     this.timeRemaining--;
-                    this.updateDisplay();
+                    this.textEl.textContent = this.formatTime(this.timeRemaining);
 
                     if (this.timeRemaining <= 0) {
                         this.stop();
-                        this.playEndSound();
+                        // Clear global timer when time runs out
+                        window.SummitTimer && window.SummitTimer.reset(this.idPrefix);
+                        // Call chime + toast directly — never through the event bus from a setInterval,
+                        // which can cause async AudioContext issues and silent failures.
+                        var _detail = { id: this.idPrefix,
+                            label: ({ speaker: 'Speaker Timer', caucus: 'Segment Timer' })[this.idPrefix] || (this.idPrefix + ' Timer'),
+                            sourcePage: '/speakers' };
+                        if (window._playTimerEndChime) window._playTimerEndChime();
+                        if (window._showTimerEndedToast) window._showTimerEndedToast(_detail);
                         showMessage(`${this.idPrefix} time is up!`);
                         this.timeRemaining = 0;
                         this.updateDisplay();
-                        
-                        // Specific logic for the speaker timer
+
+                        // Specific logic for the speaker timer end
                         if (this.idPrefix === 'speaker') {
-                            window.removeFromNowSpeaking(); 
-                            if (speakersQueue.length > 0) {
-                                window.moveToNextSpeaking(speakersQueue[0]); 
+                            window.removeFromNowSpeaking();
+                            // If someone is already in the next-speaking queue, ask for confirmation
+                            if (nextQueue.length > 0) {
+                                const nextPerson = nextQueue[0];
+                                const nameEl = document.getElementById('autoAdvanceName');
+                                if (nameEl) nameEl.textContent = nextPerson;
+                                const modal = new bootstrap.Modal(document.getElementById('autoAdvanceModal'));
+                                // Wire the Yes button (re-bind each time to avoid stacking handlers)
+                                const yesBtn = document.getElementById('autoAdvanceYesBtn');
+                                const onYes = function() {
+                                    modal.hide();
+                                    window.moveToNowSpeaking();
+                                };
+                                yesBtn.onclick = onYes;
+                                modal.show();
                             }
                         }
+                    } else {
+                        // Sync remaining time to global timer every tick
+                        window.SummitTimer && window.SummitTimer.sync(
+                            this.idPrefix, this.timeRemaining, this.totalSeconds);
                     }
                 }, 1000);
             }
 
             pause() {
                 if (!this.isRunning) return;
+                window.SummitTimer && window.SummitTimer.pause(this.idPrefix);
                 this.stop();
                 this.startBtn.disabled = false;
                 this.pauseBtn.disabled = true;
@@ -893,12 +1323,14 @@
 
             stop() {
                 clearInterval(this.intervalId);
+                if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null; }
                 this.isRunning = false;
                 this.setBtn.disabled = false;
             }
 
             reset() {
                 this.stop();
+                window.SummitTimer && window.SummitTimer.reset(this.idPrefix);
                 this.timeRemaining = this.totalSeconds;
                 this.startBtn.disabled = false;
                 this.pauseBtn.disabled = true;
@@ -995,11 +1427,92 @@
             }
         });
 
+        // ── Restore queue state from previous navigation ──────────────────
+        (function() {
+            try {
+                var raw = localStorage.getItem('speakersState');
+                if (raw) {
+                    var saved = JSON.parse(raw);
+                    if (Array.isArray(saved.queue))     speakersQueue = saved.queue;
+                    if (saved.nowSpeaking !== undefined) nowSpeaking  = saved.nowSpeaking;
+                    if (Array.isArray(saved.nextQueue)) nextQueue     = saved.nextQueue;
+                }
+            } catch(e) { console.warn('Could not restore speakers state:', e); }
+        })();
+
         // Initial render of the queue
         renderQueue();
 
+        // Show/hide Queue-All category buttons based on what data the server provided
+        (function() {
+            var pBtn = document.getElementById('queue-presenting-btn');
+            var vBtn = document.getElementById('queue-voting-btn');
+            var bBtn = document.getElementById('queue-both-btn');
+            var bar  = document.getElementById('queue-all-bar');
+            if (pBtn) pBtn.style.display = presentingNames.length === 0 ? 'none' : '';
+            if (vBtn) vBtn.style.display = votingNames.length === 0 ? 'none' : '';
+            if (bBtn) bBtn.style.display = (presentingNames.length > 0 && votingNames.length > 0) ? '' : 'none';
+            if (bar)  bar.style.display  = (presentingNames.length === 0 && votingNames.length === 0) ? 'none' : '';
+        })();
+
+        // ── Restore global timer state on page load + handle floating-window commands ──
+        document.addEventListener('DOMContentLoaded', function () {
+            // Restore BOTH timers from the multi-timer map
+            const gsMap = window.SummitTimer && window.SummitTimer.getAll();
+            if (gsMap) {
+                const caucusGs = gsMap['caucus'];
+                if (caucusGs && caucusGs.sourcePage === '/speakers') {
+                    caucusTimer.totalSeconds  = caucusGs.totalSeconds;
+                    caucusTimer.timeRemaining = caucusGs.timeRemaining;
+                    caucusTimer.updateDisplay();
+                    if (caucusGs.isRunning && caucusGs.timeRemaining > 0) {
+                        caucusTimer.start();
+                    }
+                }
+                const speakerGs = gsMap['speaker'];
+                if (speakerGs && speakerGs.sourcePage === '/speakers') {
+                    speakerTimer.totalSeconds  = speakerGs.totalSeconds;
+                    speakerTimer.timeRemaining = speakerGs.timeRemaining;
+                    speakerTimer.updateDisplay();
+                    // Speaker timer is queue-driven; only restore display, not auto-start
+                }
+            }
+
+            // Listen for floating-window play/pause/reset commands
+            window.addEventListener('summit-timer-cmd', function (e) {
+                const { cmd, id } = e.detail;
+                if (id === 'caucus') {
+                    if (cmd === 'resume' && !caucusTimer.isRunning && caucusTimer.timeRemaining > 0)
+                        caucusTimer.start();
+                    else if (cmd === 'pause' && caucusTimer.isRunning)
+                        caucusTimer.pause();
+                    else if (cmd === 'reset')
+                        caucusTimer.reset();
+                } else if (id === 'speaker') {
+                    if (cmd === 'pause' && speakerTimer.isRunning)
+                        speakerTimer.pause();
+                    else if (cmd === 'reset')
+                        speakerTimer.reset();
+                }
+            });
+
+            // If floating window externally paused our timers, sync the page UI
+            window.addEventListener('summit-timer-tick', function (e) {
+                const map = e.detail;
+                if (!map) return;
+                const caucusState = map['caucus'];
+                if (caucusState && !caucusState.isRunning && caucusTimer.isRunning) {
+                    caucusTimer.pause();
+                }
+                const speakerState = map['speaker'];
+                if (speakerState && !speakerState.isRunning && speakerTimer.isRunning) {
+                    speakerTimer.pause();
+                }
+            });
+        });
+
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

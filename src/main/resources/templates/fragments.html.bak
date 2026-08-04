@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <!-- Placeholder for common header items (e.g., meta tags, common CSS links) -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     
     <!-- Dark Mode Flash Prevention - MUST execute before body renders -->
     <script>
@@ -806,9 +806,6 @@
                             <!-- Notification list -->
                             <div class="notif-dd-list" id="notifList">
 
-                                <!-- Message (non-timer) notification cards -->
-                                <div id="notifMsgList"></div>
-
                                 <!-- Empty state (shown when no notifications) -->
                                 <div class="notif-empty" id="notifEmptyState">
                                     <i class="bi bi-bell-slash"></i>
@@ -1179,7 +1176,7 @@
                                 <div class="stg-about-card">
                                     <div class="stg-about-logo"><i class="bi bi-globe2"></i></div>
                                     <div class="stg-about-app-name">SciVerse Summit</div>
-                                    <div class="stg-about-version">Version 2.6 &middot; Built August 2026</div>
+                                    <div class="stg-about-version">Version 2.4 &middot; Built June 2026</div>
                                     <div class="stg-about-divider"></div>
                                     <div class="stg-about-tagline">&ldquo;Crafted with passion, powered by code.&rdquo; &#10024;</div>
                                     <div class="stg-about-author">
@@ -1201,7 +1198,7 @@
                                                 <i class="bi bi-person-fill"></i>
                                             </div>
                                             <div>
-                                                <div style="font-size:0.95rem;font-weight:700;color:#f3f3f3;">K.Ishan</div>
+                                                <div style="font-size:0.95rem;font-weight:700;color:#1e293b;">K.Ishan</div>
                                                 <div style="font-size:0.78rem;color:#64748b;margin-top:3px;line-height:1.5;">
                                                     Full-stack design &amp; development &middot; UI/UX &middot; Backend architecture &middot;
                                                     Database design &middot; Timer engine &middot; Settings system &middot;
@@ -1748,12 +1745,10 @@
             var notifLiveDot    = document.getElementById('notifLiveDot');
             var notifEmptyState = document.getElementById('notifEmptyState');
             var notifCardsList  = document.getElementById('notifCardsList');
-            var notifMsgList    = document.getElementById('notifMsgList');
             var notifClearBtn   = document.getElementById('notifClearBtn');
 
             var isMinimized   = false;
             var unreadCount   = 0;
-            var _msgUnread    = 0;
             var _floatTimerId = null; // which timer the float window currently shows
 
             function fmt(sec) {
@@ -1766,61 +1761,17 @@
                 var ids = Object.keys(map || {});
                 var hasAny = ids.length > 0;
                 var hasRunning = ids.some(function (id) { return map[id].isRunning; });
-                // Bell is active when timers exist OR there are unread message notifications
-                if (notifBellBtn) notifBellBtn.classList.toggle('has-notif', hasAny || _msgUnread > 0);
+                if (notifBellBtn) notifBellBtn.classList.toggle('has-notif', hasAny);
                 if (notifLiveDot) notifLiveDot.style.display = hasRunning ? 'block' : 'none';
                 if (notifCountBadge) {
-                    var total = unreadCount + _msgUnread;
-                    if (total > 0) {
+                    if (unreadCount > 0 && hasAny) {
                         notifCountBadge.style.display = 'flex';
-                        notifCountBadge.textContent   = total;
+                        notifCountBadge.textContent   = unreadCount;
                     } else {
                         notifCountBadge.style.display = 'none';
                     }
                 }
             }
-
-            // ── Message (non-timer) notifications ─────────────────
-            window.addNotification = function(iconClass, text, type) {
-                _msgUnread++;
-                if (notifBellBtn)    notifBellBtn.classList.add('has-notif');
-                if (notifCountBadge) { notifCountBadge.style.display = 'flex'; notifCountBadge.textContent = unreadCount + _msgUnread; }
-                if (notifEmptyState) notifEmptyState.style.display = 'none';
-                if (!notifMsgList)   return;
-                var colorMap = { info:'#3b82f6', success:'#10b981', warning:'#f59e0b', error:'#ef4444' };
-                var color = colorMap[type] || '#3b82f6';
-                var now   = new Date();
-                var ts    = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-                var card  = document.createElement('div');
-                card.className = 'notif-msg-card';
-                card.innerHTML =
-                    '<div class="notif-msg-icon" style="color:' + color + '">' +
-                        '<i class="bi ' + (iconClass || 'bi-info-circle-fill') + '"></i>' +
-                    '</div>' +
-                    '<div class="notif-msg-body">' +
-                        '<div class="notif-msg-text">' + text + '</div>' +
-                        '<div class="notif-msg-time">' + ts + '</div>' +
-                    '</div>' +
-                    '<button class="notif-msg-close" title="Dismiss">' +
-                        '<i class="bi bi-x-lg"></i>' +
-                    '</button>';
-                card.querySelector('.notif-msg-close').addEventListener('click', function () {
-                    card.remove();
-                    _msgUnread = Math.max(0, _msgUnread - 1);
-                    var hasTimers = Object.keys(window.SummitTimer ? window.SummitTimer.getAll() : {}).length > 0;
-                    var hasMsgs  = notifMsgList && notifMsgList.children.length > 0;
-                    if (!hasTimers && !hasMsgs) {
-                        if (notifEmptyState) notifEmptyState.style.display = 'flex';
-                        if (notifBellBtn)    notifBellBtn.classList.remove('has-notif');
-                        if (notifCountBadge) notifCountBadge.style.display = 'none';
-                    } else if (notifCountBadge) {
-                        var t2 = unreadCount + _msgUnread;
-                        if (t2 > 0) { notifCountBadge.textContent = t2; }
-                        else        { notifCountBadge.style.display = 'none'; }
-                    }
-                });
-                notifMsgList.insertBefore(card, notifMsgList.firstChild);
-            };
 
             // ── Send command to a specific timer ──────────────────
             function cmdTimer(cmd, timerId) {
@@ -2006,7 +1957,7 @@
                     e.stopPropagation();
                     var open = notifPanel.style.display !== 'none';
                     notifPanel.style.display = open ? 'none' : 'block';
-                    if (!open) { unreadCount = 0; _msgUnread = 0; refreshBell(window.SummitTimer.getAll()); }
+                    if (!open) { unreadCount = 0; refreshBell(window.SummitTimer.getAll()); }
                 });
             }
 
@@ -2014,11 +1965,7 @@
             if (notifClearBtn) {
                 notifClearBtn.addEventListener('click', function () {
                     if (notifCardsList)  notifCardsList.innerHTML = '';
-                    if (notifMsgList)    notifMsgList.innerHTML = '';
-                    _msgUnread = 0;
                     if (notifEmptyState) notifEmptyState.style.display = 'flex';
-                    if (notifBellBtn)    notifBellBtn.classList.remove('has-notif');
-                    if (notifCountBadge) notifCountBadge.style.display = 'none';
                     if (notifPanel)      notifPanel.style.display = 'none';
                 });
             }
@@ -2064,220 +2011,264 @@
         </script>
 
         <!-- ═══════════════════════════════════════════════════════════════════
-        <!-- Settings CSS+JS — in header fragment so it loads on EVERY page -->
+             SETTINGS MODAL CSS — placed here (inside header fragment) so it
+             loads on EVERY page, including /dashboard which has no sidebar.
+             The sidebar fragment contains an identical copy; duplication is
+             harmless (later identical declaration simply wins, no visual diff).
+             ═══════════════════════════════════════════════════════════════════ -->
         <style>
+            /* ── Settings modal dialog ───────────────────────────────────── */
             .settings-modal-dialog { max-width: 860px; width: calc(100% - 48px); }
             .settings-modal-content {
-                background: rgba(10, 15, 30, 0.90) !important;
-                backdrop-filter: blur(52px) saturate(160%);
-                -webkit-backdrop-filter: blur(52px) saturate(160%);
-                border: 1px solid rgba(255,255,255,0.14) !important;
-                border-top-color: rgba(255,255,255,0.22) !important;
+                background: rgba(248, 250, 252, 0.60) !important;
+                backdrop-filter: blur(52px) saturate(200%) brightness(1.04);
+                -webkit-backdrop-filter: blur(52px) saturate(200%) brightness(1.04);
+                border: 1px solid rgba(255,255,255,0.55) !important;
+                border-top-color: rgba(255,255,255,0.85) !important;
                 border-radius: 20px;
-                box-shadow: 0 32px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-                color: rgba(255,255,255,0.9); overflow: hidden;
+                box-shadow: 0 24px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.07),
+                            inset 0 1px 0 rgba(255,255,255,0.9);
+                color: #1e293b;
+                overflow: hidden;
             }
-            .settings-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; background: rgba(8,12,26,0.55); border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-            .settings-header-icon { width: 40px; height: 40px; background: linear-gradient(135deg,#3b82f6,#6366f1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.35); flex-shrink: 0; }
-            .settings-modal-title { font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.95); margin-bottom: 2px; }
-            .settings-modal-subtitle { font-size: 0.78rem; color: rgba(255,255,255,0.5); }
+            .settings-modal-header {
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 20px 24px 16px;
+                background: rgba(248, 250, 252, 0.46);
+                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(0,0,0,0.09);
+                flex-shrink: 0;
+            }
+            .settings-header-icon {
+                width: 40px; height: 40px;
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                font-size: 1.1rem; color: #fff;
+                box-shadow: 0 4px 12px rgba(99,102,241,0.35); flex-shrink: 0;
+            }
+            .settings-modal-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+            .settings-modal-subtitle { font-size: 0.78rem; color: #64748b; }
+            /* ── TWO-COLUMN BODY ─────────────────────────────────────────── */
             .settings-modal-body { display: flex; min-height: 480px; max-height: 65vh; overflow: hidden; }
-            .settings-close-btn { filter: invert(1) grayscale(100%) brightness(200%); }
-            .settings-nav { width: 190px; min-width: 190px; background: rgba(8,12,26,0.45); border-right: 1px solid rgba(255,255,255,0.08); padding: 16px 10px; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; flex-shrink: 0; }
-            .settings-cat-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; background: transparent; border: none; border-radius: 10px; color: rgba(255,255,255,0.65); font-size: 0.86rem; font-weight: 500; text-align: left; cursor: pointer; transition: all 0.18s; }
+            .settings-close-btn { filter: none; }
+            body.dark-mode .settings-close-btn { filter: invert(1) grayscale(100%) brightness(200%); }
+            /* ── Left nav ────────────────────────────────────────────────── */
+            .settings-nav {
+                width: 190px; min-width: 190px;
+                background: rgba(241, 245, 249, 0.48);
+                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border-right: 1px solid rgba(0,0,0,0.08);
+                padding: 16px 10px; display: flex; flex-direction: column; gap: 3px;
+                overflow-y: auto; flex-shrink: 0;
+            }
+            .settings-cat-btn {
+                display: flex; align-items: center; gap: 10px;
+                width: 100%; padding: 9px 12px;
+                background: transparent; border: none; border-radius: 10px;
+                color: #64748b; font-size: 0.86rem; font-weight: 500;
+                text-align: left; cursor: pointer; transition: all 0.18s;
+            }
             .settings-cat-btn i { font-size: 0.9rem; width: 17px; text-align: center; flex-shrink: 0; }
-            .settings-cat-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.95); }
-            .settings-cat-btn.active { background: rgba(59,130,246,0.18); color: #93c5fd; font-weight: 600; }
-            .settings-cat-btn.active .stg-nav-icon { box-shadow: 0 2px 8px rgba(59,130,246,0.4); }
-            .settings-nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 4px; }
-            .stg-nav-icon { width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 0.78rem; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+            .settings-cat-btn:hover { background: rgba(0,0,0,0.04); color: #334155; }
+            .settings-cat-btn.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+            .settings-cat-btn.active .stg-nav-icon { box-shadow: 0 2px 8px rgba(59,130,246,0.35); }
+            .settings-nav-divider { height: 1px; background: #e2e8f0; margin: 8px 4px; }
+            .stg-nav-icon {
+                width: 26px; height: 26px; border-radius: 7px;
+                display: inline-flex; align-items: center; justify-content: center;
+                flex-shrink: 0; color: #fff; font-size: 0.78rem;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            }
             .stg-nav-icon i { font-size: 0.78rem; width: auto; }
-            .settings-panels { flex: 1; overflow-y: auto; padding: 24px 28px; background: rgba(30,41,59,0.45); }
+            /* ── Right panels ────────────────────────────────────────────── */
+            .settings-panels { flex: 1; overflow-y: auto; padding: 24px 28px; background: rgba(255,255,255,0.35); }
             .settings-panel { display: none; }
             .settings-panel.active { display: block; }
-            .stg-section-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-            .stg-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+            .stg-section-title {
+                font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+                color: #64748b; margin-bottom: 20px;
+                padding-bottom: 10px; border-bottom: 1px solid #d1d9e0;
+            }
+            .stg-row {
+                display: flex; align-items: center; justify-content: space-between;
+                gap: 16px; padding: 14px 0; border-bottom: 1px solid #dde3ea;
+            }
             .stg-row:last-child { border-bottom: none; }
             .stg-row-info { flex: 1; min-width: 0; }
-            .stg-row-label { font-size: 0.88rem; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 3px; }
-            .stg-row-desc { font-size: 0.76rem; color: rgba(255,255,255,0.5); line-height: 1.4; }
+            .stg-row-label { font-size: 0.88rem; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
+            .stg-row-desc { font-size: 0.76rem; color: #64748b; line-height: 1.4; }
             .stg-row-ctrl { flex-shrink: 0; }
+            /* ── Toggle switch ───────────────────────────────────────────── */
             .stg-toggle-switch { position: relative; width: 44px; height: 24px; }
             .stg-toggle-switch input[type="checkbox"] { opacity: 0; width: 0; height: 0; position: absolute; }
-            .stg-toggle-label { position: absolute; inset: 0; background: rgba(255,255,255,0.2); border-radius: 50px; cursor: pointer; transition: background 0.25s; }
-            .stg-toggle-label::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+            .stg-toggle-label {
+                position: absolute; inset: 0;
+                background: #cbd5e1; border-radius: 50px;
+                cursor: pointer; transition: background 0.25s;
+            }
+            .stg-toggle-label::after {
+                content: ''; position: absolute; top: 3px; left: 3px;
+                width: 18px; height: 18px; background: #fff; border-radius: 50%;
+                transition: transform 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            }
             .stg-toggle-switch input:checked + .stg-toggle-label { background: #10b981; }
             .stg-toggle-switch input:checked + .stg-toggle-label::after { transform: translateX(20px); }
-            .stg-segmented { display: flex; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 3px; gap: 2px; }
-            .stg-seg-btn { padding: 5px 12px; background: transparent; border: none; border-radius: 6px; color: rgba(255,255,255,0.55); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.18s; }
-            .stg-seg-btn:hover { color: rgba(255,255,255,0.9); }
-            .stg-seg-btn.active { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.95); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.35); }
-            .stg-number-input { width: 80px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: rgba(255,255,255,0.9); padding: 6px 10px; font-size: 0.88rem; text-align: center; transition: all 0.18s; }
-            .stg-number-input:focus { outline: none; border-color: rgba(59,130,246,0.7); background: rgba(255,255,255,0.11); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-            .stg-range-input { -webkit-appearance: none; appearance: none; width: 130px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 50px; outline: none; cursor: pointer; transition: background 0.18s; }
-            .stg-range-input:hover { background: rgba(255,255,255,0.3); }
-            .stg-range-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; box-shadow: 0 1px 4px rgba(59,130,246,0.4); transition: transform 0.15s, background 0.15s; }
+            /* ── Segmented control ───────────────────────────────────────── */
+            .stg-segmented { display: flex; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; }
+            .stg-seg-btn {
+                padding: 5px 12px; background: transparent; border: none; border-radius: 6px;
+                color: #64748b; font-size: 0.8rem; font-weight: 500;
+                cursor: pointer; transition: all 0.18s;
+            }
+            .stg-seg-btn:hover { color: #334155; }
+            .stg-seg-btn.active { background: #ffffff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+            /* ── Number input ────────────────────────────────────────────── */
+            .stg-number-input {
+                width: 80px; background: #f8fafc;
+                border: 1px solid #cbd5e1; border-radius: 8px;
+                color: #1e293b; padding: 6px 10px; font-size: 0.88rem; text-align: center; transition: all 0.18s;
+            }
+            .stg-number-input:focus { outline: none; border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+            /* ── Range (slider) input ────────────────────────────────────── */
+            .stg-range-input {
+                -webkit-appearance: none; appearance: none;
+                width: 130px; height: 4px;
+                background: #e2e8f0; border-radius: 50px; outline: none;
+                cursor: pointer; transition: background 0.18s;
+            }
+            .stg-range-input:hover { background: #cbd5e1; }
+            .stg-range-input::-webkit-slider-thumb {
+                -webkit-appearance: none; appearance: none;
+                width: 16px; height: 16px; border-radius: 50%;
+                background: #3b82f6; cursor: pointer;
+                box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+                transition: transform 0.15s, background 0.15s;
+            }
             .stg-range-input::-webkit-slider-thumb:hover { transform: scale(1.15); background: #2563eb; }
-            .stg-range-input::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: none; box-shadow: 0 1px 4px rgba(59,130,246,0.4); }
+            .stg-range-input::-moz-range-thumb {
+                width: 16px; height: 16px; border-radius: 50%;
+                background: #3b82f6; cursor: pointer; border: none;
+                box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+            }
+            body.dark-mode .stg-range-input { background: #334155 !important; }
+            body.dark-mode .stg-range-input:hover { background: #475569 !important; }
+            /* ── Action buttons ──────────────────────────────────────────── */
             .stg-action-btn { padding: 6px 16px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
-            .stg-action-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-            .stg-action-warn:hover { background: rgba(245,158,11,0.25); }
-            .stg-action-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
-            .stg-action-danger:hover { background: rgba(239,68,68,0.25); }
-            .stg-preview-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; background: rgba(59,130,246,0.18); color: #93c5fd; border: 1.5px solid rgba(59,130,246,0.35); font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: all 0.18s; white-space: nowrap; }
-            .stg-preview-btn:hover { background: rgba(59,130,246,0.28); transform: scale(1.04); }
+            .stg-action-warn { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+            .stg-action-warn:hover { background: #fde68a; }
+            .stg-action-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+            .stg-action-danger:hover { background: #fecaca; }
+            /* ── Preview button ──────────────────────────────────────────── */
+            .stg-preview-btn {
+                display: inline-flex; align-items: center; gap: 5px;
+                padding: 4px 12px; border-radius: 20px;
+                background: #eff6ff; color: #2563eb;
+                border: 1.5px solid #bfdbfe;
+                font-size: 0.76rem; font-weight: 600; cursor: pointer;
+                transition: all 0.18s; white-space: nowrap;
+            }
+            .stg-preview-btn:hover { background: #dbeafe; border-color: #93c5fd; transform: scale(1.04); }
             .stg-preview-btn i { font-size: 0.82rem; }
-            .stg-info-box { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.28); border-radius: 10px; padding: 12px 16px; font-size: 0.82rem; color: rgba(255,255,255,0.85); margin-bottom: 20px; }
-            .stg-about-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px 24px; text-align: center; }
-            .stg-about-logo { font-size: 2.5rem; margin-bottom: 12px; color: #818cf8; }
-            .stg-about-app-name { font-size: 1.3rem; font-weight: 800; color: #f1f5f9; letter-spacing: 0.02em; }
-            .stg-about-version { font-size: 0.78rem; color: #64748b; margin-top: 4px; margin-bottom: 16px; }
-            .stg-about-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 16px 0; }
-            .stg-about-tagline { font-size: 0.88rem; color: rgba(255,255,255,0.5); font-style: italic; margin-bottom: 16px; }
-            .stg-about-author { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 1.05rem; font-weight: 700; color: #e2e8f0; }
-            .stg-about-roles { font-size: 0.76rem; color: #64748b; font-weight: 400; }
-            .stg-account-card { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 20px; }
-            .stg-account-avatar { width: 52px; height: 52px; flex-shrink: 0; background: linear-gradient(135deg,#3b82f6,#6366f1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.35rem; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
-            .stg-account-info { min-width: 0; }
-            .stg-account-name { font-size: 1rem; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
-            .stg-account-sub { display: flex; flex-wrap: wrap; gap: 6px; }
-            .stg-account-chip { display: inline-flex; align-items: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 50px; padding: 2px 10px; font-size: 0.76rem; color: #94a3b8; font-weight: 500; }
-            .stg-action-save { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
-            .stg-action-save:hover { background: rgba(59,130,246,0.25); }
-            .stg-cp-feedback { font-size: 0.82rem; padding: 5px 12px; border-radius: 8px; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); }
-            .stg-cp-feedback.success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
-            .stg-cp-feedback.error   { background: rgba(239,68,68,0.15); color: #fca5a5; }
-            .settings-panel .form-label { color: rgba(255,255,255,0.8); font-weight: 600; }
-            .settings-panel .form-control { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 10px !important; color: rgba(255,255,255,0.9) !important; }
-            .settings-panel .form-control::placeholder { color: rgba(255,255,255,0.35) !important; }
-            .settings-panel .form-control:focus { background: rgba(255,255,255,0.11) !important; border-color: rgba(255,255,255,0.4) !important; box-shadow: 0 0 0 3px rgba(255,255,255,0.08) !important; }
+            body.dark-mode .stg-preview-btn { background: rgba(59,130,246,0.12) !important; color: #93c5fd !important; border-color: rgba(59,130,246,0.3) !important; }
+            body.dark-mode .stg-preview-btn:hover { background: rgba(59,130,246,0.22) !important; }
+            /* ── Info box ────────────────────────────────────────────────── */
+            .stg-info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 16px; font-size: 0.82rem; color: #1e40af; margin-bottom: 20px; }
+            /* ── About card ──────────────────────────────────────────────── */
+            .stg-about-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 24px; text-align: center; }
+            .stg-about-logo { font-size: 2.5rem; margin-bottom: 12px; color: #6366f1; }
+            .stg-about-app-name { font-size: 1.3rem; font-weight: 800; color: #1e293b; letter-spacing: 0.02em; }
+            .stg-about-version { font-size: 0.78rem; color: #94a3b8; margin-top: 4px; margin-bottom: 16px; }
+            .stg-about-divider { height: 1px; background: #e2e8f0; margin: 16px 0; }
+            .stg-about-tagline { font-size: 0.88rem; color: #64748b; font-style: italic; margin-bottom: 16px; }
+            .stg-about-author { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 1.05rem; font-weight: 700; color: #1e293b; }
+            .stg-about-roles { font-size: 0.76rem; color: #94a3b8; font-weight: 400; }
+            /* ── Scrollbars ──────────────────────────────────────────────── */
             .settings-panels::-webkit-scrollbar, .settings-nav::-webkit-scrollbar { width: 5px; }
             .settings-panels::-webkit-scrollbar-track, .settings-nav::-webkit-scrollbar-track { background: transparent; }
-            .settings-panels::-webkit-scrollbar-thumb, .settings-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
+            .settings-panels::-webkit-scrollbar-thumb, .settings-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+            /* ── Reduce-motion / font-size utilities ─────────────────────── */
             .stg-fs-small  * { font-size: 0.875em !important; }
             .stg-fs-large  * { font-size: 1.1em !important; }
-            .stg-reduce-motion *, .stg-reduce-motion *::before, .stg-reduce-motion *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+            .stg-reduce-motion *, .stg-reduce-motion *::before, .stg-reduce-motion *::after {
+                animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
+            }
+            /* ── Dark mode — settings modal ──────────────────────────────── */
+            body.dark-mode .settings-modal-content {
+                background: rgba(15, 23, 42, 0.82) !important;
+                backdrop-filter: blur(40px) saturate(200%) brightness(0.9) !important;
+                -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(0.9) !important;
+                border-color: rgba(255,255,255,0.1) !important;
+                border-top-color: rgba(255,255,255,0.18) !important;
+                box-shadow: 0 32px 72px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+                color: #e2e8f0 !important;
+            }
+            body.dark-mode .settings-modal-header { background: rgba(8,12,26,0.6) !important; border-bottom-color: rgba(255,255,255,0.07) !important; }
+            body.dark-mode .settings-modal-title { color: #f1f5f9 !important; }
+            body.dark-mode .settings-modal-subtitle { color: #64748b !important; }
+            body.dark-mode .settings-nav {
+                background: rgba(8,12,26,0.55) !important;
+                backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                border-right-color: rgba(255,255,255,0.07) !important;
+            }
+            body.dark-mode .settings-cat-btn { color: #94a3b8 !important; }
+            body.dark-mode .settings-cat-btn:hover { background: rgba(255,255,255,0.06) !important; color: #e2e8f0 !important; }
+            body.dark-mode .settings-cat-btn.active { background: rgba(59,130,246,0.15) !important; color: #93c5fd !important; }
+            body.dark-mode .settings-cat-btn.active .stg-nav-icon { box-shadow: 0 2px 8px rgba(59,130,246,0.4); }
+            body.dark-mode .settings-cat-btn.active i { color: #60a5fa !important; }
+            body.dark-mode .settings-nav-divider { background: #334155 !important; }
+            body.dark-mode .settings-panels { background: rgba(30,41,59,0.55) !important; }
+            body.dark-mode .stg-section-title { color: #475569 !important; border-bottom-color: #334155 !important; }
+            body.dark-mode .stg-row { border-bottom-color: #1e293b !important; }
+            body.dark-mode .stg-row-label { color: #e2e8f0 !important; }
+            body.dark-mode .stg-row-desc { color: #64748b !important; }
+            body.dark-mode .stg-toggle-label { background: #334155 !important; }
+            body.dark-mode .stg-toggle-switch input:checked + .stg-toggle-label { background: #10b981 !important; }
+            body.dark-mode .stg-segmented { background: #0f172a !important; border-color: #334155 !important; }
+            body.dark-mode .stg-seg-btn { color: #64748b !important; }
+            body.dark-mode .stg-seg-btn:hover { color: #94a3b8 !important; }
+            body.dark-mode .stg-seg-btn.active { background: #334155 !important; color: #e2e8f0 !important; box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important; }
+            body.dark-mode .stg-number-input { background: #0f172a !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+            body.dark-mode .stg-number-input:focus { border-color: #3b82f6 !important; background: rgba(59,130,246,0.1) !important; }
+            body.dark-mode .stg-action-warn { background: rgba(245,158,11,0.15) !important; color: #fbbf24 !important; border-color: rgba(245,158,11,0.3) !important; }
+            body.dark-mode .stg-action-warn:hover { background: rgba(245,158,11,0.25) !important; }
+            body.dark-mode .stg-action-danger { background: rgba(239,68,68,0.15) !important; color: #f87171 !important; border-color: rgba(239,68,68,0.3) !important; }
+            body.dark-mode .stg-action-danger:hover { background: rgba(239,68,68,0.25) !important; }
+            body.dark-mode .stg-info-box { background: rgba(59,130,246,0.1) !important; border-color: rgba(59,130,246,0.25) !important; color: #93c5fd !important; }
+            body.dark-mode .stg-about-card { background: #0f172a !important; border-color: #334155 !important; }
+            body.dark-mode .stg-about-logo { color: #818cf8 !important; }
+            body.dark-mode .stg-about-app-name { color: #f1f5f9 !important; }
+            body.dark-mode .stg-about-version { color: #475569 !important; }
+            body.dark-mode .stg-about-divider { background: #334155 !important; }
+            body.dark-mode .stg-about-tagline { color: #64748b !important; }
+            body.dark-mode .stg-about-author { color: #e2e8f0 !important; }
+            body.dark-mode .stg-about-roles { color: #475569 !important; }
+            body.dark-mode .settings-panels::-webkit-scrollbar-thumb,
+            body.dark-mode .settings-nav::-webkit-scrollbar-thumb { background: #475569; }
+            /* ── Account section ─────────────────────────────────────────── */
+            .stg-account-card { display: flex; align-items: center; gap: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 20px; }
+            .stg-account-avatar { width: 52px; height: 52px; flex-shrink: 0; background: linear-gradient(135deg,#3b82f6,#6366f1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.35rem; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+            .stg-account-info { min-width: 0; }
+            .stg-account-name { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+            .stg-account-sub { display: flex; flex-wrap: wrap; gap: 6px; }
+            .stg-account-chip { display: inline-flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 50px; padding: 2px 10px; font-size: 0.76rem; color: #64748b; font-weight: 500; }
+            .stg-action-save { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+            .stg-action-save:hover { background: #dbeafe; }
+            .stg-cp-feedback { font-size: 0.82rem; padding: 5px 12px; border-radius: 8px; background: #f1f5f9; color: #475569; }
+            .stg-cp-feedback.success { background: #dcfce7; color: #14532d; }
+            .stg-cp-feedback.error   { background: #fee2e2; color: #991b1b; }
+            body.dark-mode .stg-account-card { background: #0f172a !important; border-color: #334155 !important; }
+            body.dark-mode .stg-account-name { color: #f1f5f9 !important; }
+            body.dark-mode .stg-account-chip { background: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+            body.dark-mode .stg-action-save  { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; border-color: rgba(59,130,246,0.3) !important; }
+            body.dark-mode .stg-action-save:hover { background: rgba(59,130,246,0.25) !important; }
+            body.dark-mode .stg-cp-feedback  { background: #0f172a !important; color: #64748b !important; }
+            body.dark-mode .stg-cp-feedback.success { background: rgba(16,185,129,0.12) !important; color: #6ee7b7 !important; }
+            body.dark-mode .stg-cp-feedback.error   { background: rgba(239,68,68,0.12)  !important; color: #fca5a5 !important; }
+            /* ── Generic dark-mode modals (not the settings modal) ───────── */
             body.dark-mode .modal-content:not(.settings-modal-content) { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
             body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: #334155 !important; }
             body.dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
         </style>
-
-        <!-- Settings JS — in header fragment so all functions exist on /dashboard and every other page -->
-        <script>
-            window.setTheme = function(theme) {
-                var html = document.documentElement, body = document.body;
-                if (theme === 'dark') {
-                    html.classList.remove('dark-mode-loading');
-                    html.classList.add('dark-mode');
-                    body.classList.add('dark-mode');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    html.classList.remove('dark-mode-loading', 'dark-mode');
-                    body.classList.remove('dark-mode');
-                    localStorage.setItem('theme', 'light');
-                }
-            };
-            window.summitSettings = (function() {
-                try { return JSON.parse(localStorage.getItem('summitSettings') || '{}'); }
-                catch(e) { return {}; }
-            })();
-            var _stgDefaults = {
-                fontSize: 'medium', reduceAnimations: false,
-                chimeEnabled: true, chimeVolume: 70, chimeStyle: 'bell', chimeRepeat: 1,
-                toastEnabled: true, toastDuration: 8,
-                defaultSpeakerTime: 90, defaultSegmentTime: 300, defaultKolloqiumTime: 600,
-                timerWarningFlash: true, confirmClearQueue: true,
-                showDelegateCount: true, autoNumberQueue: false
-            };
-            window.getSetting = function(key) {
-                return window.summitSettings.hasOwnProperty(key) ? window.summitSettings[key] : _stgDefaults[key];
-            };
-            function _applySettings() {
-                var b = document.body;
-                b.classList.remove('stg-fs-small', 'stg-fs-medium', 'stg-fs-large');
-                b.classList.add('stg-fs-' + getSetting('fontSize'));
-                if (getSetting('reduceAnimations')) b.classList.add('stg-reduce-motion');
-                else b.classList.remove('stg-reduce-motion');
-            }
-            function _syncSettingsControls() {
-                document.querySelectorAll('[data-stg-key]').forEach(function(el) {
-                    var k = el.dataset.stgKey, v = getSetting(k);
-                    if (el.tagName === 'INPUT') {
-                        if (el.type === 'checkbox') el.checked = !!v;
-                        else el.value = v;
-                    }
-                });
-                var ve = document.getElementById('stg-chimeVolume');
-                var vl = document.getElementById('stg-chimeVolumeVal');
-                if (ve && vl) vl.textContent = ve.value + '%';
-                document.querySelectorAll('.stg-seg-btn').forEach(function(b) {
-                    b.classList.toggle('active', String(getSetting(b.dataset.stgKey)) === String(b.dataset.stgVal));
-                });
-            }
-            window.saveSetting = function(key, value) {
-                window.summitSettings[key] = value;
-                localStorage.setItem('summitSettings', JSON.stringify(window.summitSettings));
-                _applySettings();
-                _syncSettingsControls();
-            };
-            window.switchSettingsPanel = function(panelId) {
-                document.querySelectorAll('.settings-panel').forEach(function(p) { p.classList.remove('active'); });
-                document.querySelectorAll('.settings-cat-btn').forEach(function(b) { b.classList.remove('active'); });
-                var p = document.getElementById('stg-panel-' + panelId);
-                if (p) p.classList.add('active');
-                var b = document.querySelector('.settings-cat-btn[data-panel="' + panelId + '"]');
-                if (b) b.classList.add('active');
-            };
-            window.resetAllSettings = function() {
-                if (!confirm('Reset all settings to their defaults?')) return;
-                window.summitSettings = {};
-                localStorage.removeItem('summitSettings');
-                _applySettings();
-                _syncSettingsControls();
-            };
-            window.clearTimerHistory = function() {
-                if (!confirm('Clear all saved timer states?')) return;
-                localStorage.removeItem('summitTimers');
-                alert('Timer history cleared.');
-            };
-            window.doChangePassword = function() {
-                var cur = document.getElementById('stg-currentPass').value;
-                var np  = document.getElementById('stg-newPass').value;
-                var cp  = document.getElementById('stg-confirmPass').value;
-                var fb  = document.getElementById('stg-cpFeedback');
-                function showFb(t, m) {
-                    fb.textContent = m; fb.className = 'stg-cp-feedback ' + t; fb.style.display = 'block';
-                    if (t === 'success') {
-                        document.getElementById('stg-currentPass').value = '';
-                        document.getElementById('stg-newPass').value = '';
-                        document.getElementById('stg-confirmPass').value = '';
-                    }
-                }
-                if (!cur || !np || !cp) { showFb('error', 'All three fields are required.'); return; }
-                if (np !== cp)          { showFb('error', 'New passwords do not match.'); return; }
-                if (np.length < 6)      { showFb('error', 'Password must be at least 6 characters.'); return; }
-                fetch('/api/settings/change-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'currentPassword=' + encodeURIComponent(cur) +
-                          '&newPassword='    + encodeURIComponent(np)  +
-                          '&confirmPassword=' + encodeURIComponent(cp)
-                }).then(function(r) { return r.json(); })
-                  .then(function(d) { showFb(d.success ? 'success' : 'error', d.message || ''); })
-                  .catch(function() { showFb('error', 'An error occurred.'); });
-            };
-            document.addEventListener('DOMContentLoaded', function() {
-                setTheme(localStorage.getItem('theme') || 'light');
-                _applySettings();
-                var sm = document.getElementById('preferencesModal');
-                if (sm) {
-                    sm.addEventListener('show.bs.modal', function() {
-                        switchSettingsPanel('appearance');
-                        _syncSettingsControls();
-                    });
-                }
-            });
-        </script>
 
     </div><!-- /header fragment -->
 
@@ -2287,15 +2278,163 @@
     <th:block th:fragment="sidebar">
         <!-- Dark Mode Script - Must load before preferences modal -->
         <script>
-            // Sidebar-only: toggle + nav highlight
-            // All global settings functions (setTheme, getSetting, saveSetting, etc.) live in the header fragment
-            document.addEventListener('DOMContentLoaded', function() {
-                var sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-                var sidebar = document.getElementById('sidebarMenu');
+            // Dark/Light Mode Toggle - Define globally
+            // The navbar toggle pill and body.dark-mode CSS handle all visuals automatically.
+            window.setTheme = function(theme) {
+                const html = document.documentElement;
+                const body = document.body;
+                if (theme === 'dark') {
+                    html.classList.remove('dark-mode-loading');
+                    html.classList.add('dark-mode');
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    html.classList.remove('dark-mode-loading');
+                    html.classList.remove('dark-mode');
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+            };
+            
+            // ── Settings System ───────────────────────────────────────────
+            window.summitSettings = (function() {
+                try { return JSON.parse(localStorage.getItem('summitSettings') || '{}'); } catch(e) { return {}; }
+            })();
 
+            var _stgDefaults = {
+                fontSize: 'medium', reduceAnimations: false,
+                chimeEnabled: true, chimeVolume: 70, chimeStyle: 'bell', chimeRepeat: 1,
+                toastEnabled: true, toastDuration: 8,
+                defaultSpeakerTime: 90, defaultSegmentTime: 300, defaultKolloqiumTime: 600,
+                timerWarningFlash: true,
+                confirmClearQueue: true, showDelegateCount: true, autoNumberQueue: false
+            };
+
+            window.getSetting = function(key) {
+                return window.summitSettings.hasOwnProperty(key)
+                    ? window.summitSettings[key] : _stgDefaults[key];
+            };
+
+            function _applySettings() {
+                var body = document.body;
+                body.classList.remove('stg-fs-small', 'stg-fs-medium', 'stg-fs-large');
+                body.classList.add('stg-fs-' + getSetting('fontSize'));
+                if (getSetting('reduceAnimations')) body.classList.add('stg-reduce-motion');
+                else body.classList.remove('stg-reduce-motion');
+            }
+
+            function _syncSettingsControls() {
+                document.querySelectorAll('[data-stg-key]').forEach(function(el) {
+                    var key = el.dataset.stgKey;
+                    var val = getSetting(key);
+                    if (el.tagName === 'INPUT') {
+                        if (el.type === 'checkbox') el.checked = !!val;
+                        else if (el.type === 'number') el.value = val;
+                        else if (el.type === 'range')  { el.value = val; }
+                    }
+                });
+                // Update range display spans
+                var volEl = document.getElementById('stg-chimeVolume');
+                var volLbl = document.getElementById('stg-chimeVolumeVal');
+                if (volEl && volLbl) volLbl.textContent = volEl.value + '%';
+                document.querySelectorAll('.stg-seg-btn').forEach(function(btn) {
+                    btn.classList.toggle('active',
+                        String(getSetting(btn.dataset.stgKey)) === String(btn.dataset.stgVal));
+                });
+            }
+
+            window.saveSetting = function(key, value) {
+                window.summitSettings[key] = value;
+                localStorage.setItem('summitSettings', JSON.stringify(window.summitSettings));
+                _applySettings();
+                _syncSettingsControls();
+            };
+
+            window.switchSettingsPanel = function(panelId) {
+                document.querySelectorAll('.settings-panel').forEach(function(p) { p.classList.remove('active'); });
+                document.querySelectorAll('.settings-cat-btn').forEach(function(b) { b.classList.remove('active'); });
+                var panel = document.getElementById('stg-panel-' + panelId);
+                if (panel) panel.classList.add('active');
+                var btn = document.querySelector('.settings-cat-btn[data-panel="' + panelId + '"]');
+                if (btn) btn.classList.add('active');
+            };
+
+            window.resetAllSettings = function() {
+                if (!confirm('Reset all settings to their defaults?')) return;
+                window.summitSettings = {};
+                localStorage.removeItem('summitSettings');
+                _applySettings();
+                _syncSettingsControls();
+            };
+
+            window.clearTimerHistory = function() {
+                if (!confirm('Clear all saved timer states?')) return;
+                localStorage.removeItem('summitTimers');
+                alert('Timer history cleared.');
+            };
+
+            // ── Change Password (Account panel) ───────────────────────────
+            window.doChangePassword = function() {
+                var current  = document.getElementById('stg-currentPass').value;
+                var newPass  = document.getElementById('stg-newPass').value;
+                var confirm  = document.getElementById('stg-confirmPass').value;
+                var feedback = document.getElementById('stg-cpFeedback');
+
+                function showFb(type, msg) {
+                    feedback.textContent = msg;
+                    feedback.className = 'stg-cp-feedback ' + type;
+                    feedback.style.display = 'block';
+                    if (type === 'success') {
+                        document.getElementById('stg-currentPass').value = '';
+                        document.getElementById('stg-newPass').value     = '';
+                        document.getElementById('stg-confirmPass').value = '';
+                    }
+                }
+
+                if (!current || !newPass || !confirm) { showFb('error', 'All three fields are required.'); return; }
+                if (newPass !== confirm)              { showFb('error', 'New passwords do not match.');       return; }
+                if (newPass.length < 6)              { showFb('error', 'Password must be at least 6 characters.'); return; }
+
+                fetch('/api/settings/change-password', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body:    'currentPassword=' + encodeURIComponent(current)
+                           + '&newPassword='    + encodeURIComponent(newPass)
+                           + '&confirmPassword='+ encodeURIComponent(confirm)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { showFb(d.success ? 'success' : 'error', d.message || ''); })
+                .catch(function() { showFb('error', 'An error occurred. Please try again.'); });
+            };
+
+            // Load saved theme on page load - immediately apply
+            document.addEventListener('DOMContentLoaded', function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                setTheme(savedTheme);
+                _applySettings();
+
+                // Wire settings modal: reset to Appearance tab and sync controls on open
+                var _sm = document.getElementById('preferencesModal');
+                if (_sm) {
+                    _sm.addEventListener('show.bs.modal', function() {
+                        switchSettingsPanel('appearance');
+                        _syncSettingsControls();
+                    });
+                }
+
+                // ── Sidebar mini / expanded toggle ────────────────────────
+                const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+                const sidebar          = document.getElementById('sidebarMenu');
+
+                /**
+                 * Apply mini (icon-only) or expanded state to the sidebar.
+                 * We drive the sidebar width and the content margin via the
+                 * --sidebar-width CSS custom property so every page that uses
+                 * `var(--sidebar-width)` picks up the change automatically.
+                 */
                 function applySidebarState(isMini) {
                     if (!sidebar) return;
-                    var root = document.documentElement;
+                    const root = document.documentElement;
                     if (isMini) {
                         sidebar.classList.add('sidebar-mini');
                         root.style.setProperty('--sidebar-width', '72px');
@@ -2305,52 +2444,35 @@
                     }
                 }
 
-                applySidebarState(localStorage.getItem('sidebarState') === 'mini');
+                // Restore persisted sidebar state (no flash — runs on DOMContentLoaded)
+                const savedSidebarState = localStorage.getItem('sidebarState');
+                applySidebarState(savedSidebarState === 'mini');
 
-                // Show delegate count badge on Speakers nav link (if setting enabled)
-                (function() {
-                    var badge = document.getElementById('speakers-queue-badge');
-                    if (!badge) return;
-                    function _refreshBadge() {
-                        var show = typeof window.getSetting === 'function' ? window.getSetting('showDelegateCount') : true;
-                        var count = 0;
-                        try { count = parseInt(localStorage.getItem('speakersQueueCount') || '0', 10) || 0; } catch(e){}
-                        if (show && count > 0) {
-                            badge.textContent = count;
-                            badge.style.display = 'inline-flex';
-                        } else {
-                            badge.style.display = 'none';
-                        }
-                    }
-                    _refreshBadge();
-                    // Re-check when settings change (storage event from another tab or same-page saveSetting)
-                    window.addEventListener('storage', function(e) {
-                        if (e.key === 'speakersQueueCount' || e.key === 'summitSettings') _refreshBadge();
+                // ── Active nav highlighting ───────────────────────────────
+                (function highlightActiveNav() {
+                    const path = window.location.pathname;
+                    document.querySelectorAll('.modern-nav-link').forEach(function(link) {
+                        const href = link.getAttribute('href');
+                        if (!href) return;
+                        // '/' must be an exact match so it doesn't swallow every route
+                        const isActive = href === '/'
+                            ? path === '/'
+                            : (path === href || path.startsWith(href + '/'));
+                        link.classList.toggle('active', isActive);
                     });
-                    // Poll every 2 s while on non-speakers pages so it updates in near-real-time
-                    if (window.location.pathname !== '/speakers') {
-                        setInterval(_refreshBadge, 2000);
-                    }
                 })();
 
-                var path = window.location.pathname;
-                document.querySelectorAll('.modern-nav-link').forEach(function(link) {
-                    var href = link.getAttribute('href');
-                    if (!href) return;
-                    link.classList.toggle('active',
-                        href === '/' ? path === '/' : (path === href || path.startsWith(href + '/'))
-                    );
-                });
-
+                // Handle hamburger click
                 if (sidebarToggleBtn && sidebar) {
                     sidebarToggleBtn.addEventListener('click', function() {
-                        var goMini = !sidebar.classList.contains('sidebar-mini');
+                        const goMini = !sidebar.classList.contains('sidebar-mini');
                         applySidebarState(goMini);
                         localStorage.setItem('sidebarState', goMini ? 'mini' : 'expanded');
                     });
                 }
             });
         </script>
+        
         <div class="sidebar d-flex flex-column p-3 modern-sidebar" id="sidebarMenu">
         
             <ul class="nav nav-pills flex-column mb-auto modern-nav">
@@ -2438,7 +2560,6 @@
                        href="/speakers" class="nav-link modern-nav-link" data-label="Speakers">
                         <span class="nav-icon-wrapper"><i class="bi bi-mic"></i></span>
                         <span class="nav-text">Speakers</span>
-                        <span class="nav-queue-badge" id="speakers-queue-badge" style="display:none;"></span>
                     </a>
                     <span th:if="${delegateCount == 0}"
                           class="nav-link modern-nav-link nav-link-disabled"
@@ -2475,7 +2596,7 @@
                 </a>
                 <div class="version-info">
                     <i class="bi bi-info-circle me-1"></i>
-                    <span>v2.6.0</span>
+                    <span>v2.4.0</span>
                 </div>
             </div>
         </div>
@@ -2561,6 +2682,348 @@
             
             body.dark-mode .preferences-modal-body::-webkit-scrollbar-thumb:hover {
                 background: rgba(255, 255, 255, 0.5) !important;
+            }
+            
+            /* ================================================
+               SETTINGS MODAL — theme-aware 2026 redesign
+               ================================================ */
+            /* --- Base (Light Mode) --- */
+            .settings-modal-dialog { max-width: 860px; width: calc(100% - 48px); }
+            .settings-modal-content {
+                background: rgba(248, 250, 252, 0.60) !important;
+                backdrop-filter: blur(52px) saturate(200%) brightness(1.04);
+                -webkit-backdrop-filter: blur(52px) saturate(200%) brightness(1.04);
+                border: 1px solid rgba(255,255,255,0.55) !important;
+                border-top-color: rgba(255,255,255,0.85) !important;
+                border-radius: 20px;
+                box-shadow: 0 24px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.07),
+                            inset 0 1px 0 rgba(255,255,255,0.9);
+                color: #1e293b;
+                overflow: hidden;
+            }
+            .settings-modal-header {
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 20px 24px 16px;
+                background: rgba(248, 250, 252, 0.46);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(0,0,0,0.09);
+                flex-shrink: 0;
+            }
+            .settings-header-icon {
+                width: 40px; height: 40px;
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                font-size: 1.1rem; color: #fff;
+                box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+                flex-shrink: 0;
+            }
+            .settings-modal-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+            .settings-modal-subtitle { font-size: 0.78rem; color: #64748b; }
+            .settings-modal-body { display: flex; min-height: 480px; max-height: 65vh; overflow: hidden; }
+            /* Close button — light mode: dark X on white, dark mode: inverted */
+            .settings-close-btn { filter: none; }
+            body.dark-mode .settings-close-btn { filter: invert(1) grayscale(100%) brightness(200%); }
+
+            /* Left nav */
+            .settings-nav {
+                width: 190px; min-width: 190px;
+                background: rgba(241, 245, 249, 0.48);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-right: 1px solid rgba(0,0,0,0.08);
+                padding: 16px 10px; display: flex; flex-direction: column; gap: 3px;
+                overflow-y: auto; flex-shrink: 0;
+            }
+            .settings-cat-btn {
+                display: flex; align-items: center; gap: 10px;
+                width: 100%; padding: 9px 12px;
+                background: transparent; border: none; border-radius: 10px;
+                color: #64748b; font-size: 0.86rem; font-weight: 500;
+                text-align: left; cursor: pointer; transition: all 0.18s;
+            }
+            .settings-cat-btn i { font-size: 0.9rem; width: 17px; text-align: center; flex-shrink: 0; }
+            .settings-cat-btn:hover { background: rgba(0,0,0,0.04); color: #334155; }
+            .settings-cat-btn.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+            .settings-cat-btn.active .stg-nav-icon { box-shadow: 0 2px 8px rgba(59,130,246,0.35); }
+            .settings-nav-divider { height: 1px; background: #e2e8f0; margin: 8px 4px; }
+
+            /* Icon badge in nav */
+            .stg-nav-icon {
+                width: 26px; height: 26px; border-radius: 7px;
+                display: inline-flex; align-items: center; justify-content: center;
+                flex-shrink: 0; color: #fff; font-size: 0.78rem;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            }
+            .stg-nav-icon i { font-size: 0.78rem; width: auto; }
+
+            /* Right panels */
+            .settings-panels { flex: 1; overflow-y: auto; padding: 24px 28px; background: rgba(255,255,255,0.35); }
+            .settings-panel { display: none; }
+            .settings-panel.active { display: block; }
+            .stg-section-title {
+                font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+                color: #64748b; margin-bottom: 20px;
+                padding-bottom: 10px; border-bottom: 1px solid #d1d9e0;
+            }
+            .stg-row {
+                display: flex; align-items: center; justify-content: space-between;
+                gap: 16px; padding: 14px 0; border-bottom: 1px solid #dde3ea;
+            }
+            .stg-row:last-child { border-bottom: none; }
+            .stg-row-info { flex: 1; min-width: 0; }
+            .stg-row-label { font-size: 0.88rem; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
+            .stg-row-desc { font-size: 0.76rem; color: #64748b; line-height: 1.4; }
+            .stg-row-ctrl { flex-shrink: 0; }
+
+            /* Toggle switch */
+            .stg-toggle-switch { position: relative; width: 44px; height: 24px; }
+            .stg-toggle-switch input[type="checkbox"] { opacity: 0; width: 0; height: 0; position: absolute; }
+            .stg-toggle-label {
+                position: absolute; inset: 0;
+                background: #cbd5e1; border-radius: 50px;
+                cursor: pointer; transition: background 0.25s;
+            }
+            .stg-toggle-label::after {
+                content: ''; position: absolute; top: 3px; left: 3px;
+                width: 18px; height: 18px; background: #fff; border-radius: 50%;
+                transition: transform 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            }
+            .stg-toggle-switch input:checked + .stg-toggle-label { background: #10b981; }
+            .stg-toggle-switch input:checked + .stg-toggle-label::after { transform: translateX(20px); }
+
+            /* Segmented control */
+            .stg-segmented { display: flex; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; }
+            .stg-seg-btn {
+                padding: 5px 12px; background: transparent; border: none; border-radius: 6px;
+                color: #64748b; font-size: 0.8rem; font-weight: 500;
+                cursor: pointer; transition: all 0.18s;
+            }
+            .stg-seg-btn:hover { color: #334155; }
+            .stg-seg-btn.active { background: #ffffff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+            /* Number input */
+            .stg-number-input {
+                width: 80px; background: #f8fafc;
+                border: 1px solid #cbd5e1; border-radius: 8px;
+                color: #1e293b; padding: 6px 10px; font-size: 0.88rem; text-align: center; transition: all 0.18s;
+            }
+            .stg-number-input:focus { outline: none; border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+            /* Range (slider) input */
+            .stg-range-input {
+                -webkit-appearance: none; appearance: none;
+                width: 130px; height: 4px;
+                background: #e2e8f0; border-radius: 50px; outline: none;
+                cursor: pointer; transition: background 0.18s;
+            }
+            .stg-range-input:hover { background: #cbd5e1; }
+            .stg-range-input::-webkit-slider-thumb {
+                -webkit-appearance: none; appearance: none;
+                width: 16px; height: 16px; border-radius: 50%;
+                background: #3b82f6; cursor: pointer;
+                box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+                transition: transform 0.15s, background 0.15s;
+            }
+            .stg-range-input::-webkit-slider-thumb:hover { transform: scale(1.15); background: #2563eb; }
+            .stg-range-input::-moz-range-thumb {
+                width: 16px; height: 16px; border-radius: 50%;
+                background: #3b82f6; cursor: pointer; border: none;
+                box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+            }
+            /* Dark mode range */
+            body.dark-mode .stg-range-input { background: #334155 !important; }
+            body.dark-mode .stg-range-input:hover { background: #475569 !important; }
+
+            /* Action buttons */
+            .stg-action-btn { padding: 6px 16px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+            .stg-action-warn { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+            .stg-action-warn:hover { background: #fde68a; }
+            .stg-action-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+            .stg-action-danger:hover { background: #fecaca; }
+
+            /* Preview button */
+            .stg-preview-btn {
+                display: inline-flex; align-items: center; gap: 5px;
+                padding: 4px 12px; border-radius: 20px;
+                background: #eff6ff; color: #2563eb;
+                border: 1.5px solid #bfdbfe;
+                font-size: 0.76rem; font-weight: 600; cursor: pointer;
+                transition: all 0.18s; white-space: nowrap;
+            }
+            .stg-preview-btn:hover { background: #dbeafe; border-color: #93c5fd; transform: scale(1.04); }
+            .stg-preview-btn i { font-size: 0.82rem; }
+            body.dark-mode .stg-preview-btn { background: rgba(59,130,246,0.12) !important; color: #93c5fd !important; border-color: rgba(59,130,246,0.3) !important; }
+            body.dark-mode .stg-preview-btn:hover { background: rgba(59,130,246,0.22) !important; }
+
+            /* Info box */
+            .stg-info-box {
+                background: #eff6ff; border: 1px solid #bfdbfe;
+                border-radius: 10px; padding: 12px 16px; font-size: 0.82rem;
+                color: #1e40af; margin-bottom: 20px;
+            }
+
+            /* About card */
+            .stg-about-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 24px; text-align: center; }
+            .stg-about-logo { font-size: 2.5rem; margin-bottom: 12px; color: #6366f1; }
+            .stg-about-app-name { font-size: 1.3rem; font-weight: 800; color: #1e293b; letter-spacing: 0.02em; }
+            .stg-about-version { font-size: 0.78rem; color: #94a3b8; margin-top: 4px; margin-bottom: 16px; }
+            .stg-about-divider { height: 1px; background: #e2e8f0; margin: 16px 0; }
+            .stg-about-tagline { font-size: 0.88rem; color: #64748b; font-style: italic; margin-bottom: 16px; }
+            .stg-about-author { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 1.05rem; font-weight: 700; color: #1e293b; }
+            .stg-about-roles { font-size: 0.76rem; color: #94a3b8; font-weight: 400; }
+
+            /* Scrollbars */
+            .settings-panels::-webkit-scrollbar, .settings-nav::-webkit-scrollbar { width: 5px; }
+            .settings-panels::-webkit-scrollbar-track, .settings-nav::-webkit-scrollbar-track { background: transparent; }
+            .settings-panels::-webkit-scrollbar-thumb, .settings-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+            /* Font-size and reduce-motion utility classes */
+            .stg-fs-small  * { font-size: 0.875em !important; }
+            .stg-fs-large  * { font-size: 1.1em !important; }
+            .stg-reduce-motion *, .stg-reduce-motion *::before, .stg-reduce-motion *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            /* --- Dark Mode overrides --- */
+            /* body.dark-mode .modal-content already gives background:#1e293b, color:#e2e8f0 */
+            body.dark-mode .settings-modal-content {
+                background: rgba(15, 23, 42, 0.82) !important;
+                backdrop-filter: blur(40px) saturate(200%) brightness(0.9) !important;
+                -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(0.9) !important;
+                border-color: rgba(255,255,255,0.1) !important;
+                border-top-color: rgba(255,255,255,0.18) !important;
+                box-shadow: 0 32px 72px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+                color: #e2e8f0 !important;
+            }
+            body.dark-mode .settings-modal-header {
+                background: rgba(8, 12, 26, 0.6) !important;
+                border-bottom-color: rgba(255,255,255,0.07) !important;
+            }
+            body.dark-mode .settings-modal-title { color: #f1f5f9 !important; }
+            body.dark-mode .settings-modal-subtitle { color: #64748b !important; }
+            body.dark-mode .settings-nav {
+                background: rgba(8, 12, 26, 0.55) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border-right-color: rgba(255,255,255,0.07) !important;
+            }
+            body.dark-mode .settings-cat-btn { color: #94a3b8 !important; }
+            body.dark-mode .settings-cat-btn:hover { background: rgba(255,255,255,0.06) !important; color: #e2e8f0 !important; }
+            body.dark-mode .settings-cat-btn.active { background: rgba(59,130,246,0.15) !important; color: #93c5fd !important; }
+            body.dark-mode .settings-cat-btn.active .stg-nav-icon { box-shadow: 0 2px 8px rgba(59,130,246,0.4); }
+            body.dark-mode .settings-cat-btn.active i { color: #60a5fa !important; }
+            body.dark-mode .settings-nav-divider { background: #334155 !important; }
+            body.dark-mode .settings-panels { background: rgba(30, 41, 59, 0.55) !important; }
+            body.dark-mode .stg-section-title { color: #475569 !important; border-bottom-color: #334155 !important; }
+            body.dark-mode .stg-row { border-bottom-color: #1e293b !important; }
+            body.dark-mode .stg-row-label { color: #e2e8f0 !important; }
+            body.dark-mode .stg-row-desc { color: #64748b !important; }
+            body.dark-mode .stg-toggle-label { background: #334155 !important; }
+            body.dark-mode .stg-toggle-switch input:checked + .stg-toggle-label { background: #10b981 !important; }
+            body.dark-mode .stg-segmented { background: #0f172a !important; border-color: #334155 !important; }
+            body.dark-mode .stg-seg-btn { color: #64748b !important; }
+            body.dark-mode .stg-seg-btn:hover { color: #94a3b8 !important; }
+            body.dark-mode .stg-seg-btn.active { background: #334155 !important; color: #e2e8f0 !important; box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important; }
+            body.dark-mode .stg-number-input { background: #0f172a !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+            body.dark-mode .stg-number-input:focus { border-color: #3b82f6 !important; background: rgba(59,130,246,0.1) !important; }
+            body.dark-mode .stg-action-warn { background: rgba(245,158,11,0.15) !important; color: #fbbf24 !important; border-color: rgba(245,158,11,0.3) !important; }
+            body.dark-mode .stg-action-warn:hover { background: rgba(245,158,11,0.25) !important; }
+            body.dark-mode .stg-action-danger { background: rgba(239,68,68,0.15) !important; color: #f87171 !important; border-color: rgba(239,68,68,0.3) !important; }
+            body.dark-mode .stg-action-danger:hover { background: rgba(239,68,68,0.25) !important; }
+            body.dark-mode .stg-info-box { background: rgba(59,130,246,0.1) !important; border-color: rgba(59,130,246,0.25) !important; color: #93c5fd !important; }
+            body.dark-mode .stg-about-card { background: #0f172a !important; border-color: #334155 !important; }
+            body.dark-mode .stg-about-logo { color: #818cf8 !important; }
+            body.dark-mode .stg-about-app-name { color: #f1f5f9 !important; }
+            body.dark-mode .stg-about-version { color: #475569 !important; }
+            body.dark-mode .stg-about-divider { background: #334155 !important; }
+            body.dark-mode .stg-about-tagline { color: #64748b !important; }
+            body.dark-mode .stg-about-author { color: #e2e8f0 !important; }
+            body.dark-mode .stg-about-roles { color: #475569 !important; }
+            body.dark-mode .settings-panels::-webkit-scrollbar-thumb,
+            body.dark-mode .settings-nav::-webkit-scrollbar-thumb { background: #475569; }
+            /* Account section */
+            .stg-account-card {
+                display: flex; align-items: center; gap: 16px;
+                background: #f8fafc; border: 1px solid #e2e8f0;
+                border-radius: 14px; padding: 16px 20px;
+            }
+            .stg-account-avatar {
+                width: 52px; height: 52px; flex-shrink: 0;
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                color: #fff; font-size: 1.35rem;
+                box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+            }
+            .stg-account-info { min-width: 0; }
+            .stg-account-name { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+            .stg-account-sub { display: flex; flex-wrap: wrap; gap: 6px; }
+            .stg-account-chip {
+                display: inline-flex; align-items: center;
+                background: #fff; border: 1px solid #e2e8f0;
+                border-radius: 50px; padding: 2px 10px;
+                font-size: 0.76rem; color: #64748b; font-weight: 500;
+            }
+            /* Save / primary action button */
+            .stg-action-save { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+            .stg-action-save:hover { background: #dbeafe; }
+            /* Change-password feedback */
+            .stg-cp-feedback {
+                font-size: 0.82rem; padding: 5px 12px; border-radius: 8px;
+                background: #f1f5f9; color: #475569;
+            }
+            .stg-cp-feedback.success { background: #dcfce7; color: #14532d; }
+            .stg-cp-feedback.error   { background: #fee2e2; color: #991b1b; }
+            /* Dark mode: account section */
+            body.dark-mode .stg-account-card { background: #0f172a !important; border-color: #334155 !important; }
+            body.dark-mode .stg-account-name { color: #f1f5f9 !important; }
+            body.dark-mode .stg-account-chip { background: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+            body.dark-mode .stg-action-save  { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; border-color: rgba(59,130,246,0.3) !important; }
+            body.dark-mode .stg-action-save:hover { background: rgba(59,130,246,0.25) !important; }
+            body.dark-mode .stg-cp-feedback  { background: #0f172a !important; color: #64748b !important; }
+            body.dark-mode .stg-cp-feedback.success { background: rgba(16,185,129,0.12) !important; color: #6ee7b7 !important; }
+            body.dark-mode .stg-cp-feedback.error   { background: rgba(239,68,68,0.12)  !important; color: #fca5a5 !important; }
+            /* ================================================
+               NAVBAR THEME TOGGLE PILL
+               ================================================ */
+            .theme-toggle-pill {
+                display: flex; align-items: center; gap: 7px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.14);
+                border-radius: 50px; padding: 5px 10px;
+                cursor: pointer; transition: all 0.25s;
+                user-select: none; -webkit-user-select: none;
+            }
+            .theme-toggle-pill:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.25); }
+            .theme-icon-sun  { font-size: 0.78rem; color: #fbbf24; transition: all 0.25s; }
+            .theme-icon-moon { font-size: 0.78rem; color: rgba(255,255,255,0.35); transition: all 0.25s; }
+            body.dark-mode .theme-icon-sun  { color: rgba(255,255,255,0.3); }
+            body.dark-mode .theme-icon-moon { color: #a5b4fc; }
+            .theme-toggle-track {
+                position: relative; width: 32px; height: 18px;
+                background: rgba(255,255,255,0.18); border-radius: 50px;
+                transition: background 0.25s; display: inline-block;
+            }
+            .theme-toggle-thumb {
+                position: absolute; top: 3px; left: 3px;
+                width: 12px; height: 12px;
+                background: #fff; border-radius: 50%; transition: transform 0.25s; display: block;
+            }
+            body.dark-mode .theme-toggle-track { background: #6366f1; }
+            body.dark-mode .theme-toggle-thumb { transform: translateX(14px); }
+            
+            /* Dark Mode Variables and Styles */
+            html.dark-mode,
+            html.dark-mode body,
+            body.dark-mode {
+                background: #0f172a !important;
+                color: #e2e8f0 !important;
+            }
+            
+            body.dark-mode .sidebar {
+                background-color: #1e293b !important;
             }
             
             /* Sidebar navigation links */
@@ -2886,22 +3349,6 @@
                 opacity: 0.55;
                 padding-right: 2px;
             }
-            .nav-queue-badge {
-                margin-left: auto;
-                min-width: 20px;
-                height: 20px;
-                border-radius: 50px;
-                background: linear-gradient(135deg, #3b82f6, #6366f1);
-                color: #fff;
-                font-size: 0.68rem;
-                font-weight: 700;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 5px;
-                box-shadow: 0 2px 6px rgba(99,102,241,0.35);
-                transition: all 0.2s;
-            }
             
             .nav-icon-wrapper {
                 display: inline-flex;
@@ -3202,6 +3649,6 @@
             }
         </style>
     </th:block>
-     <script src="/js/bootstrap.bundle.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
