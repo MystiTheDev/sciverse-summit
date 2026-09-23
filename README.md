@@ -1,140 +1,158 @@
 # Sciverse Summit
 
-Sciverse Summit is a comprehensive conference management application built with **Spring Boot** and **Thymeleaf**. It is designed to streamline the management of conference sessions, delegates, motions, and speakers, providing a modern and intuitive user interface.
+Sciverse Summit is a conference management app built with **Spring Boot** and **Thymeleaf** — sessions, delegates, motions, speakers, timers, notes, all in one modern, glassy interface, built for the ambitious project knows as **"SciVerse Summit"**. And as of **v3.0.0**, it comes as proper **Windows installer apps** (Chair + Delegate) with **built-in auto-updates**. No Java to install, no zips to extract, no folders to babysit. 🥳
+
+> ⬇️ **Get the apps:** go to [**Releases**](https://github.com/MystiTheDev/sciverse-summit/releases/latest) and grab your installer:
+> - 🪑 **Chairs download:** `SciVerse-Summit-Chair-Setup-3.0.0.exe` — hosts the session server on your PC
+> - 🎤 **Delegates download:** `SciVerse-Summit-Delegate-Setup-3.0.0.exe` — connects to the chair's session
+>
+> (The other files in the release — `.yml`, `.blockmap` — are for auto-update. You can ignore them.)
+
+## 🖥️ Desktop Apps
+
+[](#-desktop-apps)
+
+Two apps, two jobs:
+
+### 🪑 Chair — hosts the session
+
+-   **Start Session Server:** one click spins up the bundled server (Java runtime included — you don't need Java installed, I checked twice).
+-   **Delegate Join URL:** one click copies the address your delegates type in. Shout it across the room, done.
+-   **Your data survives reinstalls:** the database lives in your user folder, so updating never wipes anything.
+-   **Fancy bits:** animated loading splash on launch, live server log in the console, floating "Back to Console" button while you're in the web UI.
+
+### 🎤 Delegate — joins the session
+
+-   **Type the chair's address, hit Connect.** That's the whole setup. It waits patiently (and retries forever) until the chair starts the server, then walks you straight in.
+-   **Custom sign-in screen** with the same login under the hood — sessions and redirects behave exactly like the website.
+-   **Lightweight:** no server, no Java inside. Just the connector.
+
+## 🔄 Auto-Update (yes, really)
+
+[](#-auto-update)
+
+Both apps check for updates on every launch. When one is found, you get a nice in-app card — **not** a cryptic system popup:
+
+-   **Update available?** It *asks* first: Download Update / Later. Nothing downloads behind your back.
+-   **Downloading?** Progress bar + live speed, floating icons, and rotating tips to keep you entertained.
+-   **Ready?** Hit **Restart to Update** and you're on the new version in seconds. Or hit Later and it installs next time you quit.
 
 ## 🚀 Features
 
+[](#-features)
+
 ### 🔹 Session Management
-- **Create Sessions:** Start new conference sessions with details like Name, Committee, Topic, and Participants.
-- **Active Session Tracking:** Automatically detects and allows users to resume the currently active session.
-- **Session History:** View a detailed archive of all past sessions with timestamps and metadata.
-- **End Session:** Securely close sessions to archive them.
+
+-   **Create Sessions:** with Name, Committee, Topic, and Participants.
+-   **Active Session Tracking:** detects and resumes the currently active session.
+-   **Session History:** archive of past sessions with timestamps and metadata.
+-   **End Session:** securely close sessions to archive them.
 
 ### 🔹 Note-Taking System
-- **Integrated Notes:** A professional, modal-based note-taking interface accessible from the sidebar.
-- **Auto-Save & Persistence:** Notes are saved to the database and persist across logins.
-- **Rich UI:** Features a clean, distraction-free writing environment.
+
+-   **Integrated Notes:** modal-based, accessible from the sidebar.
+-   **Auto-Save & Persistence:** notes survive logins.
+-   **Rich UI:** clean, distraction-free writing environment.
 
 ### 🔹 Dashboard & Navigation
-- **Central Dashboard:** Quick access to all core functionalities.
-- **Smart Sidebar:** Context-aware sidebar that shows session-specific tools (like Notes) only when a session is active.
-- **Glassmorphism Design:** Modern, translucent modals and header for a premium look and feel.
-- **Committee Options:** Curated list of committees (Mathematics removed to keep scope strictly scientific).
+
+-   **Central Dashboard:** quick access to everything.
+-   **Smart Sidebar:** session tools (like Notes) appear only when a session is active.
+-   **Glassmorphism Design:** translucent modals and headers, premium look and feel.
 
 ### 🔹 🌗 Theme Support (Light / Dark Mode)
-- **Persistent Toggle:** Theme preference saved in `localStorage` and applied across all pages without flash.
-- **Pre-load Script:** Each page applies the saved theme before render to prevent the white-flash effect.
-- **Fully Themed Pages:**
-  - Dashboard
-  - History (modernized table with white heading in light mode, black heading in dark mode)
-  - Add / Edit Delegate
-  - Notes
-  - Login
-- **Smooth Transitions:** All color changes animate cleanly when the user toggles themes.
 
-### 🔹 Modern History Table
-- **Gradient Header:** White background in light mode / black in dark mode for crisp contrast.
-- **Status Badges:** Active vs. Ended sessions clearly distinguished with colored pill badges.
-- **Action Column:** Per-row delete button alongside view/resume actions.
-- **Responsive:** Works on desktop and tablet widths.
+-   **Persistent Toggle:** saved in `localStorage`, applied before render — no white flash, ever.
+-   **Fully Themed Pages:** Dashboard, History, Add/Edit Delegate, Notes, Login.
+-   **Smooth Transitions:** everything animates cleanly on toggle.
 
 ### 🔹 Security & User Management
-- **Authentication:** Secure Login/Logout functionality using Spring Security.
-- **Logout Confirmation:** Prevents accidental logouts with a confirmation dialog.
-- **User Context:** Displays current user information and profile options.
-- **User-Scoped Operations:** Session deletion is restricted to the owning user (server-side ownership check).
+
+-   **Authentication:** Spring Security login/logout with role-based landing (Admin → setup, Chair → dashboard, Delegate → portal).
+-   **Logout Confirmation:** no more accidental logouts.
+-   **User-Scoped Operations:** you can only delete your own sessions (enforced server-side, not just hidden buttons).
+
 ## 🛠️ Technology Stack
 
-### Backend
-- **Java 17**: Core programming language.
-- **Spring Boot 3.5.7**: Application framework.
-- **Spring Data JPA**: For database interactions.
-- **Spring Security**: For authentication and authorization.
-- **H2 Database**: File-based persistence (stored in `./data/presentationdb`).
+[](#️-technology-stack)
 
-### Frontend
-- **Thymeleaf**: Server-side Java template engine.
-- **Bootstrap 5.3.3**: Responsive CSS framework.
-- **Bootstrap Icons**: Comprehensive icon library.
-- **HTML5 / CSS3**: Custom styling including Glassmorphism effects.
+### Backend
+
+-   **Java 17** + **Spring Boot 3.5.x**: app framework, JPA, Security.
+-   **H2 Database**: file-based persistence (`./data/presentationdb` standalone, per-user folder in the Chair app).
+
+### Frontend (web)
+
+-   **Thymeleaf** + **Bootstrap 5.3.3** + **Bootstrap Icons**, custom Glassmorphism CSS.
+
+### Desktop shell (new in v3.0.0!)
+
+-   **Electron 38**: Chair launcher + Delegate connector, NSIS per-user installers.
+-   **Bundled mini Java runtime** (jlink) inside the Chair installer — no system Java needed.
+-   **electron-updater** via GitHub Releases (separate `chair` / `delegate` channels, ask-first flow).
 
 ## 🏗️ Architecture
 
-The project follows a standard **Model-View-Controller (MVC)** architecture:
+[](#️-architecture)
 
-1.  **Controller Layer** (`com.ishan.sciverse.summit.controller`):
-    - Handles incoming HTTP requests.
-    - Manages navigation logic (e.g., `DashboardController`).
-    - Prepares data models for views.
+Standard **MVC**, plus a desktop shell that never touches web code:
 
-2.  **Service Layer** (`com.ishan.sciverse.summit.service`):
-    - Contains business logic.
-    - Manages transactions (e.g., `SessionService`).
-    - Bridges Controllers and Repositories.
-
-3.  **Repository Layer** (`com.ishan.sciverse.summit.repository`):
-    - Interfaces with the database using Spring Data JPA.
-    - Performs CRUD operations.
-
-4.  **Entity Layer** (`com.ishan.sciverse.summit.entity`):
-    - Defines the data models (e.g., `Session`, `User`) mapped to database tables.
-
-5.  **View Layer** (`src/main/resources/templates`):
-    - **Fragments:** Reusable UI components (Header, Sidebar, Modals).
-    - **Pages:** `dashboard.html`, `history.html`, `index.html`.
+1.  **Controller Layer** — HTTP requests, navigation, view models.
+2.  **Service Layer** — business logic and transactions.
+3.  **Repository Layer** — Spring Data JPA, CRUD.
+4.  **Entity Layer** — `Session`, `User`, etc.
+5.  **View Layer** — Thymeleaf templates + fragments.
+6.  **Desktop shell** (`summit-desktop/`) — Electron launchers that *spawn* the jar (Chair) or *connect* to it (Delegate). Zero shared code with the web app.
 
 ## ⚙️ Setup & Installation
 
-1.  **Prerequisites:**
-    - Java 17 or higher installed.
-    - Maven installed.
+[](#️-setup--installation)
 
-2.  **Clone the Repository:**
-    ```bash
-    git clone <repository-url>
-    cd summit
-    ```
+### Option A — installers (Recommended)
 
-3.  **Build the Project:**
-    ```bash
-    mvn clean install
-    ```
+1.  Go to [**Releases**](https://github.com/MystiTheDev/sciverse-summit/releases/latest), download your `.exe` (Chair or Delegate).
+2.  Run it. If Windows SmartScreen complains (unsigned build), More info → Run anyway.
+3.  Chair: **Start Session Server**, share the join URL. Delegates: type it in, Connect. Done.
+4.  Both PCs just need to be on the same network. Internet not required after install.
 
-4.  **Run the Application:**
-    ```bash
-    mvn spring-boot:run
-    ```
+### Option B — from source (Developers)
 
-5.  **Access the App:**
-    - Open your browser and go to: `http://localhost:8080`
-    - **H2 Console:** `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:file:./data/presentationdb`)
+1.  **Prerequisites:** Java 17+, Maven, Node 18+.
+2.  **Web app:** `mvn package -DskipTests` → `target/summit-0.0.1-SNAPSHOT.jar`, run with `java -jar`, open `http://localhost:8080`.
+3.  **Desktop:** copy the jar to `summit-desktop/chair/server/summit.jar`, build the mini-runtime with `jlink` (see `summit-desktop/README.md`), then `npm run dist` in `chair/` / `delegate/`.
 
 ## 📂 Project Structure
 
+[](#-project-structure)
+
 ```
-summit/
-├── src/
-│   ├── main/
-│   │   ├── java/com/ishan/sciverse/summit/
-│   │   │   ├── controller/   # Web Controllers
-│   │   │   ├── entity/       # JPA Entities
-│   │   │   ├── repository/   # Data Access Interfaces
-│   │   │   ├── service/      # Business Logic
-│   │   │   └── SummitApplication.java
-│   │   └── resources/
-│   │       ├── static/       # CSS, JS, Images
-│   │       ├── templates/    # Thymeleaf Views
-│   │       └── application.properties
-│   └── test/                 # Unit Tests
-├── pom.xml                   # Maven Dependencies
-└── README.md                 # Project Documentation
+sciverse-summit/
+├── src/main/java/.../summit/
+│   ├── controller/   # Web Controllers
+│   ├── entity/       # JPA Entities
+│   ├── repository/   # Data Access Interfaces
+│   ├── service/      # Business Logic
+│   └── config/       # Security & friends
+├── src/main/resources/
+│   ├── templates/    # Thymeleaf Views
+│   └── application.properties
+├── summit-desktop/   # Electron shells (separate, no shared code)
+│   ├── chair/        # Launcher + bundled server + mini JRE
+│   └── delegate/     # Connector + custom login overlay
+├── pom.xml
+└── README.md         # You are here. Hi. 👋
 ```
 
 ## 🎨 UI Highlights
 
-- **Glassmorphic UI:** A new, sleek UI based on Apple's "Glassmorphic UI". 
-- **Responsive Sidebar:** Collapsible sidebar for efficient navigation.
-- **Interactive Modals:** Used for Notes and Logout confirmation to maintain context without page reloads.
+[](#-ui-highlights)
+
+-   **Liquid Glass UI** inspired by Apple's design language.
+-   **Animated launch splashes** in both desktop apps (the Chair one has a *very* cool loader, not gonna lie 😎).
+-   **In-app update screen** with floating icons and rotating tips. Updates finally feel like a feature, not a chore.
+-   **Responsive Sidebar**, collapsible, context-aware.
+-   **Interactive Modals** for Notes and Logout — no page reloads, no lost context.
 
 ---
-*Developed By MystiTheDev*
+
+*Developed By MystiTheDev* — built with too much coffee and an unreasonable love for changelogs ☕
