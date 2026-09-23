@@ -1,7 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Kolloqium Timer - SciVerse Summit</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Candor Session Timer - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
 
@@ -33,7 +36,8 @@
             --text-muted: #94a3b8;
             --border-color: #e2e8f0;
             --border-strong: #cbd5e1;
-            --accent-primary: #3b82f6;
+            --accent-primary: #06b6d4;
+            --accent-secondary: #7c3aed;
             --accent-success: #10b981;
             --accent-warning: #f59e0b;
             --accent-danger: #ef4444;
@@ -41,6 +45,9 @@
             --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
             --shadow-lg: 0 10px 30px rgba(0,0,0,0.10);
             --shadow-xl: 0 20px 50px rgba(0,0,0,0.12);
+            --glass-bg: rgba(255,255,255,0.55);
+            --glass-border: rgba(255,255,255,0.5);
+            --glass-blur: blur(40px) saturate(180%);
         }
 
         body.dark-mode {
@@ -57,6 +64,8 @@
             --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
             --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
             --shadow-xl: 0 20px 50px rgba(0,0,0,0.5);
+            --glass-bg: rgba(30,41,59,0.65);
+            --glass-border: rgba(255,255,255,0.12);
         }
 
         body {
@@ -93,16 +102,21 @@
         }
 
         /* ================================
-           TIMER CARD
+           TIMER CARD - Liquid Glass
            ================================ */
         .timer-card {
             margin-top: 30px;
             width: 100%;
             max-width: 460px;
-            background: var(--bg-card) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 20px !important;
-            box-shadow: var(--shadow-xl) !important;
+            background: var(--glass-bg) !important;
+            backdrop-filter: var(--glass-blur) !important;
+            -webkit-backdrop-filter: var(--glass-blur) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 24px !important;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.14),
+                inset 0 1px 0 rgba(255,255,255,0.6),
+                inset 0 -1px 0 rgba(255,255,255,0.1) !important;
             padding: 32px !important;
             transition: box-shadow 0.3s ease, transform 0.3s ease;
             color: var(--text-primary);
@@ -112,16 +126,26 @@
         .timer-card::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            top: -30%; left: -15%;
+            width: 130%; height: 80%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 45%, transparent 70%);
+            pointer-events: none; z-index: 0;
         }
+        .timer-card::after {
+            content: "";
+            position: absolute;
+            bottom: -45%; right: -20%;
+            width: 120%; height: 70%;
+            background: radial-gradient(ellipse at 70% 100%, rgba(124,58,237,0.18), transparent 65%);
+            pointer-events: none; z-index: 0;
+        }
+        .timer-card > * { position: relative; z-index: 1; }
 
-        /* Caucus title badge (replaces dark Bootstrap badge) */
+        /* Caucus title badge */
         #caucus-title {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed) !important;
             color: white !important;
-            padding: 8px 16px;
+            padding: 8px 18px;
             font-size: 0.78rem !important;
             font-weight: 700;
             text-transform: uppercase;
@@ -130,219 +154,247 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 14px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
             align-self: flex-start;
+            transition: transform 0.2s;
         }
+        #caucus-title i { font-size: 0.85rem; }
 
         /* Section heading inside the card */
         .timer-card-heading {
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: var(--text-muted);
-            margin: 18px 0 10px 0;
+            margin: 22px 0 12px 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         .timer-card-heading i {
-            color: var(--accent-primary);
-            font-size: 1rem;
+            color: var(--accent-secondary);
+            font-size: 0.85rem;
         }
 
         /* ================================
-           TIMER DISPLAY BOX
+           TIMER DISPLAY BOX - Glass Inner Panel
            ================================ */
         .timer-display-box {
-            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.15));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             color: var(--text-primary);
-            padding: 28px 24px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
+            padding: 32px 24px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.5);
             text-align: center;
-            font-size: 4rem;
-            font-weight: 700;
+            font-size: 4.2rem;
+            font-weight: 800;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.02em;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+            box-shadow:
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                0 4px 20px rgba(15,23,42,0.06);
             line-height: 1;
+            transition: box-shadow 0.3s ease;
         }
         .timer-display-box #timer-text {
             flex: 1;
             text-align: center;
-            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+            background: linear-gradient(135deg, #1e293b, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         body.dark-mode .timer-display-box #timer-text {
-            text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .timer-display-box .btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.6);
             color: var(--text-secondary);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 6px 10px;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
         }
         .timer-display-box .btn:hover {
-            background: var(--bg-secondary);
+            background: rgba(255,255,255,0.8);
             color: var(--text-primary);
-            transform: scale(1.05);
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         /* ================================
-           PROGRESS BAR
+           PROGRESS BAR - Modern Glass
            ================================ */
         .progress-bar-container {
-            height: 10px;
-            background-color: var(--bg-secondary);
-            border-radius: 5px;
-            margin: 16px 0 4px 0;
+            height: 8px;
+            background: rgba(30,41,59,0.08);
+            border-radius: 50px;
+            margin: 18px 0 4px 0;
             overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
         }
         .progress-bar-fill {
             height: 100%;
             width: 100%;
             background: linear-gradient(90deg, #10b981, #059669);
-            border-radius: 5px;
-            transition: background 0.5s ease; /* width driven by rAF, no CSS transition needed */
+            border-radius: 50px;
+            transition: background 0.5s ease;
+            box-shadow: 0 0 8px rgba(16,185,129,0.3);
         }
         @keyframes warn-flash {
             0%, 100% { opacity: 1; }
-            50%       { opacity: 0.35; }
+            50%       { opacity: 0.3; }
         }
         .progress-bar-fill.warn-flashing {
-            animation: warn-flash 0.6s ease-in-out infinite;
+            animation: warn-flash 0.5s ease-in-out infinite;
         }
 
         /* ================================
-           FORM CONTROLS (Set Timer)
+           FORM CONTROLS - Glass Inputs
            ================================ */
         .form-control, .form-select {
-            border: 1px solid var(--border-strong);
+            border: 1.5px solid rgba(30,41,59,0.1);
             border-radius: 10px;
-            background: var(--bg-secondary);
+            background: rgba(255,255,255,0.5);
             color: var(--text-primary);
             font-weight: 600;
-            transition: all 0.15s;
-            padding: 10px 12px;
+            transition: all 0.2s ease;
+            padding: 10px 14px;
         }
         .form-control:focus, .form-select:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-            background: var(--bg-card);
+            border-color: rgba(6,182,212,0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 2px 8px rgba(6,182,212,0.08);
+            background: rgba(255,255,255,0.75);
             color: var(--text-primary);
         }
         .form-control:disabled, .form-select:disabled {
-            opacity: 0.55;
+            opacity: 0.45;
             cursor: not-allowed;
         }
 
-        /* Set button */
+        /* Set button - Gradient Glass */
         #set-button {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed) !important;
             border: none !important;
             border-radius: 10px;
             font-weight: 600;
             padding: 10px 20px;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             color: white;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            box-shadow: 0 2px 10px rgba(6,182,212,0.3);
         }
         #set-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+            box-shadow: 0 4px 16px rgba(124,58,237,0.4);
         }
+        #set-button:active:not(:disabled) { transform: scale(0.97); }
         #set-button:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             transform: none;
             box-shadow: none;
             cursor: not-allowed;
         }
 
         /* ================================
-           CONTROL BUTTONS (Start / Pause / Reset)
+           CONTROL BUTTONS - Modern Glass Gradients
            ================================ */
         .timer-controls {
             margin-top: 20px;
         }
         .timer-controls .btn {
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
-            padding: 12px 16px;
-            transition: all 0.2s;
+            padding: 13px 16px;
+            transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .timer-controls .btn-success {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
+            box-shadow: 0 2px 10px rgba(16,185,129,0.25);
         }
         .timer-controls .btn-success:hover:not(:disabled) {
             background: linear-gradient(135deg, #059669, #047857);
             transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
         .timer-controls .btn-warning {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
+            box-shadow: 0 2px 10px rgba(245,158,11,0.25);
         }
         .timer-controls .btn-warning:hover:not(:disabled) {
             background: linear-gradient(135deg, #d97706, #b45309);
             color: white;
             transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
         }
         .timer-controls .btn-secondary {
-            background: var(--bg-secondary);
+            background: rgba(255,255,255,0.4);
             color: var(--text-secondary);
-            border: 1px solid var(--border-color);
+            border: 1.5px solid rgba(30,41,59,0.1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
         .timer-controls .btn-secondary:hover:not(:disabled) {
-            background: var(--border-color);
+            background: rgba(255,255,255,0.7);
             color: var(--text-primary);
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
         }
+        .timer-controls .btn:active:not(:disabled) { transform: scale(0.97); }
         .timer-controls .btn:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
         }
 
         /* ================================
-           ALERT TOAST
+           ALERT TOAST - Glass
            ================================ */
         .alert-custom {
             position: fixed;
             top: 90px;
             right: 20px;
             z-index: 2000;
-            border-radius: 12px;
-            border: none;
-            box-shadow: var(--shadow-lg);
-            backdrop-filter: blur(10px);
-            background: rgba(254, 243, 199, 0.95);
+            border-radius: 14px;
+            border: 1px solid rgba(245,158,11,0.2);
+            box-shadow: 0 10px 30px rgba(245,158,11,0.12);
+            backdrop-filter: blur(20px);
+            background: rgba(254, 243, 199, 0.92);
             color: #92400e;
             padding: 14px 18px;
             display: flex;
             align-items: center;
             gap: 10px;
+            animation: toast-in 0.3s ease-out;
+        }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         body.dark-mode .alert-custom {
-            background: rgba(245, 158, 11, 0.18);
+            background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.35);
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
         .alert-custom::before {
             content: "\F33A"; /* bi-bell-fill */
@@ -351,40 +403,99 @@
         }
 
         /* ================================
-           DARK MODE TWEAKS
+           DARK MODE - Glass Overrides
            ================================ */
-        body.dark-mode .form-control,
-        body.dark-mode .form-select {
-            background: var(--bg-secondary);
+        body.dark-mode .timer-card {
+            box-shadow:
+                0 24px 60px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(255,255,255,0.05) !important;
         }
-        body.dark-mode .form-control:focus,
-        body.dark-mode .form-select:focus {
-            background: var(--bg-secondary);
-        }
-        body.dark-mode .progress-bar-container {
-            background-color: rgba(255, 255, 255, 0.08);
+        body.dark-mode .timer-display-box {
+            background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3);
         }
         body.dark-mode .timer-display-box .btn {
-            background: var(--bg-secondary);
-            border-color: var(--border-strong);
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.12);
             color: var(--text-secondary);
         }
         body.dark-mode .timer-display-box .btn:hover {
-            background: var(--border-strong);
+            background: rgba(255,255,255,0.15);
             color: var(--text-primary);
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+        }
+        body.dark-mode .form-control:focus,
+        body.dark-mode .form-select:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(6,182,212,0.5);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.15), 0 2px 8px rgba(6,182,212,0.1);
+        }
+        body.dark-mode .progress-bar-container {
+            background: rgba(255,255,255,0.08);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .timer-controls .btn-secondary {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.65);
+        }
+        body.dark-mode .timer-controls .btn-secondary:hover:not(:disabled) {
+            background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.95);
         }
 
         /* Subtle pulse animation when timer is running */
         @keyframes timer-pulse {
-            0%, 100% { box-shadow: inset 0 1px 2px rgba(0,0,0,0.03), 0 0 0 0 rgba(59, 130, 246, 0.0); }
-            50% { box-shadow: inset 0 1px 2px rgba(0,0,0,0.03), 0 0 0 6px rgba(59, 130, 246, 0.08); }
+            0%, 100% {
+                box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 4px 20px rgba(15,23,42,0.06), 0 0 0 0 rgba(59, 130, 246, 0.0);
+            }
+            50% {
+                box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 4px 20px rgba(15,23,42,0.06), 0 0 0 8px rgba(59, 130, 246, 0.1);
+            }
         }
         .timer-display-box.running {
-            animation: timer-pulse 2s ease-in-out infinite;
+            animation: timer-pulse 2.5s ease-in-out infinite;
+        }
+        body.dark-mode .timer-display-box.running {
+            animation-name: timer-pulse-dark;
+        }
+        @keyframes timer-pulse-dark {
+            0%, 100% {
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3), 0 0 0 0 rgba(59, 130, 246, 0.0);
+            }
+            50% {
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3), 0 0 0 8px rgba(59, 130, 246, 0.15);
+            }
         }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - unmod (trial) */
+        body.liquid-glass .timer-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.16),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .timer-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.16) !important;
+            box-shadow:
+                0 24px 60px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
 
     <!-- 1. HEADER (NAVBAR) FRAGMENT -->
     <div th:replace="fragments :: header"></div>
@@ -392,19 +503,31 @@
     <!-- 2. SIDEBAR FRAGMENT -->
     <div th:replace="fragments :: sidebar"></div>
 
+    <!-- Notification banner (toast popups for server notifications) -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
     <!-- 3. MAIN CONTENT AREA -->
     <div class="content">
-        <div class="card timer-card">
+        <div class="card timer-card lg-reactive">
 
             <span class="badge" id="caucus-title">
                 <i class="bi bi-people-fill"></i>
-                <span>Kolloqium Timer</span>
+                <span>Candor Session Timer</span>
             </span>
 
             <!-- Timer Display -->
             <div class="timer-display-box" id="timer-display-box">
                 <span id="timer-text">10:00</span>
-                <button class="btn btn-sm" id="mute-button" title="Mute/Unmute sound">
+                <button class="btn btn-sm" id="mute-button" title="Mute/Unmute sound" style="border-radius:10px;backdrop-filter:blur(10px);">
                     <i class="bi bi-volume-up-fill"></i>
                 </button>
             </div>
@@ -446,6 +569,9 @@
                 <button class="btn btn-secondary flex-fill" id="reset-button">
                     <i class="bi bi-arrow-counterclockwise"></i> Reset
                 </button>
+                <button class="btn btn-info flex-fill" id="fs-button" style="display:none;">
+                    <i class="bi bi-arrows-fullscreen"></i> Full Screen Timer
+                </button>
             </div>
         </div>
     </div>
@@ -453,9 +579,125 @@
     <!-- Notification toast -->
     <div class="alert-custom d-none" role="alert" id="message-box">
         <span id="message-text"></span>
-        <button type="button" style="background:none;border:none;padding:0 0 0 10px;cursor:pointer;opacity:0.6;font-size:1rem;line-height:1;color:inherit;" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close">
+        <button type="button" style="background:none;border:none;padding:0 0 0 10px;cursor:pointer;opacity:0.5;font-size:1rem;line-height:1;color:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close">
             <i class="bi bi-x-lg"></i>
         </button>
+    </div>
+
+    <!-- Announce-confirm modal (vanilla, no Bootstrap dependency) -->
+    <style>
+        .announce-overlay {
+            position: fixed; inset: 0; z-index: 4000;
+            background: rgba(15,23,42,0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+        }
+        .announce-overlay.show {
+            opacity: 1; visibility: visible; pointer-events: auto;
+            transition: opacity 0.28s ease;
+        }
+        .announce-overlay .announce-card {
+            transform: translateY(16px) scale(0.96);
+            transition: transform 0.32s cubic-bezier(0.22, 0.9, 0.3, 1.2);
+        }
+        .announce-overlay.show .announce-card { transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .announce-overlay, .announce-overlay .announce-card { transition: none; }
+        }
+        .announce-card {
+            position: relative; overflow: hidden;
+            width: 100%; max-width: 440px;
+            /* Near-solid light glass: translucent cards wash out over the blurred
+               timer backdrop, so keep opacity high in light mode. */
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(241,245,249,0.94));
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            border: 1px solid rgba(15,23,42,0.12);
+            border-radius: 20px; padding: 28px; text-align: center;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            color: #0f172a;
+        }
+        .announce-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #06b6d4, #7c3aed);
+        }
+        body.dark-mode .announce-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42));
+            border-color: rgba(255,255,255,0.14);
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10);
+            color: #f1f5f9;
+        }
+        .announce-icon {
+            width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            box-shadow: 0 8px 20px rgba(6,182,212,0.4);
+        }
+        .announce-card h5 { font-weight: 800; margin-bottom: 8px; color: #0f172a; font-size: 1.1rem; }
+        .announce-card p { font-size: 0.88rem; color: #475569; margin-bottom: 20px; font-weight: 500; }
+        body.dark-mode .announce-card p { color: #94a3b8; }
+        .announce-card p strong { color: #0891b2; }
+        body.dark-mode .announce-card p strong { color: #22d3ee; }
+        .announce-actions { display: flex; gap: 10px; justify-content: center; }
+        .display-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; text-align: left; }
+        .display-item {
+            display: flex; align-items: center; gap: 10px;
+            border: 1.5px solid rgba(6,182,212,0.45); border-radius: 12px;
+            background: rgba(6,182,212,0.1); color: #0f172a;
+            padding: 11px 14px; cursor: pointer; width: 100%;
+            font-weight: 700; font-size: 0.9rem;
+        }
+        .display-item:hover { background: rgba(6,182,212,0.18); border-color: rgba(6,182,212,0.65); }
+        .display-item i { color: #06b6d4; font-size: 1.2rem; }
+        .display-item small { display: block; font-weight: 500; opacity: 0.7; }
+    </style>
+    <div id="announceModal" class="announce-overlay" role="dialog" aria-modal="true" aria-labelledby="announceTitle">
+        <div class="announce-card">
+            <div class="announce-icon"><i class="bi bi-broadcast"></i></div>
+            <h5 id="announceTitle">Start Candor Session?</h5>
+            <p>Starting the timer will <strong>announce Candor to all delegates</strong> — they will see a live banner with the countdown.</p>
+            <div class="announce-actions">
+                <button class="btn btn-secondary" id="announceCancelBtn">Cancel</button>
+                <button class="btn btn-success" id="announceConfirmBtn"><i class="bi bi-broadcast me-1"></i>Start &amp; Announce</button>
+            </div>
+        </div>
+    </div>
+
+    <span id="unmodSessionName" class="d-none" th:text="${currentSession != null ? currentSession.name : 'No active session'}">Session</span>
+
+    <!-- Display picker modal -->
+    <div id="displayModal" class="announce-overlay" role="dialog" aria-modal="true" aria-labelledby="displayTitle">
+        <div class="announce-card">
+            <div class="announce-icon"><i class="bi bi-display"></i></div>
+            <h5 id="displayTitle">Present on Display</h5>
+            <p id="displayMsg">Choose where the presentation stage should appear. Your controls stay on this screen.</p>
+            <div id="displayList" class="display-list"></div>
+            <div class="announce-actions">
+                <button class="btn btn-secondary" id="displayCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic confirm modal (pause / end) -->
+    <div id="confirmModal" class="announce-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="announce-card">
+            <div class="announce-icon"><i class="bi bi-question-lg"></i></div>
+            <h5 id="confirmTitle">Are you sure?</h5>
+            <p id="confirmMsg"></p>
+            <div class="announce-actions">
+                <button class="btn btn-secondary" id="confirmCancelBtn">Cancel</button>
+                <button class="btn btn-warning" id="confirmOkBtn">Confirm</button>
+            </div>
+        </div>
     </div>
 
     <!-- JavaScript for Timer Logic and Audio -->
@@ -469,6 +711,7 @@
         const startButton = document.getElementById('start-button');
         const pauseButton = document.getElementById('pause-button');
         const resetButton = document.getElementById('reset-button');
+        const fsButton = document.getElementById('fs-button');
         const progressFill = document.getElementById('progress-fill');
         const muteButton = document.getElementById('mute-button');
 
@@ -478,6 +721,48 @@
         let isRunning = false;
         let intervalId = null;
         let isMuted = false;
+
+        // ── Server announcement state (delegate banner) ──
+        // The local timer is the source of truth; every transition is mirrored
+        // to /api/segment/control/* so delegates see the live segment.
+        let segmentAnnounced = false;
+        let freshStartJustAnnounced = false;
+
+        async function postSegment(path, body) {
+            try {
+                const resp = await fetch(path, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body || ''
+                });
+                return await resp.json().catch(() => null);
+            } catch (e) { return null; }
+        }
+        async function announceStart() {
+            const data = await postSegment('/api/segment/control/start',
+                'type=CANDOR&seconds=' + totalSeconds + '&label=' + encodeURIComponent('Candor Session'));
+            if (!data || data.success === false) {
+                showMessage('Timer runs locally — could not announce to delegates.', 'warning');
+            }
+            segmentAnnounced = true;
+        }
+        async function announcePause() {
+            if (!segmentAnnounced) return;
+            await postSegment('/api/segment/control/pause', 'remainingSecs=' + timeRemaining);
+        }
+        async function announceResume() {
+            if (!segmentAnnounced) return;
+            const data = await postSegment('/api/segment/control/resume', '');
+            if (!data || data.success === false) {
+                // Server lost the segment (e.g. expired) — re-announce fresh.
+                await announceStart();
+            }
+        }
+        async function stopAnnouncement() {
+            if (!segmentAnnounced) return;
+            segmentAnnounced = false;
+            await postSegment('/api/segment/control/stop', '');
+        }
 
         // rAF state for smooth progress bar
         let _rafId = null;
@@ -556,10 +841,15 @@
             minutesInput.disabled = true;
             unitSelect.disabled = true;
             if (timerDisplayBox) timerDisplayBox.classList.add('running');
+            fsButton.style.display = '';
+
+            // Mirror resume to delegates (fresh starts announce via the modal first).
+            if (segmentAnnounced && !freshStartJustAnnounced) announceResume();
+            freshStartJustAnnounced = false;
 
             // Register with the global persistent timer engine
             window.SummitTimer && window.SummitTimer.start(
-                'unmod', 'Kolloqium Timer', '/unmod', totalSeconds, timeRemaining);
+                'unmod', 'Candor Session Timer', '/unmod', totalSeconds, timeRemaining);
 
             // Start rAF smooth progress bar
             _rafStart     = Date.now();
@@ -582,8 +872,10 @@
                     if (timerDisplayBox) timerDisplayBox.classList.remove('running');
 
                     window.SummitTimer && window.SummitTimer.reset('unmod');
-                    // Call chime + toast directly — reliable from setInterval context
-                    var _detail = { id: 'unmod', label: 'Kolloqium Timer', sourcePage: '/unmod' };
+                    stopAnnouncement();
+                    fsButton.style.display = 'none';
+                    // Call chime + toast directly - reliable from setInterval context
+                    var _detail = { id: 'unmod', label: 'Candor Session Timer', sourcePage: '/unmod' };
                     if (window._playTimerEndChime) window._playTimerEndChime();
                     if (window._showTimerEndedToast) window._showTimerEndedToast(_detail);
                     showMessage("TIME IS UP! Caucus complete.");
@@ -602,6 +894,7 @@
             clearInterval(intervalId);
             if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
             isRunning = false;
+            announcePause();
             startButton.disabled = false;
             pauseButton.disabled = true;
             if (timerDisplayBox) timerDisplayBox.classList.remove('running');
@@ -612,6 +905,9 @@
             if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
             isRunning = false;
             window.SummitTimer && window.SummitTimer.reset('unmod');
+            stopAnnouncement();
+            fsButton.style.display = 'none';
+            closeStageWin();
             timeRemaining = totalSeconds;
             startButton.disabled = false;
             pauseButton.disabled = true;
@@ -650,9 +946,234 @@
             resetTimer(); // Reset the timer with the new total seconds
         });
 
-        startButton.addEventListener('click', startTimer);
-        pauseButton.addEventListener('click', pauseTimer);
-        resetButton.addEventListener('click', resetTimer);
+        // Start button: fresh starts ask for announcement confirmation,
+        // resumes after pause re-announce silently.
+        function showOverlay(id) { document.getElementById(id).classList.add('show'); }
+        function hideOverlay(id) { document.getElementById(id).classList.remove('show'); }
+        function onStartClick() {
+            if (isRunning || timeRemaining <= 0) return;
+            if (segmentAnnounced && timeRemaining < totalSeconds) {
+                startTimer(); // resume path (startTimer mirrors it to the server)
+            } else {
+                showOverlay('announceModal');
+            }
+        }
+        document.getElementById('announceCancelBtn').addEventListener('click', () => {
+            hideOverlay('announceModal');
+        });
+        document.getElementById('announceModal').addEventListener('click', (e) => {
+            if (e.target.id === 'announceModal') hideOverlay('announceModal');
+        });
+        document.getElementById('announceConfirmBtn').addEventListener('click', async () => {
+            hideOverlay('announceModal');
+            await announceStart();
+            freshStartJustAnnounced = true;
+            startTimer();
+        });
+
+        startButton.addEventListener('click', onStartClick);
+
+        // Generic one-shot confirm for pause / end actions.
+        let confirmAction = null;
+        function askConfirm(title, msgHtml, okLabel, okClass, action) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMsg').innerHTML = msgHtml;
+            const okBtn = document.getElementById('confirmOkBtn');
+            okBtn.innerHTML = okLabel;
+            okBtn.className = 'btn ' + (okClass || 'btn-warning');
+            confirmAction = action;
+            showOverlay('confirmModal');
+        }
+        document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+            hideOverlay('confirmModal');
+            confirmAction = null;
+        });
+        document.getElementById('confirmModal').addEventListener('click', (e) => {
+            if (e.target.id === 'confirmModal') {
+                hideOverlay('confirmModal');
+                confirmAction = null;
+            }
+        });
+        document.getElementById('confirmOkBtn').addEventListener('click', () => {
+            hideOverlay('confirmModal');
+            const fn = confirmAction;
+            confirmAction = null;
+            if (typeof fn === 'function') fn();
+        });
+
+        pauseButton.addEventListener('click', () => {
+            if (!isRunning) return;
+            askConfirm('Pause Candor?',
+                'Pausing freezes the countdown for <strong>you and all delegates</strong>. You can resume anytime.',
+                '<i class="bi bi-pause-fill me-1"></i>Pause', 'btn-warning', pauseTimer);
+        });
+        resetButton.addEventListener('click', () => {
+            askConfirm('End Candor Session?',
+                'This stops the timer and <strong>clears the announcement for all delegates</strong>.',
+                '<i class="bi bi-x-lg me-1"></i>End Session', 'btn-danger', resetTimer);
+        });
+
+        // ── Presentation stage (separate window on a chosen display) ──
+        let stageWin = null;
+        function unmodSessionName() {
+            const el = document.getElementById('unmodSessionName');
+            return el ? el.textContent.trim() : 'No active session';
+        }
+        function escHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function addDisplayItem(label, sub, screen) {
+            const list = document.getElementById('displayList');
+            const b = document.createElement('button');
+            b.className = 'display-item';
+            b.innerHTML = '<i class="bi bi-display"></i><span>' + escHtml(label)
+                + (sub ? '<small>' + escHtml(sub) + '</small>' : '') + '</span>';
+            b.addEventListener('click', () => {
+                hideOverlay('displayModal');
+                openStage(screen);
+            });
+            list.appendChild(b);
+        }
+        function openDisplayPicker() {
+            if (stageWin && stageWin.closed) stageWin = null;
+            if (stageWin && !stageWin.closed) { stageWin.focus(); return; }
+            const list = document.getElementById('displayList');
+            const msg = document.getElementById('displayMsg');
+            list.innerHTML = '';
+            if (!('getScreenDetails' in window)) {
+                msg.textContent = 'Display picking needs Chrome or Edge on this PC — opening the stage on this screen instead. Your controls stay usable behind it.';
+                addDisplayItem('This display', '', null);
+                showOverlay('displayModal');
+                return;
+            }
+            window.getScreenDetails().then(d => {
+                const screens = (d && d.screens) || [];
+                if (screens.length < 2) {
+                    msg.textContent = 'Only one display detected — the stage will open here. Connect a projector or second monitor to choose.';
+                    addDisplayItem('This display', '', null);
+                } else {
+                    msg.textContent = 'Choose where the presentation stage should appear. Your controls stay on this screen.';
+                    screens.forEach((s, i) => {
+                        addDisplayItem(s.label || ('Display ' + (i + 1)),
+                            s.availWidth + ' × ' + s.availHeight + (s.isPrimary ? ' • Primary' : ''), s);
+                    });
+                }
+                showOverlay('displayModal');
+            }).catch(() => {
+                msg.textContent = 'Could not read displays (permission denied) — opening the stage on this screen instead.';
+                addDisplayItem('This display', '', null);
+                showOverlay('displayModal');
+            });
+        }
+        function openStage(screen) {
+            const W = screen ? screen.availWidth : 1280;
+            const H = screen ? screen.availHeight : 800;
+            const X = screen ? screen.availLeft : Math.max(0, (window.screenX || 0) + 80);
+            const Y = screen ? screen.availTop : Math.max(0, (window.screenY || 0) + 40);
+            if (stageWin && !stageWin.closed) { stageWin.focus(); return; }
+            stageWin = window.open('', 'svCandorStage',
+                'width=' + W + ',height=' + H + ',left=' + X + ',top=' + Y +
+                ',menubar=no,toolbar=no,location=no,status=no');
+            if (!stageWin) {
+                showMessage('Popup blocked — allow popups for this site to present.', 'warning');
+                return;
+            }
+            stageWin.document.write(stageHTML(unmodSessionName()));
+            stageWin.document.close();
+            try { stageWin.moveTo(X, Y); stageWin.resizeTo(W, H); } catch (e) {}
+            try {
+                const el = stageWin.document.documentElement;
+                const p = screen ? el.requestFullscreen({ screen: screen }) : el.requestFullscreen();
+                if (p && p.catch) p.catch(() => {});
+            } catch (e) { /* windowed fallback: stage window still usable */ }
+        }
+        function closeStageWin() {
+            try { if (stageWin && !stageWin.closed) stageWin.close(); } catch (e) {}
+            stageWin = null;
+        }
+        function stageHTML(sessionName) {
+            const safeSession = escHtml(sessionName);
+            return '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+                + '<title>Candor Stage — SciVerse Summit</title>'
+                + '<style>'
+                + '*{box-sizing:border-box;margin:0;padding:0}'
+                + 'html,body{height:100%}'
+                + 'body{background:linear-gradient(160deg,#0b1020 0%,#0f172a 55%,#1a1b4b 100%);color:#f1f5f9;'
+                + 'font-family:"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;'
+                + 'min-height:100vh;padding:3vh 4vw;overflow:hidden}'
+                + '.blobs span{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5}'
+                + '.blobs span:nth-child(1){width:44vmax;height:44vmax;top:-12vmax;right:-10vmax;'
+                + 'background:radial-gradient(circle,rgba(124,58,237,.55),transparent 70%)}'
+                + '.blobs span:nth-child(2){width:40vmax;height:40vmax;bottom:-12vmax;left:-10vmax;'
+                + 'background:radial-gradient(circle,rgba(6,182,212,.45),transparent 70%)}'
+                + '.stg{position:relative;z-index:1;text-align:center;width:min(900px,94vw);'
+                + 'padding:clamp(24px,5vh,56px) clamp(16px,5vw,64px);border-radius:28px;'
+                + 'background:linear-gradient(160deg,rgba(30,41,59,.60),rgba(15,23,42,.42));'
+                + 'border:1px solid rgba(255,255,255,.14);'
+                + 'box-shadow:0 20px 52px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.10)}'
+                + '.brand{display:flex;align-items:center;justify-content:center;gap:12px;'
+                + 'font-weight:800;letter-spacing:.22em;font-size:clamp(.85rem,2.4vw,1.1rem)}'
+                + '.brand img{height:clamp(34px,7vh,54px);width:auto}'
+                + '.sess{margin-top:10px;color:#cbd5e1;font-weight:600;font-size:clamp(1rem,3vw,1.4rem);letter-spacing:.04em}'
+                + '.segrow{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}'
+                + '.seg{color:#a5b4fc;font-weight:800;letter-spacing:.28em;font-size:clamp(.8rem,2.4vw,1rem)}'
+                + '.pill{font-size:.75rem;font-weight:800;letter-spacing:.14em;padding:5px 14px;border-radius:999px;color:#fff}'
+                + '.pill.run{background:linear-gradient(135deg,#10b981,#059669)}'
+                + '.pill.pause{background:linear-gradient(135deg,#f59e0b,#d97706)}'
+                + '.pill.end{background:linear-gradient(135deg,#ef4444,#dc2626)}'
+                + '.pill.idle{background:rgba(255,255,255,.12)}'
+                + '.time{font-family:Consolas,monospace;font-weight:800;line-height:1;'
+                + 'font-size:clamp(4.5rem,20vw,12rem);margin:12px 0 4px;'
+                + 'text-shadow:0 0 40px rgba(6,182,212,.35);font-variant-numeric:tabular-nums}'
+                + '.bar{height:10px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12);'
+                + 'margin:18px auto 0;max-width:640px}'
+                + '.fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#06b6d4,#7c3aed);transition:width .5s linear}'
+                + '.endbtn{margin-top:22px;background:rgba(255,255,255,.9);border:none;border-radius:12px;'
+                + 'padding:10px 26px;font-weight:700;cursor:pointer;font-size:.9rem;color:#0f172a}'
+                + '</style></head><body>'
+                + '<div class="blobs" aria-hidden="true"><span></span><span></span></div>'
+                + '<div class="stg">'
+                + '<div class="brand"><img src="/images/sciverse_summit_logo_final.png" onerror="this.style.display=\'none\'">SCIVERSE SUMMIT</div>'
+                + '<div class="sess">Session name: <b id="cSess">' + safeSession + '</b></div>'
+                + '<div class="segrow"><span class="seg">CANDOR SESSION</span>'
+                + '<span class="pill run" id="cState">LIVE</span></div>'
+                + '<div class="time" id="cTime">--:--</div>'
+                + '<div class="bar"><div class="fill" id="cFill"></div></div>'
+                + '<div><button class="endbtn" onclick="window.close()">End Presentation</button></div>'
+                + '</div>'
+                + '<script>'
+                + 'function fmt(s){s=Math.max(0,s|0);var m=Math.floor(s/60),r=s%60;return m+":"+(r<10?"0":"")+r;}'
+                + 'var seg={live:false};var tickN=0;'
+                + 'function tick(){'
+                + 'var timers={};try{timers=JSON.parse(localStorage.getItem("summitTimers")||"{}");}catch(e){timers={};}'
+                + 'var t=timers["unmod"];'
+                + 'var rem=t?((t.isRunning&&t.endTime)?Math.max(0,Math.floor((t.endTime-Date.now())/1000)):(t.timeRemaining||0)):0;'
+                + 'var has=!!t;'
+                + 'document.getElementById("cTime").textContent=has?fmt(rem):"--:--";'
+                + 'var pct=(t&&t.totalSeconds>0)?Math.max(0,Math.min(100,rem/t.totalSeconds*100)):0;'
+                + 'document.getElementById("cFill").style.width=pct+"%";'
+                + 'var st=document.getElementById("cState");'
+                + 'if(seg.live){st.textContent=seg.paused?"PAUSED":"LIVE";st.className="pill "+(seg.paused?"pause":"run");}'
+                + 'else if(!has){st.textContent="STANDBY";st.className="pill idle";}'
+                + 'else if(rem<=0){st.textContent="TIME\'S UP";st.className="pill end";}'
+                + 'else if(t.isRunning){st.textContent="LIVE";st.className="pill run";}'
+                + 'else{st.textContent="PAUSED";st.className="pill pause";}'
+                + 'if(tickN%3===0){fetch("/api/segment/status",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(s){'
+                + 'seg=s&&s.live?{live:true,rem:0,paused:!!s.paused}:{live:false};'
+                + '}).catch(function(){});}'
+                + 'tickN++;}'
+                + 'tick();setInterval(tick,1000);'
+                + '<\/script></body></html>';
+        }
+        fsButton.addEventListener('click', openDisplayPicker);
+        document.getElementById('displayCancelBtn').addEventListener('click', () => {
+            hideOverlay('displayModal');
+        });
+        displayModal.addEventListener('click', (e) => {
+            if (e.target.id === 'displayModal') hideOverlay('displayModal');
+        });
         
         muteButton.addEventListener('click', () => {
             isMuted = !isMuted;
@@ -673,6 +1194,12 @@
 
         // ── Restore global timer state on page load + handle floating-window commands ──
         document.addEventListener('DOMContentLoaded', function () {
+            // Adopt a live server announcement (e.g. after reload) so pause/stop keep working.
+            fetch('/api/segment/status').then(r => r.json()).then(s => {
+                if (s && s.live === true && String(s.type || '').toUpperCase() === 'CANDOR') {
+                    segmentAnnounced = true;
+                }
+            }).catch(() => {});
             const gs = window.SummitTimer && window.SummitTimer.get('unmod');
             if (gs) {
                 // Restore total/remaining so the UI is consistent
@@ -706,6 +1233,14 @@
 
     </script>
 
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('unmod');
+        });
+    </script>
 </body>
 </html>

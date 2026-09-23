@@ -1,0 +1,230 @@
+# SciVerse Summit — release pipeline (Route B).
+#
+# Trigger: publish a GitHub Release (tag vX.Y.Z, full publish — not draft,
+# not pre-release). The workflow builds everything from this repo and attaches
+# the files back to that same Release:
+#   Windows: Chair Setup exe + chair.yml + blockmap
+#            Delegate Setup exe + delegate.yml + blockmap
+#   Linux:   Chair AppImage + chair-linux.yml + blockmap
+#            Delegate AppImage + delegate-linux.yml + blockmap
+#
+# Your checklist per release (nothing else):
+#   1. Bump "version" in summit-desktop/chair/package.json AND
+#      summit-desktop/delegate/package.json (must equal the tag, no leading v).
+#   2. Commit + push to main.
+#   3. Draft a Release with tag vX.Y.Z, paste notes, Publish.
+#   4. Wait ~15 min, check the Release — files appear automatically.
+#   5. Install once manually; every later release self-installs via auto-update.
+#
+# Test without publishing: Actions tab -> "Release installers" -> Run workflow
+# (builds only, attaches nothing).
+
+name: Release installers
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '22'
+  TEMURIN_WIN_JRE: https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jre/hotspot/normal/eclipse
+  TEMURIN_LINUX_JRE: https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jre/hotspot/normal/eclipse
+
+jobs:
+  build-jar:
+    name: Web jar (Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Build fat jar
+        run: ./mvnw -B package -DskipTests
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: summit-jar
+          path: target/summit-0.0.1-SNAPSHOT.jar
+          if-no-files-found: error
+
+  chair-win:
+    name: Chair (Windows NSIS)
+    needs: build-jar
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Version must match release tag
+        if: github.event_name == 'release'
+        run: |
+          $v = (Get-Content summit-desktop/chair/package.json | ConvertFrom-Json).version
+          $t = '${{ github.event.release.tag_name }}'.TrimStart('v')
+          if ($v -ne $t) { Write-Error "chair package.json ($v) != tag ($t)"; exit 1 }
+      - name: Stage summit.jar
+        uses: actions/download-artifact@v4
+        with:
+          name: summit-jar
+          path: summit-desktop/chair/server/
+      - name: Stage Windows JRE (Temurin 17)
+        run: |
+          Invoke-WebRequest -Uri $env:TEMURIN_WIN_JRE -OutFile "$env:TEMP\win-jre.zip"
+          Expand-Archive -Path "$env:TEMP\win-jre.zip" -DestinationPath "$env:TEMP\win-jre"
+          $inner = Get-ChildItem "$env:TEMP\win-jre" | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path summit-desktop/chair/server/jre | Out-Null
+          Copy-Item -Recurse -Force (Join-Path $inner.FullName '*') summit-desktop/chair/server/jre
+          & summit-desktop/chair/server/jre/bin/java.exe -version
+      - name: Build installer
+        working-directory: summit-desktop/chair
+        run: |
+          npm ci
+          npx electron-builder --win nsis --publish never
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: chair-win
+          path: |
+            summit-desktop/chair/dist/*.exe
+            summit-desktop/chair/dist/chair.yml
+            summit-desktop/chair/dist/*.blockmap
+          if-no-files-found: error
+
+  delegate-win:
+    name: Delegate (Windows NSIS)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Version must match release tag
+        if: github.event_name == 'release'
+        run: |
+          $v = (Get-Content summit-desktop/delegate/package.json | ConvertFrom-Json).version
+          $t = '${{ github.event.release.tag_name }}'.TrimStart('v')
+          if ($v -ne $t) { Write-Error "delegate package.json ($v) != tag ($t)"; exit 1 }
+      - name: Build installer
+        working-directory: summit-desktop/delegate
+        run: |
+          npm ci
+          npx electron-builder --win nsis --publish never
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: delegate-win
+          path: |
+            summit-desktop/delegate/dist/*.exe
+            summit-desktop/delegate/dist/delegate.yml
+            summit-desktop/delegate/dist/*.blockmap
+          if-no-files-found: error
+
+  chair-linux:
+    name: Chair (Linux AppImage)
+    needs: build-jar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Version must match release tag
+        if: github.event_name == 'release'
+        run: |
+          v=$(node -p "require('./summit-desktop/chair/package.json').version")
+          t="${{ github.event.release.tag_name }}"; t="${t#v}"
+          [ "$v" = "$t" ] || { echo "chair package.json ($v) != tag ($t)"; exit 1; }
+      - name: Point feed at chair-linux channel
+        run: node -e "const fs=require('fs');const p='summit-desktop/chair/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='chair-linux';fs.writeFileSync(p,JSON.stringify(j,null,2));"
+      - name: Stage summit.jar
+        uses: actions/download-artifact@v4
+        with:
+          name: summit-jar
+          path: summit-desktop/chair/server/
+      - name: Stage Linux JRE (Temurin 17)
+        run: |
+          curl -L -o /tmp/linux-jre.tgz "$TEMURIN_LINUX_JRE"
+          EXTRACT=$(mktemp -d)
+          tar -xzf /tmp/linux-jre.tgz -C "$EXTRACT"
+          mkdir -p summit-desktop/chair/server/jre
+          cp -r "$EXTRACT"/*/ summit-desktop/chair/server/jre/
+          rm -rf "$EXTRACT"
+          summit-desktop/chair/server/jre/bin/java -version
+      - name: Build AppImage
+        working-directory: summit-desktop/chair
+        run: |
+          npm ci
+          npx electron-builder --linux AppImage --publish never
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: chair-linux
+          path: |
+            summit-desktop/chair/dist/*.AppImage
+            summit-desktop/chair/dist/chair-linux.yml
+            summit-desktop/chair/dist/*.blockmap
+          if-no-files-found: error
+
+  delegate-linux:
+    name: Delegate (Linux AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Version must match release tag
+        if: github.event_name == 'release'
+        run: |
+          v=$(node -p "require('./summit-desktop/delegate/package.json').version")
+          t="${{ github.event.release.tag_name }}"; t="${t#v}"
+          [ "$v" = "$t" ] || { echo "delegate package.json ($v) != tag ($t)"; exit 1; }
+      - name: Point feed at delegate-linux channel
+        run: node -e "const fs=require('fs');const p='summit-desktop/delegate/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='delegate-linux';fs.writeFileSync(p,JSON.stringify(j,null,2));"
+      - name: Build AppImage
+        working-directory: summit-desktop/delegate
+        run: |
+          npm ci
+          npx electron-builder --linux AppImage --publish never
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: delegate-linux
+          path: |
+            summit-desktop/delegate/dist/*.AppImage
+            summit-desktop/delegate/dist/delegate-linux.yml
+            summit-desktop/delegate/dist/*.blockmap
+          if-no-files-found: error
+
+  attach:
+    name: Attach files to Release
+    needs: [chair-win, delegate-win, chair-linux, delegate-linux]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Attach to this Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            artifacts/chair-win/*
+            artifacts/delegate-win/*
+            artifacts/chair-linux/*
+            artifacts/delegate-linux/*
+          fail_on_unmatched_files: true

@@ -1,0 +1,340 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Draft Resolutions - Delegate Portal</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc; --bg-card: #ffffff; --bg-secondary: #f1f5f9; --bg-elevated: #ffffff;
+            --text-primary: #1e293b; --text-secondary: #475569; --text-muted: #94a3b8;
+            --border-color: #e2e8f0; --border-strong: #cbd5e1;
+            --accent-primary: #06b6d4; --accent-secondary: #7c3aed;
+            --accent-success: #10b981; --accent-warning: #f59e0b; --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 16px rgba(0,0,0,0.06); --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55); --glass-border: rgba(255,255,255,0.5);
+        }
+        body.dark-mode {
+            --bg-primary: #0f172a; --bg-card: #1e293b; --bg-secondary: #334155; --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
+            --border-color: #334155; --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 16px rgba(0,0,0,0.3); --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65); --glass-border: rgba(255,255,255,0.12);
+        }
+        body { background: var(--bg-primary); color: var(--text-primary); transition: background 0.3s ease, color 0.3s ease; }
+        .sidebar { position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width); padding-top: 0.5rem; background-color: var(--bg-secondary); z-index: 1000; transition: all 0.3s; }
+        .content { margin-left: var(--sidebar-width); padding: 95px 20px 40px 20px; position: relative; z-index: 1; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .sidebar { width: 0; } .content { margin-left: 0; } }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) { transform: translateX(calc(-1 * var(--sidebar-width))); margin-left: 0; }
+
+        .page-heading { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0; display: flex; align-items: center; gap: 12px; }
+        .page-heading i { color: var(--accent-primary); font-size: 1.7rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; margin: 6px 0 0 40px; }
+        .heading-block { margin-bottom: 1.5rem; }
+
+        .panel-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 16px 44px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.65) !important;
+            overflow: hidden;
+        }
+        body.dark-mode .panel-card { box-shadow: 0 20px 52px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08) !important; }
+        .panel-header { padding: 22px 26px 0 26px; }
+        .panel-title { font-weight: 800; font-size: 1.02rem; color: var(--text-primary); display: flex; align-items: center; gap: 10px; }
+        .panel-title i { color: var(--accent-primary); }
+        .panel-body { padding: 20px 26px 26px 26px; }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed); border: none; color: #fff; font-weight: 700;
+            padding: 11px 28px; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 6px 18px rgba(124,58,237,0.35);
+        }
+        .submit-btn:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 10px 26px rgba(124,58,237,0.5); }
+
+        .form-control, .form-select { border-radius: 12px; padding: 10px 14px; border: 1px solid var(--border-color); background: var(--bg-elevated); color: var(--text-primary); }
+        .form-control:focus, .form-select:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+
+        .res-card { padding: 16px 6px; border-bottom: 1px solid var(--border-color); display: flex; align-items: flex-start; gap: 14px; }
+        .res-card:last-child { border-bottom: none; }
+        .res-avatar { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(6,182,212,0.16)); color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+        .res-title { font-weight: 700; color: var(--text-primary); font-size: 0.95rem; }
+        .res-meta { color: var(--text-muted); font-size: 0.78rem; margin-top: 3px; }
+        .file-link { font-size: 0.8rem; font-weight: 600; color: var(--accent-primary); text-decoration: none; }
+        .file-link:hover { text-decoration: underline; }
+        .empty-state { text-align: center; padding: 34px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2rem; opacity: 0.5; }
+        .empty-state p { margin-top: 10px; font-size: 0.9rem; }
+        .alert-submit { display: none; }
+        .alert-submit.show { display: block; }
+        .file-drop {
+            border: 2px dashed var(--border-strong); border-radius: 12px; padding: 22px; text-align: center;
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; background: var(--bg-elevated);
+        }
+        .file-drop:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .file-drop.has-file { border-color: var(--accent-success); color: var(--accent-success); }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - delegate-resolution */
+        body.liquid-glass .panel-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .panel-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.14) !important;
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
+
+    <div th:replace="fragments :: header"></div>
+
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <div th:replace="fragments :: sidebar"></div>
+
+    <div class="content">
+        <div class="container-fluid">
+            <div class="heading-block entrance">
+                <h2 class="page-heading"><i class="bi bi-file-earmark-text"></i><span>Draft Resolutions</span></h2>
+                <div class="page-subtitle"><i class="bi bi-send me-1"></i>Submit a draft resolution to your committee. The chair reviews every submission.</div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Submit -->
+                <div class="col-lg-5 entrance entrance-1">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="bi bi-plus-circle"></i> Submit a Draft Resolution</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="alert alert-success alert-submit" id="submitSuccess"></div>
+                            <div class="alert alert-danger alert-submit" id="submitError"></div>
+                            <label class="form-label fw-semibold text-muted small">Resolution Title</label>
+                            <input type="text" class="form-control mb-3" id="resTitleInput" placeholder="e.g. Draft Resolution on Climate Action" maxlength="200">
+                            <label class="form-label fw-semibold text-muted small">Primary Author</label>
+                            <input type="text" class="form-control mb-3" id="resAuthorInput" placeholder="Your name (pre-filled)" maxlength="200" th:value="${delegateFullName}">
+                            <label class="form-label fw-semibold text-muted small">Second Primary Author (optional)</label>
+                            <input type="text" class="form-control mb-3" id="resCoAuthorInput" placeholder="Second author's name" maxlength="200">
+                            <label class="form-label fw-semibold text-muted small">Co-Sponsors (optional)</label>
+                            <input type="text" class="form-control mb-3" id="resSponsorsInput" placeholder="Delegate names, comma-separated" maxlength="300">
+                            <label class="form-label fw-semibold text-muted small">Description (optional)</label>
+                            <textarea class="form-control mb-3" id="resDescInput" rows="3" placeholder="Short summary of the draft resolution" maxlength="2000"></textarea>
+                            <label class="form-label fw-semibold text-muted small">Operative Clauses (optional)</label>
+                            <textarea class="form-control mb-3" id="resClausesInput" rows="4" placeholder="List each operative clause, one per line" maxlength="8000"></textarea>
+                            <label class="form-label fw-semibold text-muted small">Draft Files - PDF and Word</label>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="file-drop h-100" id="pdfDrop">
+                                        <i class="bi bi-filetype-pdf fs-3 d-block mb-1"></i>
+                                        <span class="small" id="pdfDropLabel">PDF version</span>
+                                    </div>
+                                    <input type="file" id="resPdfInput" accept=".pdf" style="display:none;">
+                                </div>
+                                <div class="col-6">
+                                    <div class="file-drop h-100" id="docDrop">
+                                        <i class="bi bi-file-earmark-word fs-3 d-block mb-1"></i>
+                                        <span class="small" id="docDropLabel">Word version</span>
+                                    </div>
+                                    <input type="file" id="resDocInput" accept=".doc,.docx" style="display:none;">
+                                </div>
+                            </div>
+                            <button class="btn submit-btn w-100 mt-2" id="submitBtn">
+                                <i class="bi bi-send me-1"></i> Submit Resolution
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My submissions -->
+                <div class="col-lg-7 entrance entrance-2">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="bi bi-archive"></i> My Submissions</div>
+                        </div>
+                        <div class="panel-body" id="resolutionsArea">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>You have not submitted any draft resolutions yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const resTitleInput = document.getElementById('resTitleInput');
+        const resAuthorInput = document.getElementById('resAuthorInput');
+        const resCoAuthorInput = document.getElementById('resCoAuthorInput');
+        const resSponsorsInput = document.getElementById('resSponsorsInput');
+        const resDescInput = document.getElementById('resDescInput');
+        const resClausesInput = document.getElementById('resClausesInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitSuccess = document.getElementById('submitSuccess');
+        const submitError = document.getElementById('submitError');
+        const pdfDrop = document.getElementById('pdfDrop');
+        const pdfDropLabel = document.getElementById('pdfDropLabel');
+        const resPdfInput = document.getElementById('resPdfInput');
+        const docDrop = document.getElementById('docDrop');
+        const docDropLabel = document.getElementById('docDropLabel');
+        const resDocInput = document.getElementById('resDocInput');
+
+        let selectedPdf = null;
+        let selectedDoc = null;
+
+        function bindDrop(drop, input, label, onPick) {
+            drop.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => {
+                if (input.files.length) {
+                    onPick(input.files[0]);
+                    label.textContent = input.files[0].name;
+                    drop.classList.add('has-file');
+                }
+            });
+        }
+        bindDrop(pdfDrop, resPdfInput, pdfDropLabel, f => { selectedPdf = f; });
+        bindDrop(docDrop, resDocInput, docDropLabel, f => { selectedDoc = f; });
+
+        function showAlert(el, text) {
+            el.textContent = text;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        submitBtn.addEventListener('click', async () => {
+            submitSuccess.classList.remove('show');
+            submitError.classList.remove('show');
+            const title = resTitleInput.value.trim();
+            if (!title) { showAlert(submitError, 'Please provide a resolution title.'); return; }
+            submitBtn.disabled = true;
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('coAuthor', resCoAuthorInput.value.trim());
+            if (resSponsorsInput.value.trim()) formData.append('sponsors', resSponsorsInput.value.trim());
+            formData.append('description', resDescInput.value.trim());
+            formData.append('operativeClauses', resClausesInput.value.trim());
+            if (selectedPdf) formData.append('file', selectedPdf);
+            if (selectedDoc) formData.append('file', selectedDoc);
+            try {
+                const resp = await fetch('/api/delegate/resolution/submit', { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.success) {
+                    resTitleInput.value = '';
+                    resCoAuthorInput.value = '';
+                    resSponsorsInput.value = '';
+                    resDescInput.value = '';
+                    resClausesInput.value = '';
+                    resPdfInput.value = '';
+                    resDocInput.value = '';
+                    selectedPdf = null;
+                    selectedDoc = null;
+                    pdfDrop.classList.remove('has-file');
+                    docDrop.classList.remove('has-file');
+                    pdfDropLabel.textContent = 'PDF version';
+                    docDropLabel.textContent = 'Word version';
+                    showAlert(submitSuccess, data.message || 'Draft resolution submitted.');
+                    loadResolutions();
+                } else {
+                    showAlert(submitError, data.message || 'Could not submit the resolution.');
+                }
+            } catch (err) {
+                console.error('[resolution-submit] error:', err);
+                showAlert(submitError, 'Network error - please try again.');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        async function loadResolutions() {
+            const area = document.getElementById('resolutionsArea');
+            try {
+                const resp = await fetch('/api/delegate/resolutions');
+                const list = await resp.json();
+                if (!list.length) {
+                    area.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>You have not submitted any draft resolutions yet.</p></div>';
+                    return;
+                }
+                area.innerHTML = list.map(r => {
+                    const fileLinks = (r.files || []).map(f => {
+                        const href = f.id != null ? '/api/resolution/file/entry/' + f.id : '/api/resolution/file/' + r.id;
+                        const icon = f.fileType === 'PDF' ? 'bi-filetype-pdf' : (f.fileType === 'DOC' ? 'bi-file-earmark-word' : 'bi-file-earmark-text');
+                        return '<a class="file-link me-3" href="' + href + '" target="_blank"><i class="bi ' + icon + ' me-1"></i>' + (f.fileName || 'Download') + '</a>';
+                    }).join('');
+                    const fileBlock = fileLinks
+                        ? '<div class="mt-1">' + fileLinks + '</div>'
+                        : (r.hasFile
+                            ? '<div class="mt-1"><a class="file-link" href="/api/resolution/file/' + r.id + '" target="_blank"><i class="bi bi-download me-1"></i>' + r.fileName + '</a></div>'
+                            : '<span class="text-muted small">No file attached</span>');
+                    const authors = [r.primaryAuthor, r.primaryAuthor2].filter(Boolean).join(', ');
+                    return '<div class="res-card">' +
+                        '<div class="res-avatar"><i class="bi bi-file-earmark-text"></i></div>' +
+                        '<div class="flex-grow-1">' +
+                        '<div class="res-title">' + r.title + '</div>' +
+                        '<div class="res-meta"><i class="bi bi-person-badge me-1"></i>' + (authors || '-') + '</div>' +
+                        '<div class="res-meta">Submitted ' + r.time + '</div>' +
+                        (r.sponsors ? '<div class="res-meta"><i class="bi bi-people me-1"></i>' + r.sponsors + '</div>' : '') +
+                        (r.description ? '<div class="res-meta" style="margin-top:6px;"><i class="bi bi-card-text me-1"></i>' + r.description + '</div>' : '') +
+                        (r.operativeClauses ? '<div class="res-meta" style="margin-top:6px; white-space:pre-wrap;"><i class="bi bi-list-ol me-1"></i>' + r.operativeClauses + '</div>' : '') +
+                        fileBlock +
+                        '</div></div>';
+                }).join('');
+            } catch (err) { /* keep last state */ }
+        }
+
+        loadResolutions();
+        if (window.SummitLive) window.SummitLive.on('motion.changed', loadResolutions);
+    </script>
+
+    <script>
+    window.NotifBannerConfig = {
+         showLink: false,
+        onSessionEnded: function() { window.location.href = '/delegate'; }
+    };
+    </script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('delegate-resolution');
+        });
+    </script>
+</body>
+</html>

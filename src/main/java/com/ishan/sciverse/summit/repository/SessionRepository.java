@@ -11,6 +11,8 @@ import java.util.Optional;
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
     List<Session> findByUser(User user);
+    List<Session> findByUserAndActiveTrueOrderByIdDesc(User user);
     Optional<Session> findTopByUserOrderByIdDesc(User user);
     Optional<Session> findTopByUserAndActiveTrueOrderByIdDesc(User user);
+    Optional<Session> findByJoinCodeIgnoreCase(String joinCode);
 }

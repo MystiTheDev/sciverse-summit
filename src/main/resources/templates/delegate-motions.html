@@ -1,0 +1,407 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Motions - Delegate Portal</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-secondary: #f1f5f9;
+            --bg-elevated: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --accent-primary: #06b6d4;
+            --accent-secondary: #7c3aed;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55);
+            --glass-border: rgba(255,255,255,0.5);
+        }
+        body.dark-mode {
+            --bg-primary: #0f172a; --bg-card: #1e293b; --bg-secondary: #334155; --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
+            --border-color: #334155; --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 16px rgba(0,0,0,0.3); --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65); --glass-border: rgba(255,255,255,0.12);
+        }
+        body { background: var(--bg-primary); color: var(--text-primary); transition: background 0.3s ease, color 0.3s ease; }
+        .sidebar { position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width); padding-top: 0.5rem; background-color: var(--bg-secondary); z-index: 1000; transition: all 0.3s; }
+        .content { margin-left: var(--sidebar-width); padding: 95px 20px 40px 20px; position: relative; z-index: 1; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .sidebar { width: 0; } .content { margin-left: 0; } }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) { transform: translateX(calc(-1 * var(--sidebar-width))); margin-left: 0; }
+
+        .page-heading { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0; display: flex; align-items: center; gap: 12px; }
+        .page-heading i { color: var(--accent-primary); font-size: 1.7rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; margin: 6px 0 0 40px; }
+        .heading-block { margin-bottom: 1.5rem; }
+
+        .panel-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 16px 44px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.65) !important;
+            overflow: hidden;
+        }
+        body.dark-mode .panel-card { box-shadow: 0 20px 52px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08) !important; }
+        .panel-header { padding: 22px 26px 0 26px; }
+        .panel-title { font-weight: 800; font-size: 1.02rem; color: var(--text-primary); display: flex; align-items: center; gap: 10px; }
+        .panel-title i { color: var(--accent-primary); }
+        .panel-body { padding: 20px 26px 26px 26px; }
+
+        .raise-btn {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed); border: none; color: #fff; font-weight: 700;
+            padding: 11px 28px; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 6px 18px rgba(124,58,237,0.35);
+        }
+        .raise-btn:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 10px 26px rgba(124,58,237,0.5); }
+
+        .motion-type-select { border-radius: 12px; padding: 10px 14px; border: 1px solid var(--border-color); background: var(--bg-elevated); color: var(--text-primary); }
+        .motion-type-select:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+
+        .motion-row {
+            display: flex; align-items: center; gap: 14px; padding: 14px 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .motion-row:last-child { border-bottom: none; }
+        .motion-avatar {
+            width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(124,58,237,0.15));
+            color: var(--accent-primary); display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+        }
+        .motion-name { font-weight: 700; color: var(--text-primary); font-size: 0.95rem; }
+        .motion-meta { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+        .badge-soft { padding: 6px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+        .badge-pending { background: rgba(245,158,11,0.14); color: #d97706; border: 1px solid rgba(245,158,11,0.3); }
+        .badge-accepted { background: rgba(16,185,129,0.14); color: #059669; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-declined { background: rgba(239,68,68,0.12); color: #dc2626; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-withdrawn { background: rgba(100,116,139,0.14); color: #64748b; border: 1px solid rgba(100,116,139,0.3); }
+        .withdraw-btn { border-radius: 10px; font-size: 0.72rem; font-weight: 700; padding: 5px 12px; }
+        .empty-state { text-align: center; padding: 34px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2rem; opacity: 0.5; }
+        .empty-state p { margin-top: 10px; font-size: 0.9rem; }
+        .live-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+        .alert-raise { display: none; }
+        .alert-raise.show { display: block; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - delegate-motions */
+        body.liquid-glass .panel-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .panel-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.14) !important;
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
+
+    <div th:replace="~{fragments :: header}"></div>
+
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: sidebar}"></div>
+
+    <div class="content">
+        <div class="container-fluid">
+            <div class="heading-block entrance">
+                <h2 class="page-heading"><i class="bi bi-megaphone"></i><span>Motions</span></h2>
+                <div class="page-subtitle"><i class="bi bi-lightbulb me-1"></i>Raise a motion for your committee - the chair sees it live.</div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Raise a motion -->
+                <div class="col-lg-5 entrance entrance-1">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="bi bi-plus-circle"></i> Raise a Motion</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="alert alert-success alert-raise" id="raiseSuccess"></div>
+                            <div class="alert alert-danger alert-raise" id="raiseError"></div>
+                            <label class="form-label fw-semibold text-muted small">Motion Type</label>
+                            <select class="form-select motion-type-select mb-3" id="motionTypeSelect">
+                                <optgroup label="Sessions &amp; Caucus">
+                                    <option value="Open Candor Session">Open Candor Session</option>
+                                    <option value="Open Kolloqium">Open Kolloqium</option>
+                                    <option value="Extend Candor Session">Extend Candor Session</option>
+                                    <option value="Extend Kolloqium">Extend Kolloqium</option>
+                                    <option value="Close Kolloqium">Close Kolloqium</option>
+                                </optgroup>
+                                <optgroup label="Proposals &amp; Voting">
+                                    <option value="Introduce Draft Verdict">Introduce Draft Verdict</option>
+                                    <option value="Introduce amendment">Introduce amendment</option>
+                                    <option value="Vote on resolution">Vote on resolution</option>
+                                    <option value="Vote on amendment">Vote on amendment</option>
+                                </optgroup>
+                                <optgroup label="Points of Order">
+                                    <option value="Point of Parliamentary Procedure">Point of Parliamentary Procedure</option>
+                                    <option value="Point of Personal Privilege">Point of Personal Privilege</option>
+                                    <option value="Point of Inquiry">Point of Inquiry</option>
+                                    <option value="Point of Information">Point of Information</option>
+                                </optgroup>
+                                <optgroup label="Timing">
+                                    <option value="Set Speakers Time">Set Speakers Time</option>
+                                </optgroup>
+                            </select>
+                            <label class="form-label fw-semibold text-muted small">Topic / detail (optional)</label>
+                            <input type="text" class="form-control" id="motionCustomInput"
+                                   placeholder="e.g. Climate, 90 second speaking time" maxlength="500">
+                            <button class="btn raise-btn w-100 mt-3" id="raiseBtn">
+                                <i class="bi bi-megaphone me-1"></i> Raise Motion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My motions -->
+                <div class="col-lg-7 entrance entrance-2">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="bi bi-clock-history"></i> My Motions</div>
+                        </div>
+                        <div class="panel-body" id="myMotionsArea">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>You have not raised any motions yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live feed -->
+            <div class="row mt-4 entrance entrance-3">
+                <div class="col-12">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="bi bi-radio"></i>
+                                <span>Live Motions in Committee</span>
+                                <span class="live-pulse ms-2" title="Live"></span>
+                            </div>
+                        </div>
+                        <div class="panel-body" id="liveMotionsArea">
+                            <div class="empty-state">
+                                <i class="bi bi-broadcast"></i>
+                                <p>Waiting for motions from the floor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const motionTypeSelect = document.getElementById('motionTypeSelect');
+        const motionCustomInput = document.getElementById('motionCustomInput');
+        const raiseBtn = document.getElementById('raiseBtn');
+        const raiseSuccess = document.getElementById('raiseSuccess');
+        const raiseError = document.getElementById('raiseError');
+
+        function showAlert(el, text) {
+            el.textContent = text;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        raiseBtn.addEventListener('click', async () => {
+            const type = motionTypeSelect.value;
+            const detail = motionCustomInput.value.trim();
+            raiseSuccess.classList.remove('show');
+            raiseError.classList.remove('show');
+            if (!type) { showAlert(raiseError, 'Please choose a motion type.'); return; }
+            raiseBtn.disabled = true;
+            try {
+                const resp = await fetch('/api/delegate/motion/raise', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'type=' + encodeURIComponent(type) + '&detail=' + encodeURIComponent(detail)
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    motionCustomInput.value = '';
+                    showAlert(raiseSuccess, data.message || 'Motion raised.');
+                    loadAll();
+                } else {
+                    showAlert(raiseError, data.message || 'Could not raise the motion.');
+                }
+            } catch (err) {
+                showAlert(raiseError, 'Network error - please try again.');
+            } finally {
+                raiseBtn.disabled = false;
+            }
+        });
+
+        function statusBadge(status) {
+            const s = (status || 'PENDING').toUpperCase();
+            const cls = s === 'ACCEPTED' ? 'badge-accepted' : (s === 'DECLINED' ? 'badge-declined' : (s === 'WITHDRAWN' ? 'badge-withdrawn' : 'badge-pending'));
+            const label = s.charAt(0) + s.slice(1).toLowerCase();
+            return '<span class="badge-soft ' + cls + '">' + label + '</span>';
+        }
+
+        function decidedHint(m) {
+            const s = String(m.status || 'PENDING').toUpperCase();
+            const n = String(m.name || '').toLowerCase();
+            if (s === 'WITHDRAWN') {
+                return '<div class="motion-meta"><i class="bi bi-arrow-counterclockwise me-1"></i>Withdrawn by you.</div>';
+            }
+            if (s === 'DECLINED') {
+                return '<div class="motion-meta"><i class="bi bi-x-circle me-1"></i>Declined by the chair.</div>';
+            }
+            if (s !== 'ACCEPTED') {
+                return '<div class="motion-meta"><i class="bi bi-hourglass-split me-1"></i>Waiting for the chair.</div>';
+            }
+            if (n.includes('candor') || n.includes('unmoderat')) {
+                return '<div class="motion-meta text-success"><i class="bi bi-check-circle me-1"></i>Accepted — the chair will open the Candor timer.</div>';
+            }
+            if (n.includes('kolloq') || n.includes('moderat') || n.includes('speaker')) {
+                return '<div class="motion-meta text-success"><i class="bi bi-check-circle me-1"></i>Accepted — watch the Speakers list for your turn.</div>';
+            }
+            return '<div class="motion-meta text-success"><i class="bi bi-check-circle me-1"></i>Accepted by the chair.</div>';
+        }
+
+        async function loadMyMotions() {
+            const area = document.getElementById('myMotionsArea');
+            try {
+                const resp = await fetch('/api/delegate/motions');
+                const list = await resp.json();
+                if (!list.length) {
+                    area.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>You have not raised any motions yet.</p></div>';
+                    return;
+                }
+                area.innerHTML = list.map(m => {
+                    const canWithdraw = String(m.status || 'PENDING').toUpperCase() === 'PENDING';
+                    return '<div class="motion-row">' +
+                    '<div class="motion-avatar"><i class="bi bi-megaphone"></i></div>' +
+                    '<div class="flex-grow-1"><div class="motion-name">' + escapeHtml(m.name) + '</div>' +
+                    (m.detail ? '<div class="motion-meta">' + escapeHtml(m.detail) + '</div>' : '') +
+                    '<div class="motion-meta">Raised at ' + escapeHtml(m.time || '--:--') + '</div>' +
+                    decidedHint(m) + '</div>' +
+                    '<div class="d-flex flex-column align-items-end gap-2">' + statusBadge(m.status) +
+                    (canWithdraw ? '<button class="btn btn-sm btn-outline-secondary withdraw-btn" onclick="withdrawMotion(' + m.id + ', this)"><i class="bi bi-arrow-counterclockwise me-1"></i>Withdraw</button>' : '') +
+                    '</div></div>';
+                }).join('');
+            } catch (err) { /* keep last state */ }
+        }
+
+        async function withdrawMotion(motionId, btn) {
+            if (!confirm('Withdraw this motion?')) return;
+            if (btn) btn.disabled = true;
+            try {
+                const resp = await fetch('/api/delegate/motion/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'motionId=' + motionId
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    loadAll();
+                } else {
+                    showAlert(raiseError, data.message || 'Could not withdraw the motion.');
+                    if (btn) btn.disabled = false;
+                }
+            } catch (err) {
+                showAlert(raiseError, 'Network error - please try again.');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function loadLiveMotions() {
+            const area = document.getElementById('liveMotionsArea');
+            try {
+                const resp = await fetch('/api/delegate/motions/live');
+                const list = await resp.json();
+                if (!list.length) {
+                    area.innerHTML = '<div class="empty-state"><i class="bi bi-broadcast"></i><p>Waiting for motions from the floor...</p></div>';
+                    return;
+                }
+                area.innerHTML = list.map(m =>
+                    '<div class="motion-row">' +
+                    '<div class="motion-avatar"><i class="bi bi-megaphone"></i></div>' +
+                    '<div class="flex-grow-1"><div class="motion-name">' + escapeHtml(m.name) + '</div>' +
+                    (m.detail ? '<div class="motion-meta">' + escapeHtml(m.detail) + '</div>' : '') +
+                    '<div class="motion-meta">By <strong>' + escapeHtml(m.proposer) + '</strong> at ' + escapeHtml(m.time || '--:--') + '</div></div>' +
+                    statusBadge(m.status) +
+                    '</div>'
+                ).join('');
+            } catch (err) { /* ignore */ }
+        }
+
+        function loadAll() { loadMyMotions(); loadLiveMotions(); }
+        loadAll();
+        setInterval(loadAll, 5000);
+        if (window.SummitLive) window.SummitLive.on('motion.changed', loadAll);
+    </script>
+
+    <script>
+    window.NotifBannerConfig = {
+         showLink: false,
+        onSessionEnded: function() { window.location.href = '/delegate'; }
+    };
+    </script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('delegate-motions');
+        });
+    </script>
+</body>
+</html>

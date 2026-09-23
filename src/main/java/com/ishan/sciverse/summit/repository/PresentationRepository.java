@@ -13,4 +13,5 @@ public interface PresentationRepository extends JpaRepository<Presentation, Long
 	List<Presentation> findAllByOrderByIdDesc();
 	List<Presentation> findBySession(Session session);
 	List<Presentation> findBySessionOrderByIdAsc(Session session);
+	java.util.Optional<Presentation> findFirstBySessionAndNameIgnoreCase(Session session, String name);
 }

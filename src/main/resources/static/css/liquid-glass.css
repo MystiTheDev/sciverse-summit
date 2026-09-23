@@ -1,0 +1,222 @@
+/* ================================================
+   LIQUID GLASS SYSTEM (scoped to body.liquid-glass)
+   Apple "liquid glass": cursor-tracked specular pool,
+   adaptive rim-light, deep colour bleed. Inert elsewhere.
+   ================================================ */
+body.liquid-glass {
+    --lg-blur: 22px;
+    --lg-saturate: 160%;
+}
+
+/* Cursor-reactive glass glint (injected by JS into .lg-reactive) */
+body.liquid-glass .lg-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    will-change: background;
+    background:
+        radial-gradient(170px circle at var(--lg-x, -400px) var(--lg-y, -400px),
+            rgba(255,255,255,0.55), rgba(255,255,255,0) 62%),
+        radial-gradient(460px circle at var(--lg-x, -400px) var(--lg-y, -400px),
+            rgba(124,58,237,0.12), rgba(6,182,212,0.08) 45%, transparent 58%);
+}
+body.liquid-glass .lg-reactive:hover > .lg-glow { opacity: 1; }
+
+/* Adaptive edge rim — brightens exactly where the cursor is */
+body.liquid-glass .lg-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background:
+        radial-gradient(240px circle at var(--lg-x, -400px) var(--lg-y, -400px),
+            rgba(255,255,255,0.85) 0%, rgba(124,58,237,0.40) 45%, rgba(6,182,212,0.18) 72%, transparent 72%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+/* Static liquid rim on glass cards (always visible) */
+body.liquid-glass .glass-card::after,
+body.liquid-glass .eval-card::after,
+body.liquid-glass .panel-card::after,
+body.liquid-glass .imp-card::after,
+body.liquid-glass .stats-card::after,
+body.liquid-glass .form-card::after,
+body.liquid-glass .users-card::after,
+body.liquid-glass .setup-card::after,
+body.liquid-glass .joined-card::after,
+body.liquid-glass .res-card::after,
+body.liquid-glass .content-panel::after,
+body.liquid-glass .stat-card::after,
+body.liquid-glass .draft-file-card::after,
+body.liquid-glass .login-card::after,
+body.liquid-glass .registration-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(124,58,237,0.38) 40%, rgba(6,182,212,0.18));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+body.liquid-glass.dark-mode .glass-card::after,
+body.liquid-glass.dark-mode .eval-card::after,
+body.liquid-glass.dark-mode .panel-card::after,
+body.liquid-glass.dark-mode .imp-card::after,
+body.liquid-glass.dark-mode .stats-card::after,
+body.liquid-glass.dark-mode .form-card::after,
+body.liquid-glass.dark-mode .users-card::after,
+body.liquid-glass.dark-mode .setup-card::after,
+body.liquid-glass.dark-mode .joined-card::after,
+body.liquid-glass.dark-mode .res-card::after,
+body.liquid-glass.dark-mode .content-panel::after,
+body.liquid-glass.dark-mode .stat-card::after,
+body.liquid-glass.dark-mode .draft-file-card::after,
+body.liquid-glass.dark-mode .login-card::after,
+body.liquid-glass.dark-mode .registration-card::after {
+    background: linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0.06) 42%, rgba(6,182,212,0.18));
+}
+
+/* ── Unified modern table base (index / stats / history / admin-users) ── */
+.modern-table,
+.modern-stats-table,
+.modern-delegates-table {
+    margin: 0;
+    background: transparent;
+}
+.modern-table thead,
+.modern-stats-table thead,
+.modern-delegates-table thead {
+    background: linear-gradient(135deg, rgba(255,255,255,0.42), rgba(255,255,255,0.14));
+}
+.modern-table thead th,
+.modern-stats-table thead th,
+.modern-delegates-table thead th {
+    padding: 16px 20px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: #64748b;
+    text-align: center;
+    vertical-align: middle;
+    border: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.modern-table thead th:first-child,
+.modern-stats-table thead th:first-child,
+.modern-delegates-table thead th:first-child { text-align: left; padding-left: 22px; }
+.modern-table tbody tr,
+.modern-stats-table tbody tr,
+.modern-delegates-table tbody tr {
+    border-bottom: 1px solid rgba(15,23,42,0.06);
+    transition: background-color 0.15s ease;
+}
+.modern-table tbody tr:last-child,
+.modern-stats-table tbody tr:last-child,
+.modern-delegates-table tbody tr:last-child { border-bottom: none; }
+.modern-table tbody tr:hover,
+.modern-stats-table tbody tr:hover,
+.modern-delegates-table tbody tr:hover { background-color: rgba(255,255,255,0.55); }
+.modern-table tbody td,
+.modern-stats-table tbody td,
+.modern-delegates-table tbody td {
+    padding: 14px 20px;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #334155;
+}
+.modern-table tbody td:first-child,
+.modern-stats-table tbody td:first-child,
+.modern-delegates-table tbody td:first-child { text-align: left; }
+
+body.dark-mode .modern-table thead,
+body.dark-mode .modern-stats-table thead,
+body.dark-mode .modern-delegates-table thead {
+    background: linear-gradient(135deg, rgba(15,23,42,0.65), rgba(30,41,59,0.45));
+}
+body.dark-mode .modern-table thead th,
+body.dark-mode .modern-stats-table thead th,
+body.dark-mode .modern-delegates-table thead th { color: #94a3b8; }
+body.dark-mode .modern-table tbody tr,
+body.dark-mode .modern-stats-table tbody tr,
+body.dark-mode .modern-delegates-table tbody tr { border-bottom-color: rgba(255,255,255,0.06); }
+body.dark-mode .modern-table tbody tr:hover,
+body.dark-mode .modern-stats-table tbody tr:hover,
+body.dark-mode .modern-delegates-table tbody tr:hover { background-color: rgba(255,255,255,0.04) !important; }
+body.dark-mode .modern-table tbody td,
+body.dark-mode .modern-stats-table tbody td,
+body.dark-mode .modern-delegates-table tbody td { color: #cbd5e1; }
+
+/* ── Header: thinner glass, more colour bleed ── */
+body.liquid-glass .apple-glass-header {
+    background: linear-gradient(135deg, rgba(248,250,252,0.55), rgba(241,245,249,0.38)) !important;
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+    border: 1px solid rgba(255,255,255,0.6) !important;
+    border-top-color: rgba(255,255,255,1) !important;
+    box-shadow:
+        0 24px 60px rgba(15,23,42,0.14),
+        0 6px 20px rgba(15,23,42,0.09),
+        inset 0 1px 0 rgba(255,255,255,1),
+        inset 0 -1px 0 rgba(255,255,255,0.3) !important;
+}
+body.liquid-glass.dark-mode .apple-glass-header {
+    background: linear-gradient(135deg, rgba(15,23,42,0.55), rgba(30,27,75,0.42)) !important;
+    border: 1px solid rgba(255,255,255,0.18) !important;
+    border-top-color: rgba(255,255,255,0.35) !important;
+    box-shadow:
+        0 24px 60px rgba(0,0,0,0.5),
+        0 6px 20px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.15) !important;
+}
+
+/* ── Sidebar: thinner glass, more colour bleed ── */
+body.liquid-glass .modern-sidebar {
+    background: linear-gradient(160deg, rgba(248,250,252,0.62), rgba(241,245,249,0.42)) !important;
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+    box-shadow:
+        0 24px 60px rgba(15,23,42,0.14),
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        inset -1px 0 0 rgba(255,255,255,0.35) !important;
+}
+body.liquid-glass.dark-mode .modern-sidebar {
+    background: linear-gradient(160deg, rgba(15,23,42,0.60), rgba(23,37,84,0.42)) !important;
+}
+
+/* ── Nav icon ring glow ── */
+body.liquid-glass .modern-nav-link:hover .nav-icon-wrapper {
+    box-shadow: 0 0 0 5px rgba(99,102,241,0.15), 0 6px 14px rgba(99,102,241,0.3);
+}
+body.liquid-glass .modern-nav-link.active .nav-icon-wrapper,
+body.liquid-glass .modern-nav-link:active .nav-icon-wrapper {
+    box-shadow: 0 0 0 5px rgba(99,102,241,0.24), 0 6px 18px rgba(99,102,241,0.42);
+}
+
+/* Glint off toggle — hides cursor glow/pool/sweep (static rims stay) */
+body.liquid-glass.lg-glint-off .lg-glow { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    body.liquid-glass .lg-glow,
+    body.liquid-glass .lg-glow::before { transition: none; }
+    body.liquid-glass .lg-glow::after { opacity: 0 !important; animation: none; }
+}
+body.liquid-glass.stg-reduce-motion .lg-glow::after {
+    opacity: 0 !important;
+    animation: none;
+}

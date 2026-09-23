@@ -1,7 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>General Speakers' List - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
 
@@ -19,182 +22,459 @@
 
     <!-- Tone.js removed: timer-end sound handled by global _playTimerEndChime (Web Audio API) -->
     <style>
-        /* ================================
-           THEME VARIABLES (Light Default)
-           ================================ */
         :root {
             --sidebar-width: 250px;
-            --bg-primary: #f8fafc;
-            --bg-card: #ffffff;
-            --bg-secondary: #f1f5f9;
-            --bg-elevated: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --border-color: #e2e8f0;
-            --border-strong: #cbd5e1;
-            --accent-primary: #3b82f6;
-            --accent-success: #10b981;
-            --accent-warning: #f59e0b;
-            --accent-danger: #ef4444;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
         }
-
-        body.dark-mode {
-            --bg-primary: #0f172a;
-            --bg-card: #1e293b;
-            --bg-secondary: #334155;
-            --bg-elevated: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --border-strong: #475569;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
-            --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        /* ================================
-           SIDEBAR LAYOUT
-           ================================ */
         .sidebar {
             position: fixed; top: 80px; left: 0;
             height: calc(100% - 80px); width: var(--sidebar-width);
             padding-top: 0.5rem;
-            background-color: var(--bg-secondary);
+            background-color: #f8f9fa;
             z-index: 1000; transition: all 0.3s;
         }
         .content {
             margin-left: var(--sidebar-width);
-            padding: 95px 20px 20px 20px;
+            padding: 95px 28px 28px 28px;
             position: relative; z-index: 1;
             transition: all 0.3s;
+            min-height: 100vh;
+        }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
+            margin-left: calc(-1 * var(--sidebar-width));
         }
         @media (max-width: 991.98px) {
             .sidebar { width: 0; }
             .content { margin-left: 0; }
         }
-        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
-            transform: translateX(calc(-1 * var(--sidebar-width)));
-            margin-left: 0;
-        }
 
         .container-fluid { max-width: 1400px; }
 
-        /* ================================
-           PAGE HEADING
-           ================================ */
+        /* Glassmorphic page background: canonical ambient (body.sv-ambient in fragments) */
+
+        /* Decorative blurred blobs: canonical ambient (#svBgDecor in fragments) */
+
+        /* Page heading */
         .page-heading {
             font-size: 1.6rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: #1e293b;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0;
+        }
+        body.dark-mode .page-heading { color: #f1f5f9; }
+        .page-heading i { color: #06b6d4; }
+        body.dark-mode .page-heading i { color: #22d3ee; }
+        .page-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        body.dark-mode .page-subtitle { color: #94a3b8; }
+
+        /* Back button */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .btn-back:hover {
+            background: #fff;
+            color: #0891b2;
+            transform: translateX(-2px);
+            border-color: #bfdbfe;
+        }
+        body.dark-mode .btn-back {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+        }
+        body.dark-mode .btn-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: #93c5fd;
+            border-color: rgba(6,182,212,0.4);
+        }
+
+        /* Liquid-glass card */
+        .glass-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(248,250,252,0.55));
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top-color: rgba(255,255,255,0.85);
+            border-radius: 22px;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.08),
+                0 6px 20px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -40%; left: -15%;
+            width: 130%; height: 85%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.06) 45%, transparent 75%);
+            pointer-events: none;
+        }
+        body.dark-mode .glass-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.78), rgba(15,23,42,0.66));
+            border-color: rgba(255,255,255,0.1);
+            border-top-color: rgba(255,255,255,0.18);
+            box-shadow:
+                0 24px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        body.dark-mode .glass-card::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.08), rgba(255,255,255,0.01) 45%, transparent 75%);
+        }
+
+        .card-accent {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
         }
-        .page-heading i { color: var(--accent-primary); }
-
-        /* ================================
-           MODERN CARDS
-           ================================ */
-        .card {
-            background: var(--bg-card) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 16px !important;
-            box-shadow: var(--shadow-md);
-            transition: box-shadow 0.2s, transform 0.2s;
-            color: var(--text-primary);
-        }
-        .card:hover { box-shadow: var(--shadow-lg); }
-
-        /* Card titles (h4) */
-        .card-title-modern {
+        .card-title2 {
             font-size: 1.05rem;
             font-weight: 700;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
+            color: #1e293b;
         }
-        .card-title-modern i {
-            color: var(--accent-primary);
-            font-size: 1.2rem;
+        body.dark-mode .card-title2 { color: #f1f5f9; }
+        .card-desc {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.5;
         }
+        body.dark-mode .card-desc { color: #94a3b8; }
 
-        /* Section titles (h5) */
-        .section-title {
-            font-size: 0.85rem;
+        /* Panel labels (Queue / Next Speaking / Now Speaking) */
+        .panel-label {
+            font-size: 0.78rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: var(--text-secondary);
-            margin-bottom: 14px;
+            color: #64748b;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .section-title i {
-            color: var(--accent-primary);
-            font-size: 1rem;
+        body.dark-mode .panel-label { color: #94a3b8; }
+        .panel-label i {
+            color: #06b6d4;
+            font-size: 0.9rem;
         }
+        body.dark-mode .panel-label i { color: #22d3ee; }
+        .panel-label-hint {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        /* Glass utility buttons */
+        .btn-glass {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            transition: all 0.18s;
+            cursor: pointer;
+        }
+        .btn-glass.blue { background: rgba(6,182,212,0.10); color: #0891b2; border-color: rgba(6,182,212,0.28); }
+        .btn-glass.blue:hover { background: rgba(6,182,212,0.18); transform: translateY(-1px); }
+        .btn-glass.green { background: rgba(16,185,129,0.10); color: #059669; border-color: rgba(16,185,129,0.28); }
+        .btn-glass.green:hover { background: rgba(16,185,129,0.18); transform: translateY(-1px); }
+        .btn-glass.indigo { background: rgba(124,58,237,0.10); color: #7c3aed; border-color: rgba(124,58,237,0.28); }
+        .btn-glass.indigo:hover { background: rgba(124,58,237,0.18); transform: translateY(-1px); }
+        .btn-glass.danger { background: rgba(239,68,68,0.10); color: #dc2626; border-color: rgba(239,68,68,0.28); }
+        .btn-glass.danger:hover { background: rgba(239,68,68,0.18); transform: translateY(-1px); }
+        body.dark-mode .btn-glass.blue { background: rgba(6,182,212,0.16); color: #93c5fd; border-color: rgba(6,182,212,0.36); }
+        body.dark-mode .btn-glass.green { background: rgba(16,185,129,0.14); color: #6ee7b7; border-color: rgba(16,185,129,0.32); }
+        body.dark-mode .btn-glass.indigo { background: rgba(124,58,237,0.16); color: #a5b4fc; border-color: rgba(124,58,237,0.36); }
+        body.dark-mode .btn-glass.danger { background: rgba(239,68,68,0.14); color: #fca5a5; border-color: rgba(239,68,68,0.32); }
+
+        /* Add to queue button */
+        #add-to-queue-btn {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed) !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 0 22px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 0 12px 12px 0;
+            transition: all 0.2s;
+        }
+        #add-to-queue-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(6,182,212,0.4);
+        }
+        .input-group > #queue-input { border-radius: 12px 0 0 12px; }
+
+        /* Form controls */
+        .form-control, .form-select {
+            background: rgba(255,255,255,0.65);
+            border: 1px solid rgba(148,163,184,0.4);
+            border-radius: 12px;
+            color: #1e293b;
+            transition: all 0.15s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18);
+            background: #fff;
+            color: #1e293b;
+        }
+        .form-control::placeholder { color: #94a3b8; }
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark-mode .form-control::placeholder { color: rgba(255,255,255,0.35); }
+        body.dark-mode .form-control:focus,
+        body.dark-mode .form-select:focus {
+            background: rgba(255,255,255,0.10);
+            border-color: rgba(6,182,212,0.5);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+            color: #fff;
+        }
+
+        /* Panel (dashed drop zone) */
+        .card-panel {
+            min-height: 80px;
+            border: 2px dashed rgba(148,163,184,0.5);
+            border-radius: 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.35);
+            transition: all 0.2s;
+        }
+        .card-panel .text-muted { color: #94a3b8 !important; }
+        body.dark-mode .card-panel {
+            border-color: rgba(255,255,255,0.16);
+            background: rgba(15,23,42,0.35);
+        }
+
+        /* Now / Next speaking panels - special highlight */
+        #now-speaking-panel {
+            background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.05));
+            border: 2px solid rgba(16,185,129,0.55);
+            box-shadow: 0 6px 20px rgba(16,185,129,0.14);
+        }
+        #next-speaking-panel {
+            background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(8,145,178,0.05));
+            border: 2px solid rgba(6,182,212,0.55);
+            box-shadow: 0 6px 20px rgba(6,182,212,0.14);
+        }
+        body.dark-mode #now-speaking-panel {
+            background: linear-gradient(135deg, rgba(16,185,129,0.20), rgba(5,150,105,0.08));
+            border-color: rgba(16,185,129,0.6);
+        }
+        body.dark-mode #next-speaking-panel {
+            background: linear-gradient(135deg, rgba(6,182,212,0.20), rgba(8,145,178,0.08));
+            border-color: rgba(6,182,212,0.6);
+        }
+
+        .speaker-box {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        body.dark-mode .speaker-box { color: #f1f5f9; }
+
+        /* Queue items */
+        .queue-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(248,250,252,0.55));
+            border: 1px solid rgba(226,232,240,0.9);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+        }
+        .queue-item:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateX(4px);
+            box-shadow: 0 8px 20px rgba(6,182,212,0.12);
+            border-color: rgba(6,182,212,0.5);
+        }
+        .queue-item:last-child { margin-bottom: 0; }
+        body.dark-mode .queue-item {
+            background: rgba(30,41,59,0.7);
+            border-color: rgba(255,255,255,0.08);
+        }
+        body.dark-mode .queue-item:hover {
+            background: rgba(51,65,85,0.8);
+            border-color: rgba(6,182,212,0.5);
+        }
+
+        /* Queue item action buttons */
+        .queue-item .btn-outline-info {
+            color: #0891b2;
+            border-color: rgba(6,182,212,0.45);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+        .queue-item .btn-outline-info:hover {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            border-color: transparent;
+            transform: translateY(-1px);
+        }
+        .queue-item .btn-outline-danger {
+            color: #dc2626;
+            border-color: rgba(239,68,68,0.45);
+            background: transparent;
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+        .queue-item .btn-outline-danger:hover {
+            background: #ef4444;
+            color: #fff;
+            border-color: #ef4444;
+            transform: translateY(-1px);
+        }
+        body.dark-mode .queue-item .btn-outline-info { color: #93c5fd; border-color: rgba(6,182,212,0.4); }
+        body.dark-mode .queue-item .btn-outline-info:hover { color: #fff; }
+        body.dark-mode .queue-item .btn-outline-danger { color: #fca5a5; border-color: rgba(239,68,68,0.4); }
+        body.dark-mode .queue-item .btn-outline-danger:hover { color: #fff; }
+
+        /* Next-queue items (inside #next-speaking-panel) */
+        .next-queue-item {
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            border-radius: 11px;
+            background: rgba(6,182,212,0.08);
+            border: 1px solid rgba(6,182,212,0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
+        }
+        .next-queue-item:last-child { margin-bottom: 0; }
+        .next-queue-item:hover {
+            background: rgba(6,182,212,0.15);
+            transform: translateX(3px);
+        }
+        .next-queue-item .nq-rank {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff; font-size: 0.72rem; font-weight: 700;
+            flex-shrink: 0; margin-right: 10px;
+            box-shadow: 0 2px 6px rgba(6,182,212,0.35);
+        }
+        .next-queue-item .nq-name {
+            font-size: 1rem; font-weight: 600; color: #1e293b; flex: 1;
+        }
+        body.dark-mode .next-queue-item { background: rgba(6,182,212,0.13); border-color: rgba(6,182,212,0.32); }
+        body.dark-mode .next-queue-item:hover { background: rgba(6,182,212,0.22); }
+        body.dark-mode .next-queue-item .nq-name { color: #e2e8f0; }
+        .next-queue-item .btn-stage {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            border: none; color: #fff; font-weight: 600;
+            border-radius: 8px; padding: 4px 13px; font-size: 0.82rem;
+            transition: all 0.18s;
+        }
+        .next-queue-item .btn-stage:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(6,182,212,0.4);
+        }
+        .next-queue-item .btn-nq-remove {
+            color: #dc2626; background: transparent;
+            border: 1px solid rgba(239,68,68,0.3); border-radius: 7px;
+            padding: 3px 8px; font-size: 0.78rem; transition: all 0.15s;
+            margin-left: 6px;
+        }
+        .next-queue-item .btn-nq-remove:hover {
+            background: #ef4444; color: #fff;
+            border-color: #ef4444;
+        }
+        body.dark-mode .next-queue-item .btn-nq-remove { color: #fca5a5; }
 
         /* ================================
            TIMER DISPLAY
            ================================ */
         .timer-display {
-            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
-            color: var(--text-primary);
-            padding: 20px 24px;
-            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(248,250,252,0.45));
+            border: 1px solid rgba(226,232,240,0.9);
+            border-radius: 16px;
+            padding: 18px 22px;
             font-size: 3rem;
             font-weight: 700;
             text-align: center;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid var(--border-color);
+            color: #1e293b;
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.02em;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+            box-shadow: inset 0 1px 2px rgba(15,23,42,0.04);
+        }
+        body.dark-mode .timer-display {
+            background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.55));
+            border-color: rgba(255,255,255,0.1);
+            color: #f1f5f9;
         }
         .timer-display .btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(148,163,184,0.4);
+            color: #475569;
+            border-radius: 10px;
             transition: all 0.15s;
         }
         .timer-display .btn:hover {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+            background: rgba(255,255,255,0.9);
+            color: #1e293b;
+        }
+        body.dark-mode .timer-display .btn {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.18);
+            color: #cbd5e1;
+        }
+        body.dark-mode .timer-display .btn:hover {
+            background: rgba(255,255,255,0.16);
+            color: #fff;
         }
 
-        /* ================================
-           PROGRESS BAR
-           ================================ */
+        /* Progress bar */
         .progress-bar-container {
             height: 8px;
-            background-color: var(--bg-secondary);
+            background-color: rgba(148,163,184,0.25);
             border-radius: 5px;
             margin: 12px 0 16px 0;
             overflow: hidden;
         }
+        body.dark-mode .progress-bar-container { background-color: rgba(255,255,255,0.08); }
         .progress-bar-fill {
             height: 100%;
             width: 100%;
@@ -210,134 +490,40 @@
             animation: warn-flash 0.6s ease-in-out infinite;
         }
 
-        /* ================================
-           QUEUE LIST + ITEMS
-           ================================ */
-        .card-panel {
-            min-height: 80px;
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            background: var(--bg-secondary);
-            transition: all 0.2s;
-        }
-        .card-panel .text-muted {
-            color: var(--text-muted) !important;
-        }
-
-        .queue-item {
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            border-radius: 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.15s;
-            box-shadow: var(--shadow-sm);
-        }
-        .queue-item:hover {
-            background: var(--bg-elevated);
-            transform: translateX(4px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--accent-primary);
-        }
-        .queue-item:last-child { margin-bottom: 0; }
-
-        /* Now / Next speaking panels - special highlight */
-        #now-speaking-panel {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.10), rgba(5, 150, 105, 0.04));
-            border: 2px solid var(--accent-success);
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
-        }
-        #next-speaking-panel {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.10), rgba(37, 99, 235, 0.04));
-            border: 2px solid var(--accent-primary);
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
-        }
-
-        .speaker-box {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* ================================
-           FORM CONTROLS
-           ================================ */
-        .form-control, .form-select {
-            border: 1px solid var(--border-strong);
-            border-radius: 8px;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            transition: all 0.15s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-        .form-control::placeholder { color: var(--text-muted); }
-
-        /* Add to queue button (replaces btn-danger styling here) */
-        #add-to-queue-btn {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-            color: white !important;
-            border: none !important;
-            padding: 0 24px;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        #add-to-queue-btn:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-        }
-
-        /* ================================
-           TIMER CONTROL BUTTONS
-           ================================ */
+        /* Timer control buttons */
         .timer-controls .btn {
-            border-radius: 8px;
+            border-radius: 9px;
             font-weight: 600;
             transition: all 0.15s;
             padding: 6px 12px;
         }
         .timer-controls .btn-secondary {
-            background: var(--bg-secondary);
-            border-color: var(--border-color);
-            color: var(--text-secondary);
+            background: rgba(100,116,139,0.12);
+            border-color: rgba(100,116,139,0.35);
+            color: #475569;
         }
         .timer-controls .btn-secondary:hover:not(:disabled) {
-            background: var(--border-color);
-            color: var(--text-primary);
+            background: rgba(100,116,139,0.22);
+            color: #1e293b;
             transform: translateY(-1px);
         }
         .timer-controls .btn-success {
             background: linear-gradient(135deg, #10b981, #059669);
             border: none;
-            color: white;
+            color: #fff;
         }
         .timer-controls .btn-success:hover:not(:disabled) {
-            background: linear-gradient(135deg, #059669, #047857);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(16,185,129,0.35);
         }
         .timer-controls .btn-warning {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             border: none;
-            color: white;
+            color: #fff;
         }
         .timer-controls .btn-warning:hover:not(:disabled) {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            color: white;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 4px 12px rgba(245,158,11,0.35);
         }
         .timer-controls .btn:disabled {
             opacity: 0.45;
@@ -345,186 +531,294 @@
             box-shadow: none !important;
             cursor: not-allowed;
         }
-
-        /* ================================
-           QUEUE ITEM ACTION BUTTONS
-           ================================ */
-        .queue-item .btn-outline-info {
-            color: var(--accent-primary);
-            border-color: var(--accent-primary);
-            background: transparent;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.15s;
-        }
-        .queue-item .btn-outline-info:hover {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-            transform: translateY(-1px);
-        }
-        .queue-item .btn-outline-danger {
-            color: var(--accent-danger);
-            border-color: var(--accent-danger);
-            background: transparent;
-            border-radius: 6px;
-            transition: all 0.15s;
-        }
-        .queue-item .btn-outline-danger:hover {
-            background: var(--accent-danger);
-            color: white;
-            border-color: var(--accent-danger);
-            transform: translateY(-1px);
-        }
-
-        /* Next-queue items (inside #next-speaking-panel) */
-        .next-queue-item {
-            padding: 10px 14px;
-            margin-bottom: 6px;
-            border-radius: 9px;
-            background: rgba(59, 130, 246, 0.07);
-            border: 1px solid rgba(59, 130, 246, 0.22);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.15s;
-        }
-        .next-queue-item:last-child { margin-bottom: 0; }
-        .next-queue-item:hover {
-            background: rgba(59, 130, 246, 0.14);
-            transform: translateX(3px);
-        }
-        .next-queue-item .nq-rank {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 22px; height: 22px; border-radius: 50%;
-            background: rgba(59, 130, 246, 0.25);
-            color: #3b82f6; font-size: 0.72rem; font-weight: 700;
-            flex-shrink: 0; margin-right: 10px;
-        }
-        .next-queue-item .nq-name {
-            font-size: 1rem; font-weight: 600; color: var(--text-primary); flex: 1;
-        }
-        .next-queue-item .btn-stage {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            border: none; color: white; font-weight: 600;
-            border-radius: 7px; padding: 4px 13px; font-size: 0.82rem;
-            transition: all 0.18s;
-        }
-        .next-queue-item .btn-stage:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
-        }
-        .next-queue-item .btn-nq-remove {
-            color: var(--accent-danger); background: transparent;
-            border: 1px solid rgba(239,68,68,0.3); border-radius: 6px;
-            padding: 3px 8px; font-size: 0.78rem; transition: all 0.15s;
-            margin-left: 6px;
-        }
-        .next-queue-item .btn-nq-remove:hover {
-            background: var(--accent-danger); color: white;
-            border-color: var(--accent-danger);
-        }
-        body.dark-mode .next-queue-item {
-            background: rgba(59, 130, 246, 0.12);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-        body.dark-mode .next-queue-item:hover { background: rgba(59, 130, 246, 0.2); }
-
-        /* Auto-advance confirmation modal */
-        .auto-advance-modal .modal-content {
-            background: rgba(10, 15, 30, 0.92) !important;
-            backdrop-filter: blur(48px) saturate(160%);
-            -webkit-backdrop-filter: blur(48px) saturate(160%);
-            border: 1px solid rgba(255,255,255,0.15) !important;
-            border-radius: 18px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.55);
-            color: rgba(255,255,255,0.92);
-        }
-        .auto-advance-modal .modal-header {
-            background: rgba(8,12,26,0.5);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            border-radius: 18px 18px 0 0;
-            padding: 18px 24px 14px;
-        }
-        .auto-advance-modal .modal-title { font-weight: 700; font-size: 1.05rem; color: #fff; }
-        .auto-advance-modal .modal-body { padding: 20px 24px 8px; }
-        .auto-advance-modal .modal-footer {
-            background: rgba(8,12,26,0.35);
-            border-top: 1px solid rgba(255,255,255,0.08);
-            border-radius: 0 0 18px 18px;
-            padding: 14px 20px;
-        }
-        .auto-advance-modal .nq-speaker-chip {
-            display: inline-block;
-            background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(99,102,241,0.18));
-            border: 1px solid rgba(99,102,241,0.4);
-            border-radius: 50px;
-            padding: 4px 16px;
-            font-size: 1.05rem; font-weight: 700;
-            color: #a5b4fc; letter-spacing: 0.02em;
-        }
-        .auto-advance-modal .btn-yes-speak {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none; color: white; font-weight: 700;
-            border-radius: 9px; padding: 7px 22px;
-            box-shadow: 0 3px 10px rgba(16,185,129,0.3);
-            transition: all 0.18s;
-        }
-        .auto-advance-modal .btn-yes-speak:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            transform: translateY(-1px);
-            box-shadow: 0 5px 14px rgba(16,185,129,0.4);
-        }
-        .auto-advance-modal .btn-not-yet {
+        body.dark-mode .timer-controls .btn-secondary {
             background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.18);
-            color: rgba(255,255,255,0.75); font-weight: 600;
-            border-radius: 9px; padding: 7px 18px;
-            transition: all 0.18s;
+            border-color: rgba(255,255,255,0.18);
+            color: #cbd5e1;
         }
-        .auto-advance-modal .btn-not-yet:hover {
-            background: rgba(255,255,255,0.14);
-            color: rgba(255,255,255,0.95);
+        body.dark-mode .timer-controls .btn-secondary:hover:not(:disabled) {
+            background: rgba(255,255,255,0.16);
+            color: #fff;
         }
 
         /* End button (Now speaking) */
         #now-speaking-panel .btn-danger {
             background: linear-gradient(135deg, #ef4444, #dc2626) !important;
             border: none !important;
-            color: white !important;
+            color: #fff !important;
             font-weight: 600;
             border-radius: 8px;
             padding: 6px 14px;
             transition: all 0.2s;
         }
         #now-speaking-panel .btn-danger:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
         }
 
         /* ================================
-           ALERT BOX
+           DARK GLASS MODALS
+           (always dark, ID-scoped so they beat the
+           fragments global "body.dark-mode .modal-content"
+           catch-all, which has !important)
+           ================================ */
+        #stageInterruptModal .modal-content,
+        #clearQueueModal .modal-content,
+        #autoAdvanceModal .modal-content {
+            background: linear-gradient(160deg, rgba(17,24,39,0.92), rgba(10,15,30,0.90)) !important;
+            backdrop-filter: blur(48px) saturate(160%);
+            -webkit-backdrop-filter: blur(48px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.15) !important;
+            border-radius: 20px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+            color: rgba(255,255,255,0.9);
+        }
+        #stageInterruptModal .modal-header,
+        #clearQueueModal .modal-header,
+        #autoAdvanceModal .modal-header {
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+            border-radius: 20px 20px 0 0;
+            padding: 18px 24px 14px;
+        }
+        #stageInterruptModal .modal-footer,
+        #clearQueueModal .modal-footer,
+        #autoAdvanceModal .modal-footer {
+            background: rgba(0,0,0,0.18);
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
+            border-radius: 0 0 20px 20px;
+            padding: 14px 20px;
+        }
+        #stageInterruptModal .modal-body,
+        #clearQueueModal .modal-body,
+        #autoAdvanceModal .modal-body {
+            padding: 20px 24px 10px;
+        }
+        #stageInterruptModal .btn-close,
+        #clearQueueModal .btn-close,
+        #autoAdvanceModal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.02rem;
+            color: #fff;
+        }
+        .modal-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 1px;
+        }
+        .modal-accent {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .modal-body-copy {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .modal-body-copy + .modal-body-copy { margin-top: 14px; }
+        .chip-red, .chip-green {
+            display: inline-block;
+            border-radius: 50px;
+            padding: 2px 14px;
+            font-weight: 700;
+        }
+        .chip-red {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #f87171;
+        }
+        .chip-green {
+            background: rgba(16,185,129,0.15);
+            border: 1px solid rgba(16,185,129,0.3);
+            color: #6ee7b7;
+        }
+        .nq-speaker-chip {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(124,58,237,0.18));
+            border: 1px solid rgba(124,58,237,0.4);
+            border-radius: 50px;
+            padding: 4px 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            letter-spacing: 0.02em;
+        }
+        .btn-ghost {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.75);
+            font-weight: 600;
+            border-radius: 9px;
+            padding: 7px 18px;
+            transition: all 0.18s;
+            cursor: pointer;
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.14);
+            color: rgba(255,255,255,0.95);
+        }
+        .btn-amber, .btn-green, .btn-red {
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 9px;
+            padding: 7px 22px;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .btn-amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 3px 10px rgba(245,158,11,0.3);
+        }
+        .btn-amber:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(245,158,11,0.4);
+        }
+        .btn-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 3px 10px rgba(16,185,129,0.3);
+        }
+        .btn-green:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(16,185,129,0.4);
+        }
+        .btn-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 3px 10px rgba(239,68,68,0.3);
+        }
+        .btn-red:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(239,68,68,0.4);
+        }
+        #clearQueueModal .modal-title { color: #fff; }
+        #clearQueueCount {
+            color: #f87171;
+            font-weight: 700;
+        }
+
+        /* ================================
+           ALERT BOX (toast)
            ================================ */
         .alert-custom {
             position: fixed;
             top: 90px;
             right: 20px;
             z-index: 2000;
-            border-radius: 12px;
-            border: none;
-            box-shadow: var(--shadow-lg);
-            backdrop-filter: blur(10px);
-            background: rgba(254, 243, 199, 0.95);
+            min-width: 320px;
+            max-width: 540px;
+            border-radius: 16px;
+            border: 1px solid rgba(6,182,212,0.16);
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(16px) saturate(145%);
+            -webkit-backdrop-filter: blur(16px) saturate(145%);
+            background: rgba(255, 255, 255, 0.92);
+            color: #1e293b;
+            padding: 12px 14px;
+            animation: toast-in .24s cubic-bezier(.2,.8,.2,1);
+        }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .alert-custom .alert-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .alert-custom .alert-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.98rem;
+            margin-top: 1px;
+        }
+        .alert-custom .alert-copy {
+            flex: 1;
+            min-width: 0;
+        }
+        .alert-custom .alert-text {
+            margin: 0;
+            font-size: 0.98rem;
+            line-height: 1.4;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            color: inherit;
+            word-break: break-word;
+        }
+        .alert-custom .alert-close {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(148, 163, 184, 0.12);
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .alert-custom .alert-close:hover {
+            background: rgba(100, 116, 139, 0.18);
+            border-color: rgba(100, 116, 139, 0.55);
+            color: #0f172a;
+        }
+        .alert-custom.type-info { border-color: rgba(6,182,212,0.2); }
+        .alert-custom.type-info .alert-icon { background: rgba(6,182,212,0.15); color: #0891b2; }
+        .alert-custom.type-success { border-color: rgba(16,185,129,0.25); }
+        .alert-custom.type-success .alert-icon { background: rgba(16,185,129,0.16); color: #059669; }
+        .alert-custom.type-warning {
+            border-color: rgba(245,158,11,0.32);
+            background: rgba(255, 251, 235, 0.95);
             color: #92400e;
-            padding: 14px 18px;
         }
+        .alert-custom.type-warning .alert-icon { background: rgba(245,158,11,0.2); color: #b45309; }
+        .alert-custom.type-error { border-color: rgba(239,68,68,0.26); }
+        .alert-custom.type-error .alert-icon { background: rgba(239,68,68,0.16); color: #dc2626; }
         body.dark-mode .alert-custom {
-            background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            background: rgba(15, 23, 42, 0.88);
+            color: rgba(255,255,255,0.9);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 20px 52px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03);
         }
+        body.dark-mode .alert-custom .alert-text { color: rgba(255,255,255,0.88); }
+        body.dark-mode .alert-custom .alert-close {
+            border-color: rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.72);
+        }
+        body.dark-mode .alert-custom .alert-close:hover { background: rgba(255,255,255,0.16); color: #fff; }
+        body.dark-mode .alert-custom.type-info { border-color: rgba(6,182,212,0.34); }
+        body.dark-mode .alert-custom.type-info .alert-icon { background: rgba(6,182,212,0.24); color: #93c5fd; }
+        body.dark-mode .alert-custom.type-success { border-color: rgba(16,185,129,0.3); }
+        body.dark-mode .alert-custom.type-success .alert-icon { background: rgba(16,185,129,0.22); color: #86efac; }
+        body.dark-mode .alert-custom.type-warning {
+            border-color: rgba(245,158,11,0.34);
+            background: rgba(120, 53, 15, 0.34);
+        }
+        body.dark-mode .alert-custom.type-warning .alert-icon { background: rgba(245,158,11,0.25); color: #fcd34d; }
+        body.dark-mode .alert-custom.type-error { border-color: rgba(239,68,68,0.34); }
+        body.dark-mode .alert-custom.type-error .alert-icon { background: rgba(239,68,68,0.22); color: #fca5a5; }
 
         /* ================================
            SCROLLBAR (subtle)
@@ -532,51 +826,56 @@
         .card-panel::-webkit-scrollbar { width: 6px; }
         .card-panel::-webkit-scrollbar-track { background: transparent; }
         .card-panel::-webkit-scrollbar-thumb {
-            background: var(--border-color);
+            background: rgba(148,163,184,0.5);
             border-radius: 3px;
         }
-        .card-panel::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+        .card-panel::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.8); }
 
-        /* ================================
-           DARK MODE OVERRIDES
-           ================================ */
-        body.dark-mode .timer-display .btn {
-            background: var(--bg-secondary);
-            border-color: var(--border-strong);
-            color: var(--text-secondary);
-        }
-        body.dark-mode .timer-display .btn:hover {
-            background: var(--border-strong);
-            color: var(--text-primary);
-        }
-        body.dark-mode .form-control,
-        body.dark-mode .form-select {
-            background: var(--bg-secondary);
-        }
-        body.dark-mode .form-control:focus,
-        body.dark-mode .form-select:focus {
-            background: var(--bg-secondary);
-        }
-        body.dark-mode .progress-bar-container {
-            background-color: rgba(255, 255, 255, 0.08);
-        }
-        body.dark-mode #now-speaking-panel {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.08));
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);
-        }
-        body.dark-mode #next-speaking-panel {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.08));
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.18);
-        }
-        body.dark-mode .queue-item {
-            background: var(--bg-secondary);
-        }
-        body.dark-mode .queue-item:hover {
-            background: var(--border-strong);
+        /* Phase 1: anime.js owns hover/press motion — CSS keeps color/shadow only
+           (a CSS transform transition would fight anime's per-frame transforms). */
+        html body .glass-card:hover,
+        html body .btn-glass.blue:hover, html body .btn-glass.green:hover,
+        html body .btn-glass.indigo:hover, html body .btn-glass.danger:hover,
+        html body #add-to-queue-btn:hover,
+        html body .next-queue-item .btn-stage:hover,
+        html body .btn-green:hover, html body .btn-ghost:hover,
+        html body .btn-red:hover, html body .btn-amber:hover,
+        html body .queue-item .btn-outline-info:hover, html body .queue-item .btn-outline-danger:hover,
+        html body .timer-controls .btn-secondary:hover:not(:disabled),
+        html body .timer-controls .btn-success:hover:not(:disabled),
+        html body .timer-controls .btn-warning:hover:not(:disabled),
+        html body #now-speaking-panel .btn-danger:hover { transform: none; }
+        html body .glass-card, html body .btn-glass, html body #add-to-queue-btn,
+        html body .next-queue-item .btn-stage,
+        html body .btn-green, html body .btn-ghost, html body .btn-red, html body .btn-amber,
+        html body .queue-item .btn-outline-info, html body .queue-item .btn-outline-danger,
+        html body .timer-controls .btn, html body #now-speaking-panel .btn-danger {
+            transition: background .15s ease-out, box-shadow .15s ease-out, border-color .15s ease-out, color .15s ease-out !important;
         }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - speakers (trial) */
+        body.liquid-glass .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.62), rgba(248,250,252,0.40));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border: 1px solid rgba(255,255,255,0.65);
+            border-top-color: rgba(255,255,255,0.95);
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.08),
+                0 6px 20px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        body.liquid-glass.dark-mode .glass-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.55), rgba(15,23,42,0.38));
+            border: 1px solid rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.22);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+        body.liquid-glass .glass-card > * { position: relative; z-index: 1; }
+    </style>
 
     <!-- 1. HEADER (NAVBAR) FRAGMENT: Assumed to be included via Thymeleaf -->
     <div th:replace="fragments :: header"></div>
@@ -584,59 +883,150 @@
     <!-- 2. SIDEBAR FRAGMENT: Assumed to be included via Thymeleaf -->
     <div th:replace="fragments :: sidebar"></div>
 
+    <!-- Notification banner (toast popups for server notifications) -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
     <!-- 3. MAIN CONTENT AREA -->
     <div class="content">
         <div class="container-fluid">
 
-            <h2 class="page-heading">
-                <i class="bi bi-megaphone-fill"></i>
-                <span>General Disclosure List</span>
-            </h2>
+            <!-- Page header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-heading entrance" style="display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-megaphone-fill me-1"></i>
+                        <span>General Disclosure List</span>
+                    </h2>
+                    <div class="page-subtitle mt-1">Queue speakers, line up the next delegates, and run the chamber timers</div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                    <button type="button" class="btn-back entrance entrance-1" id="presentBtn" title="Open the presentation stage on a chosen display">
+                        <i class="bi bi-display"></i> Present on Display
+                    </button>
+                    <a href="/" class="btn-back entrance entrance-1">
+                        <i class="bi bi-arrow-left"></i> Back to Delegates
+                    </a>
+                </div>
+            </div>
+            <span id="spkSessionName" class="d-none" th:text="${currentSession != null ? currentSession.name : 'No active session'}">Session</span>
 
-            <div class="row">
+            <!-- Display picker modal -->
+            <div id="displayModal" class="spk-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="displayTitle">
+                <div class="spk-modal-card">
+                    <div class="spk-modal-icon"><i class="bi bi-display"></i></div>
+                    <h5 id="displayTitle">Present on Display</h5>
+                    <p id="displayMsg">Choose where the presentation stage should appear. Your controls stay on this screen.</p>
+                    <div id="displayList" class="spk-display-list"></div>
+                    <div class="spk-modal-actions">
+                        <button class="btn btn-secondary" id="displayCancelBtn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <style>
+                .spk-overlay {
+                    position: fixed; inset: 0; z-index: 4000;
+                    background: rgba(15,23,42,0.55);
+                    backdrop-filter: blur(6px);
+                    -webkit-backdrop-filter: blur(6px);
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 20px;
+                }
+                .spk-modal-card {
+                    width: 100%; max-width: 440px;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.88));
+                    border: 1px solid rgba(255,255,255,0.7);
+                    border-radius: 20px; padding: 28px; text-align: center;
+                    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+                    color: #1e293b; position: relative; overflow: hidden;
+                }
+                .spk-modal-card::before {
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+                    background: linear-gradient(90deg, #06b6d4, #7c3aed);
+                }
+                body.dark-mode .spk-modal-card {
+                    background: linear-gradient(160deg, rgba(30,41,59,0.95), rgba(15,23,42,0.92));
+                    border-color: rgba(255,255,255,0.14);
+                    color: #f1f5f9;
+                }
+                .spk-modal-icon {
+                    width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 15px;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 1.4rem; color: #fff;
+                    background: linear-gradient(135deg, #06b6d4, #7c3aed);
+                    box-shadow: 0 8px 20px rgba(6,182,212,0.4);
+                }
+                .spk-modal-card h5 { font-weight: 800; margin-bottom: 8px; }
+                .spk-modal-card p { font-size: 0.88rem; color: #64748b; margin-bottom: 16px; }
+                body.dark-mode .spk-modal-card p { color: #94a3b8; }
+                .spk-display-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+                .spk-display-item {
+                    display: flex; align-items: center; gap: 10px; text-align: left;
+                    border: 1px solid rgba(6,182,212,0.3); border-radius: 12px;
+                    background: rgba(6,182,212,0.06); color: inherit;
+                    padding: 11px 14px; cursor: pointer; width: 100%;
+                    font-weight: 600; font-size: 0.9rem;
+                }
+                .spk-display-item:hover { background: rgba(6,182,212,0.14); }
+                .spk-display-item i { color: #06b6d4; font-size: 1.2rem; }
+                .spk-display-item small { display: block; font-weight: 500; opacity: 0.7; }
+                .spk-modal-actions { display: flex; gap: 10px; justify-content: center; }
+            </style>
+
+            <div class="row g-4">
                 <!-- LEFT SIDE: Speaker Queue Management (7/12) -->
                 <div class="col-lg-7">
-                    <div class="card p-4 mb-4">
-                        <h4 class="card-title-modern">
-                            <i class="bi bi-list-ol"></i>
-                            <span>Speakers Queue Control</span>
-                        </h4>
+                    <div class="glass-card entrance entrance-1 p-4 mb-4 lg-reactive">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="card-accent" style="background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+                                <i class="bi bi-list-ol"></i>
+                            </div>
+                            <div class="flex-fill">
+                                <div class="card-title2">Speakers Queue Control</div>
+                                <div class="card-desc">Add delegates, stage the next speaker, and track who is on the floor</div>
+                            </div>
+                        </div>
+
                         <!-- QUEUE MANAGEMENT -->
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h5 class="section-title mb-0">
+                            <h5 class="panel-label mb-0">
                                 <i class="bi bi-people-fill"></i>
                                 <span>Queue</span>
                             </h5>
-                            <button class="btn btn-sm" id="clear-queue-btn" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.28);border-radius:8px;font-size:0.8rem;font-weight:600;padding:4px 12px;transition:all 0.18s;" title="Clear all speakers from the queue">
-                                <i class="bi bi-trash3 me-1"></i>Clear Queue
+                            <button class="btn-glass danger" id="clear-queue-btn" title="Clear all speakers from the queue">
+                                <i class="bi bi-trash3"></i>Clear Queue
                             </button>
                         </div>
-                        <!-- Queue Input and Autocomplete -->
+
+                        <!-- Queue picker: choose a delegate, no typing needed -->
                         <div class="input-group mb-3">
-                            <input type="text" id="queue-input" class="form-control form-control-lg" placeholder="Type speaker name..." list="presenter-names-list">
+                            <select id="queue-input" class="form-select form-select-lg" aria-label="Choose a delegate to queue">
+                                <option value="">Choose a delegate…</option>
+                            </select>
                             <button class="btn" type="button" id="add-to-queue-btn">
                                 <i class="bi bi-plus-lg"></i> Add
                             </button>
                         </div>
-                        <!-- Datalist for Autocomplete (populated by script) -->
-                        <datalist id="presenter-names-list">
-                            <!-- Options populated via JavaScript -->
-                        </datalist>
 
                         <!-- Quick-queue all delegates of a given category -->
                         <div class="d-flex align-items-center flex-wrap gap-2 mb-2" id="queue-all-bar">
-                            <span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">Queue all:</span>
-                            <button class="btn btn-sm" id="queue-presenting-btn" onclick="queueAllByCategory('presenting')"
-                                style="background:rgba(59,130,246,0.12);color:#3b82f6;border:1px solid rgba(59,130,246,0.28);border-radius:7px;font-size:0.78rem;font-weight:600;padding:3px 11px;transition:all 0.18s;">
-                                <i class="bi bi-mic-fill me-1"></i>Presenting
+                            <span class="panel-label-hint">Queue all:</span>
+                            <button class="btn-glass blue" id="queue-presenting-btn" onclick="queueAllByCategory('presenting')">
+                                <i class="bi bi-mic-fill"></i>Presenting
                             </button>
-                            <button class="btn btn-sm" id="queue-voting-btn" onclick="queueAllByCategory('voting')"
-                                style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.28);border-radius:7px;font-size:0.78rem;font-weight:600;padding:3px 11px;transition:all 0.18s;">
-                                <i class="bi bi-check-circle-fill me-1"></i>Voting
+                            <button class="btn-glass green" id="queue-voting-btn" onclick="queueAllByCategory('voting')">
+                                <i class="bi bi-check-circle-fill"></i>Voting
                             </button>
-                            <button class="btn btn-sm" id="queue-both-btn" onclick="queueAllByCategory('both')"
-                                style="background:rgba(99,102,241,0.12);color:#6366f1;border:1px solid rgba(99,102,241,0.28);border-radius:7px;font-size:0.78rem;font-weight:600;padding:3px 11px;transition:all 0.18s;">
-                                <i class="bi bi-people-fill me-1"></i>Both
+                            <button class="btn-glass indigo" id="queue-both-btn" onclick="queueAllByCategory('both')">
+                                <i class="bi bi-people-fill"></i>Both
                             </button>
                         </div>
 
@@ -644,10 +1034,10 @@
                             <p class="text-muted mb-0">Queue is empty. Add a speaker above.</p>
                         </div>
 
-                        <div class="row g-4">
+                        <div class="row g-4 mt-0">
                             <!-- NEXT SPEAKING -->
                             <div class="col-12">
-                                <h5 class="section-title">
+                                <h5 class="panel-label mb-2">
                                     <i class="bi bi-arrow-right-circle-fill"></i>
                                     <span>Next Speaking</span>
                                 </h5>
@@ -659,7 +1049,7 @@
 
                             <!-- NOW SPEAKING -->
                             <div class="col-12">
-                                <h5 class="section-title">
+                                <h5 class="panel-label mb-2">
                                     <i class="bi bi-broadcast-pin"></i>
                                     <span>Now Speaking</span>
                                 </h5>
@@ -668,30 +1058,22 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Voting Checkbox and Buttons -->
-                        <!--<div class="d-flex align-items-center gap-3 mt-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="delegates-can-queue" checked>
-                                <label class="form-check-label" for="delegates-can-queue">
-                                    Delegates can queue
-                                </label>
-                            </div>
-                            <button class="btn btn-sm btn-success">For</button>
-                            <button class="btn btn-sm btn-secondary">Neutral</button>
-                            <button class="btn btn-sm btn-danger">Against</button>
-                        </div>-->
                     </div>
                 </div>
 
                 <!-- RIGHT SIDE: Timers (5/12) -->
                 <div class="col-lg-5">
                     <!-- SPEAKER TIMER -->
-                    <div class="card p-4 mb-4">
-                        <h5 class="card-title-modern">
-                            <i class="bi bi-stopwatch-fill"></i>
-                            <span>Speaker Timer</span>
-                        </h5>
+                    <div class="glass-card entrance entrance-2 p-4 mb-4 lg-reactive">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="card-accent" style="background:linear-gradient(135deg,#10b981,#059669);">
+                                <i class="bi bi-stopwatch-fill"></i>
+                            </div>
+                            <div>
+                                <div class="card-title2">Speaker Timer</div>
+                                <div class="card-desc">Time for the delegate currently on the floor</div>
+                            </div>
+                        </div>
                         <div class="timer-display" id="speaker-timer-text">
                             <span>1:00</span>
                             <button class="btn btn-sm" id="speaker-mute-button" title="Mute/Unmute sound">
@@ -713,11 +1095,16 @@
                     </div>
 
                     <!-- CAUCUS TIMER -->
-                    <div class="card p-4 mb-4">
-                        <h5 class="card-title-modern">
-                            <i class="bi bi-clock-history"></i>
-                            <span>Segment Timer</span>
-                        </h5>
+                    <div class="glass-card entrance entrance-3 p-4 mb-4 lg-reactive">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="card-accent" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div>
+                                <div class="card-title2">Segment Timer</div>
+                                <div class="card-desc">Running duration of the current caucus segment</div>
+                            </div>
+                        </div>
                         <div class="timer-display" id="caucus-timer-text">
                             <span>10:00</span>
                             <button class="btn btn-sm" id="caucus-mute-button" title="Mute/Unmute sound">
@@ -741,33 +1128,34 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Stage-interrupt confirmation modal: shown when staging someone while another person is already speaking -->
     <div class="modal fade" id="stageInterruptModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:18px;color:rgba(255,255,255,0.9);">
-                <div class="modal-header" style="background:rgba(245,158,11,0.10);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:18px 18px 0 0;padding:18px 24px 14px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        <div class="modal-accent" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
                         <div>
-                            <div style="font-weight:700;font-size:1.05rem;color:#fff;">Interrupt Current Speaker?</div>
-                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:1px;">Someone is already speaking</div>
+                            <div class="modal-title">Interrupt Current Speaker?</div>
+                            <div class="modal-subtitle">Someone is already speaking</div>
                         </div>
                     </div>
-                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" style="padding:20px 24px 8px;">
-                    <div style="color:rgba(255,255,255,0.75);margin-bottom:14px;font-size:0.9rem;line-height:1.7;">
-                        <span style="display:inline-block;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:50px;padding:2px 14px;color:#f87171;font-weight:700;" id="stageInterruptCurrentName"></span>
-                        &nbsp;is currently speaking. Their elapsed time will be saved and they will be returned to the queue.
+                <div class="modal-body">
+                    <div class="modal-body-copy">
+                        <span class="chip-red" id="stageInterruptCurrentName"></span>&nbsp;is currently speaking. Their elapsed time will be saved and they will be returned to the queue.
                     </div>
-                    <div style="color:rgba(255,255,255,0.75);font-size:0.9rem;">
-                        Stage &nbsp;<span style="display:inline-block;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:50px;padding:2px 14px;color:#6ee7b7;font-weight:700;" id="stageInterruptNextName"></span>&nbsp; instead?
+                    <div class="modal-body-copy">
+                        Stage &nbsp;<span class="chip-green" id="stageInterruptNextName"></span>&nbsp;instead?
                     </div>
                 </div>
-                <div class="modal-footer" style="background:rgba(8,12,26,0.35);border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 18px 18px;padding:14px 20px;display:flex;justify-content:flex-end;gap:8px;">
-                    <button type="button" class="btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);border-radius:9px;font-weight:600;padding:7px 18px;" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" id="stageInterruptYesBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;font-weight:700;border-radius:9px;padding:7px 22px;cursor:pointer;">
+                <div class="modal-footer d-flex justify-content-end gap-2">
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="stageInterruptYesBtn" class="btn-amber">
                         <i class="bi bi-mic-fill me-1"></i>Yes, Stage Them
                     </button>
                 </div>
@@ -778,48 +1166,54 @@
     <!-- Clear-queue confirmation modal -->
     <div class="modal fade" id="clearQueueModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:16px;color:rgba(255,255,255,0.9);">
-                <div class="modal-header" style="background:rgba(8,12,26,0.5);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:16px 16px 0 0;padding:16px 20px 12px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <div class="d-flex align-items-center gap-2">
-                        <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;"><i class="bi bi-trash3-fill"></i></div>
-                        <div style="font-weight:700;font-size:0.98rem;">Clear Queue?</div>
+                        <div class="modal-accent" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+                            <i class="bi bi-trash3-fill"></i>
+                        </div>
+                        <div class="modal-title">Clear Queue?</div>
                     </div>
-                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" style="padding:16px 20px 8px;font-size:0.88rem;color:rgba(255,255,255,0.7);">
-                    This will remove <strong id="clearQueueCount" style="color:#f87171;"></strong> speaker(s) from the queue. This cannot be undone.
+                <div class="modal-body">
+                    <p class="mb-0" style="font-size:0.88rem;color:rgba(255,255,255,0.7);">
+                        This will remove <strong id="clearQueueCount"></strong> speaker(s) from the queue. This cannot be undone.
+                    </p>
                 </div>
-                <div class="modal-footer" style="background:rgba(8,12,26,0.35);border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 16px 16px;padding:12px 16px;">
-                    <button type="button" class="btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);border-radius:8px;font-weight:600;padding:6px 16px;" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn" id="clearQueueConfirmBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-weight:700;border-radius:8px;padding:6px 18px;">Clear All</button>
+                <div class="modal-footer d-flex justify-content-end gap-2">
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-red" id="clearQueueConfirmBtn">Clear All</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Auto-advance confirmation modal -->
-    <div class="modal fade auto-advance-modal" id="autoAdvanceModal" tabindex="-1" aria-labelledby="autoAdvanceModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal fade" id="autoAdvanceModal" tabindex="-1" aria-labelledby="autoAdvanceModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0;"><i class="bi bi-person-raised-hand"></i></div>
+                        <div class="modal-accent" style="background:linear-gradient(135deg,#10b981,#059669);">
+                            <i class="bi bi-person-raised-hand"></i>
+                        </div>
                         <div>
                             <div class="modal-title" id="autoAdvanceModalLabel">Next Speaker Ready?</div>
-                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:1px;">Timer has ended &mdash; proceed to next speaker?</div>
+                            <div class="modal-subtitle">Timer has ended - proceed to next speaker?</div>
                         </div>
                     </div>
-                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p style="color:rgba(255,255,255,0.75);margin-bottom:12px;">The speaker timer ended. Is this person ready to speak?</p>
+                    <p class="modal-body-copy mb-2">The speaker timer ended. Is this person ready to speak?</p>
                     <div class="text-center" style="margin:16px 0;">
                         <span class="nq-speaker-chip" id="autoAdvanceName">&nbsp;</span>
                     </div>
                 </div>
                 <div class="modal-footer d-flex justify-content-end gap-2">
-                    <button type="button" class="btn-not-yet" data-bs-dismiss="modal">Not Yet</button>
-                    <button type="button" class="btn-yes-speak" id="autoAdvanceYesBtn">
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Not Yet</button>
+                    <button type="button" class="btn-green" id="autoAdvanceYesBtn">
                         <i class="bi bi-mic-fill me-1"></i>Yes, Start Speaking
                     </button>
                 </div>
@@ -828,11 +1222,16 @@
     </div>
 
     <!-- Notification toast -->
-    <div class="alert-custom d-none" role="alert" id="message-box">
-        <span id="message-text"></span>
-        <button type="button" style="background:none;border:none;padding:0 0 0 10px;cursor:pointer;opacity:0.6;font-size:1rem;line-height:1;color:inherit;" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close">
-            <i class="bi bi-x-lg"></i>
-        </button>
+    <div class="alert-custom type-info d-none" role="alert" id="message-box">
+        <div class="alert-row">
+            <span class="alert-icon" id="message-icon"><i class="bi bi-info-circle-fill" aria-hidden="true"></i></span>
+            <div class="alert-copy">
+                <p class="alert-text" id="message-text"></p>
+            </div>
+            <button type="button" class="alert-close" onclick="document.getElementById('message-box').classList.add('d-none');" aria-label="Close">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
     </div>
 
     <!-- JavaScript for Speakers List and Timer Logic -->
@@ -853,7 +1252,7 @@
             ? presenterNamesString.split(',').map(name => name.trim().replace(/^'|'$/g, ''))
             : [];
 
-        // Presenting / voting name lists — used by the Queue-All-by-Category buttons
+        // Presenting / voting name lists - used by the Queue-All-by-Category buttons
         let presentingNamesString = /*[[${presentingNamesJson}]]*/ null;
         let votingNamesString     = /*[[${votingNamesJson}]]*/ null;
         const presentingNames = (presentingNamesString && presentingNamesString.trim().length > 0)
@@ -870,26 +1269,41 @@
         const queueList         = document.getElementById('queue-list');
         const queueInput        = document.getElementById('queue-input');
         const addToQueueBtn     = document.getElementById('add-to-queue-btn');
-        const datalistEl        = document.getElementById('presenter-names-list');
         const clearQueueBtn     = document.getElementById('clear-queue-btn');
 
-        // Populate Datalist for Autocomplete
+        // Populate the delegate picker (official list only — no free typing)
         allPresenterNames.forEach(name => {
             const option = document.createElement('option');
             option.value = name;
-            datalistEl.appendChild(option);
+            option.textContent = name;
+            queueInput.appendChild(option);
         });
 
         // Utility for messages
         function showMessage(text, type) {
             const msgBox = document.getElementById('message-box');
-            document.getElementById('message-text').textContent = text;
+            const msgText = document.getElementById('message-text');
+            const msgIcon = document.getElementById('message-icon');
+            const normalizedType = type || 'info';
+            const classMap = ['type-info', 'type-success', 'type-warning', 'type-error'];
+            msgBox.classList.remove(...classMap);
+            msgBox.classList.add(`type-${normalizedType}`);
+            msgText.textContent = text;
+            if (msgIcon) {
+                var iconMap = {
+                    success: 'bi-check-circle-fill',
+                    warning: 'bi-exclamation-triangle-fill',
+                    error: 'bi-x-circle-fill',
+                    info: 'bi-info-circle-fill'
+                };
+                msgIcon.innerHTML = '<i class="bi ' + (iconMap[normalizedType] || 'bi-info-circle-fill') + '" aria-hidden="true"></i>';
+            }
             msgBox.classList.remove('d-none');
             setTimeout(() => msgBox.classList.add('d-none'), 5000);
             // Also push to the notification bell
             if (typeof window.addNotification === 'function') {
                 var iconMap = { success: 'bi-check-circle-fill', warning: 'bi-exclamation-triangle-fill', error: 'bi-x-circle-fill', info: 'bi-info-circle-fill' };
-                window.addNotification(iconMap[type] || 'bi-info-circle-fill', text, type || 'info');
+                window.addNotification(iconMap[normalizedType] || 'bi-info-circle-fill', text, normalizedType);
             }
         }
         
@@ -910,12 +1324,11 @@
                     const item = document.createElement('div');
                     item.className = 'next-queue-item';
                     const safeName = speaker.replace(/'/g, "\\'");
-                    const isFirst  = idx === 0;
                     item.innerHTML = `
                         <span class="nq-rank">${idx + 1}</span>
                         <span class="nq-name">${speaker}</span>
                         <div class="d-flex align-items-center gap-1">
-                            ${isFirst ? `<button class="btn btn-stage" title="Stage this speaker" onclick="moveToNowSpeaking()"><i class="bi bi-mic-fill me-1"></i>Stage</button>` : ''}
+                            <button class="btn btn-stage" title="Stage this speaker" onclick="moveToNowSpeaking('${safeName}')"><i class="bi bi-mic-fill me-1"></i>Stage</button>
                             <button class="btn btn-nq-remove" title="Remove from next queue" onclick="removeFromNextQueue('${safeName}')"><i class="bi bi-x-lg"></i></button>
                         </div>
                     `;
@@ -936,7 +1349,7 @@
                     // Sanitize name for use in function call
                     const safeName = speaker.replace(/'/g, "\\'");
                     const numBadge = autoNum
-                        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(99,102,241,0.15);color:#6366f1;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-right:8px;">${idx + 1}</span>`
+                        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(124,58,237,0.15);color:#7c3aed;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-right:8px;">${idx + 1}</span>`
                         : '';
                     
                     item.innerHTML = `
@@ -966,6 +1379,29 @@
             if (clearQueueBtn) clearQueueBtn.style.display = speakersQueue.length === 0 ? 'none' : '';
         }
 
+        // Notify a delegate they were queued: plays a chime + banner on their portal.
+        function notifyQueued(name, stage, position) {
+            if (!name) return;
+            var body = 'name=' + encodeURIComponent(name) + '&stage=' + encodeURIComponent(stage || 'QUEUED');
+            if (position != null) body += '&position=' + encodeURIComponent(position);
+            fetch('/api/speakers/notify-queued', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            }).then(function(resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
+            }).then(function(data) {
+                if (data && data.notified) {
+                    console.log('Queued alert sent to delegate:', name, stage);
+                } else if (data && data.success) {
+                    showMessage('"' + name + '" queued, but they have not joined this session — no alert could be sent.', 'warning');
+                } else {
+                    showMessage('Could not alert "' + name + '": ' + ((data && data.message) || 'unknown error'), 'error');
+                }
+            }).catch(function(err) { console.error('Error notifying queued delegate:', err); });
+        }
+
         function addToQueue() {
             const name = queueInput.value.trim();
             if (!name) return;
@@ -986,6 +1422,7 @@
                 speakersQueue.push(name);
                 queueInput.value = '';
                 renderQueue();
+                notifyQueued(name, 'QUEUED', speakersQueue.length);
             }
         }
 
@@ -999,13 +1436,22 @@
             // Remove from the main speakers queue
             speakersQueue = speakersQueue.filter(s => s !== name);
             renderQueue();
+            notifyQueued(name, 'NEXT', nextQueue.indexOf(name) + 1);
         }
 
         // Internal: performs the actual staging without any confirmation guard.
         // Called by moveToNowSpeaking (after user confirms if someone was already speaking)
         // and indirectly by the auto-advance modal when nowSpeaking is already null.
-        function _doMoveToNowSpeaking() {
+        function _doMoveToNowSpeaking(targetName) {
             if (nextQueue.length === 0) return;
+
+            let stagedName = nextQueue[0];
+            if (targetName && nextQueue.includes(targetName)) {
+                const targetIdx = nextQueue.indexOf(targetName);
+                stagedName = nextQueue.splice(targetIdx, 1)[0];
+            } else {
+                stagedName = nextQueue.shift();
+            }
 
             // If someone is mid-speech, save their elapsed stats before interrupting
             if (nowSpeaking) {
@@ -1017,6 +1463,8 @@
                         body: `name=${encodeURIComponent(nowSpeaking)}&duration=${elapsed}`
                     }).catch(err => console.error('Error saving interrupted speaker stats:', err));
                 }
+                // The chair cut this turn short — tell the delegate time is up.
+                notifyQueued(nowSpeaking, 'ENDED');
                 speakerTimer.stop();
             }
 
@@ -1025,10 +1473,15 @@
                 speakersQueue.push(nowSpeaking);
             }
 
-            // 2. Shift the first person from the next-speaking queue
-            nowSpeaking = nextQueue.shift();
-            
+            // 2. Stage the selected person from next-speaking queue
+            nowSpeaking = stagedName;
+
             renderQueue();
+
+            // Phase 3: lively spotlight on the newly staged speaker.
+            if (window.sciVerseAnime && window.sciVerseAnime.shouldAnimate()) {
+                window.sciVerseAnime.fadeUp('#now-speaking-text');
+            }
             
             // Start the speaker timer when someone moves to Now Speaking
             speakerTimer.reset(); 
@@ -1048,25 +1501,30 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `name=${encodeURIComponent(nowSpeaking)}`
             }).catch(err => console.error('Error incrementing spoken count:', err));
+            notifyQueued(nowSpeaking, 'NOW');
         }
 
-        window.moveToNowSpeaking = function() {
+        window.moveToNowSpeaking = function(targetName) {
             if (nextQueue.length === 0) return;
 
+            const selectedName = (targetName && nextQueue.includes(targetName))
+                ? targetName
+                : nextQueue[0];
+
             if (nowSpeaking) {
-                // Someone is already speaking — show confirmation before interrupting
+                // Someone is already speaking - show confirmation before interrupting
                 const curEl  = document.getElementById('stageInterruptCurrentName');
                 const nextEl = document.getElementById('stageInterruptNextName');
                 if (curEl)  curEl.textContent  = nowSpeaking;
-                if (nextEl) nextEl.textContent = nextQueue[0];
+                if (nextEl) nextEl.textContent = selectedName;
                 const interruptModal = new bootstrap.Modal(document.getElementById('stageInterruptModal'));
                 document.getElementById('stageInterruptYesBtn').onclick = function() {
                     interruptModal.hide();
-                    _doMoveToNowSpeaking();
+                    _doMoveToNowSpeaking(selectedName);
                 };
                 interruptModal.show();
             } else {
-                _doMoveToNowSpeaking();
+                _doMoveToNowSpeaking(selectedName);
             }
         }
 
@@ -1089,6 +1547,7 @@
                 if (name && !nextQueue.includes(name) && name !== nowSpeaking) {
                     speakersQueue.push(name);
                     added++;
+                    notifyQueued(name, 'QUEUED', speakersQueue.length);
                 }
             });
             if (added > 0) {
@@ -1104,7 +1563,7 @@
              if (nowSpeaking) {
                 // Calculate duration spoken
                 const duration = speakerTimer.totalSeconds - speakerTimer.timeRemaining;
-                
+
                 // Send stats update
                 if (duration > 0) {
                     fetch('/api/stats/update-speaking', {
@@ -1115,6 +1574,8 @@
                         body: `name=${encodeURIComponent(nowSpeaking)}&duration=${duration}`
                     }).catch(err => console.error('Error updating stats:', err));
                 }
+                // The chair ended this turn — tell the delegate time is up.
+                notifyQueued(nowSpeaking, 'ENDED');
             }
 
             nowSpeaking = null;
@@ -1133,15 +1594,11 @@
             renderQueue();
         }
 
-        // Event Listeners for Queue
+        // Queue picker adds via the Add button only (Enter is left to the
+        // native dropdown so picking an option never double-adds).
         addToQueueBtn.addEventListener('click', addToQueue);
-        queueInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                addToQueue();
-            }
-        });
 
-        // Clear Queue button — respects confirmClearQueue setting
+        // Clear Queue button - respects confirmClearQueue setting
         if (clearQueueBtn) {
             clearQueueBtn.style.display = 'none'; // hidden until queue has items
             clearQueueBtn.addEventListener('click', function() {
@@ -1275,7 +1732,7 @@
                         this.stop();
                         // Clear global timer when time runs out
                         window.SummitTimer && window.SummitTimer.reset(this.idPrefix);
-                        // Call chime + toast directly — never through the event bus from a setInterval,
+                        // Call chime + toast directly - never through the event bus from a setInterval,
                         // which can cause async AudioContext issues and silent failures.
                         var _detail = { id: this.idPrefix,
                             label: ({ speaker: 'Speaker Timer', caucus: 'Segment Timer' })[this.idPrefix] || (this.idPrefix + ' Timer'),
@@ -1403,7 +1860,7 @@
         const caucusTimer = new Timer('caucus', caucusInitialSeconds);
 
         // Live cross-tab sync: if the user is on this page and updates the duration
-        // from the Motions page in another tab, reflect it here too — but only if
+        // from the Motions page in another tab, reflect it here too - but only if
         // the caucus timer is NOT currently running (so we don't disrupt an active session).
         window.addEventListener('storage', (event) => {
             if (event.key !== 'caucusTimerDuration' || !event.newValue) return;
@@ -1474,7 +1931,11 @@
                     speakerTimer.totalSeconds  = speakerGs.totalSeconds;
                     speakerTimer.timeRemaining = speakerGs.timeRemaining;
                     speakerTimer.updateDisplay();
-                    // Speaker timer is queue-driven; only restore display, not auto-start
+                    // If it was already running before navigation, resume locally so
+                    // the in-page animation/buttons stay in sync with global state.
+                    if (speakerGs.isRunning && speakerGs.timeRemaining > 0) {
+                        speakerTimer.start();
+                    }
                 }
             }
 
@@ -1505,14 +1966,202 @@
                     caucusTimer.pause();
                 }
                 const speakerState = map['speaker'];
-                if (speakerState && !speakerState.isRunning && speakerTimer.isRunning) {
+                if (speakerState && speakerState.isRunning && speakerTimer.isRunning) {
                     speakerTimer.pause();
                 }
+            });
+
+            // ── Presentation stage (separate window on a chosen display) ──
+            const presentBtn = document.getElementById('presentBtn');
+            const displayModal = document.getElementById('displayModal');
+            const displayList = document.getElementById('displayList');
+            const displayMsg = document.getElementById('displayMsg');
+            let stageWin = null;
+
+            function escHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            function stageSessionName() {
+                const el = document.getElementById('spkSessionName');
+                return el ? el.textContent.trim() : 'No active session';
+            }
+            function addDisplayItem(label, sub, screen) {
+                const b = document.createElement('button');
+                b.className = 'spk-display-item';
+                b.innerHTML = '<i class="bi bi-display"></i><span>' + escHtml(label)
+                    + (sub ? '<small>' + escHtml(sub) + '</small>' : '') + '</span>';
+                b.addEventListener('click', () => {
+                    displayModal.style.display = 'none';
+                    openStage(screen);
+                });
+                displayList.appendChild(b);
+            }
+            function openDisplayPicker() {
+                if (stageWin && stageWin.closed) stageWin = null;
+                if (stageWin && !stageWin.closed) { stageWin.focus(); return; }
+                displayList.innerHTML = '';
+                if (!('getScreenDetails' in window)) {
+                    displayMsg.textContent = 'Display picking needs Chrome or Edge on this PC — opening the stage on this screen instead. Your controls stay usable behind it.';
+                    addDisplayItem('This display', '', null);
+                    displayModal.style.display = 'flex';
+                    return;
+                }
+                window.getScreenDetails().then(d => {
+                    const screens = (d && d.screens) || [];
+                    if (screens.length < 2) {
+                        displayMsg.textContent = 'Only one display detected — the stage will open here. Connect a projector or second monitor to choose.';
+                        addDisplayItem('This display', '', null);
+                    } else {
+                        displayMsg.textContent = 'Choose where the presentation stage should appear. Your controls stay on this screen.';
+                        screens.forEach((s, i) => {
+                            addDisplayItem(s.label || ('Display ' + (i + 1)),
+                                s.availWidth + ' × ' + s.availHeight + (s.isPrimary ? ' • Primary' : ''), s);
+                        });
+                    }
+                    displayModal.style.display = 'flex';
+                }).catch(() => {
+                    displayMsg.textContent = 'Could not read displays (permission denied) — opening the stage on this screen instead.';
+                    addDisplayItem('This display', '', null);
+                    displayModal.style.display = 'flex';
+                });
+            }
+            function openStage(screen) {
+                const W = screen ? screen.availWidth : 1280;
+                const H = screen ? screen.availHeight : 800;
+                const X = screen ? screen.availLeft : Math.max(0, (window.screenX || 0) + 80);
+                const Y = screen ? screen.availTop : Math.max(0, (window.screenY || 0) + 40);
+                if (stageWin && !stageWin.closed) { stageWin.focus(); return; }
+                stageWin = window.open('', 'svStage',
+                    'width=' + W + ',height=' + H + ',left=' + X + ',top=' + Y +
+                    ',menubar=no,toolbar=no,location=no,status=no');
+                if (!stageWin) {
+                    showMessage('Popup blocked — allow popups for this site to present.', 'warning');
+                    return;
+                }
+                stageWin.document.write(stageHTML(stageSessionName()));
+                stageWin.document.close();
+                try { stageWin.moveTo(X, Y); stageWin.resizeTo(W, H); } catch (e) {}
+                try {
+                    const el = stageWin.document.documentElement;
+                    const p = screen ? el.requestFullscreen({ screen: screen }) : el.requestFullscreen();
+                    if (p && p.catch) p.catch(() => {});
+                } catch (e) { /* windowed fallback: stage window still usable */ }
+            }
+            function stageHTML(sessionName) {
+                const safeSession = escHtml(sessionName);
+                return '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+                    + '<title>Speakers Stage — SciVerse Summit</title>'
+                    + '<style>'
+                    + '*{box-sizing:border-box;margin:0;padding:0}'
+                    + 'html,body{height:100%}'
+                    + 'body{background:#0a0e1a;color:#f4f1ea;font-family:"Segoe UI",system-ui,sans-serif;'
+                    + 'display:flex;align-items:center;justify-content:center;min-height:100vh;padding:3vh 4vw;overflow:hidden}'
+                    + '.stg{width:min(1100px,96vw);text-align:center;position:relative;z-index:1}'
+                    + '.brand{display:flex;align-items:center;justify-content:center;gap:12px;'
+                    + 'font-weight:800;letter-spacing:.32em;font-size:clamp(.7rem,1.8vw,.95rem);color:#e8e4da}'
+                    + '.brand img{height:34px;width:auto}'
+                    + '.sess{margin-top:10px;font-size:clamp(.95rem,2.4vw,1.25rem);color:#b9b3a8;letter-spacing:.06em}'
+                    + '.sess b{color:#f4f1ea;font-weight:700}'
+                    + '.rule{height:1px;background:rgba(255,255,255,.14);margin:22px auto;max-width:720px}'
+                    + '.lbl{font-size:.72rem;font-weight:700;letter-spacing:.3em;color:#8f8a7e;text-transform:uppercase}'
+                    + '.now{font-size:clamp(2.6rem,9vw,6rem);font-weight:800;letter-spacing:.01em;line-height:1.05;margin:10px 0 4px}'
+                    + '.queue{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px auto 0;max-width:900px;max-height:26vh;overflow:hidden}'
+                    + '.chip{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 18px;'
+                    + 'font-size:clamp(.85rem,2vw,1.05rem);font-weight:600;color:#e8e4da;background:rgba(255,255,255,.04)}'
+                    + '.chip .n{color:#67e8f9;font-weight:800;margin-right:8px}'
+                    + 'body[data-density="sm"] .chip{padding:6px 14px;font-size:.85rem}'
+                    + 'body[data-density="xs"] .chip{padding:4px 11px;font-size:.75rem}'
+                    + '.qempty{color:#6b655a;font-size:.95rem;letter-spacing:.08em}'
+                    + '.timers{display:flex;gap:18px;justify-content:center;margin-top:24px;flex-wrap:wrap}'
+                    + '.tcard{flex:1 1 240px;max-width:340px;border:1px solid rgba(255,255,255,.14);border-radius:18px;'
+                    + 'padding:18px 22px;background:rgba(255,255,255,.03)}'
+                    + '.tcard .t{font-family:Consolas,monospace;font-size:clamp(2rem,6vw,3.4rem);font-weight:700;'
+                    + 'font-variant-numeric:tabular-nums;margin-top:6px}'
+                    + '.pill{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.18em;'
+                    + 'padding:4px 12px;border-radius:999px;margin-top:8px}'
+                    + '.pill.run{background:rgba(16,185,129,.18);color:#6ee7b7;border:1px solid rgba(16,185,129,.4)}'
+                    + '.pill.pause{background:rgba(245,158,11,.16);color:#fcd34d;border:1px solid rgba(245,158,11,.4)}'
+                    + '.pill.idle{background:rgba(255,255,255,.07);color:#8f8a7e;border:1px solid rgba(255,255,255,.14)}'
+                    + '.pill.end{background:rgba(239,68,68,.16);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}'
+                    + '.segline{margin-top:6px;font-size:.9rem;color:#b9b3a8;letter-spacing:.1em}'
+                    + '.endbtn{margin-top:26px;background:transparent;border:1px solid rgba(255,255,255,.25);color:#e8e4da;'
+                    + 'border-radius:12px;padding:10px 26px;font-weight:700;cursor:pointer;font-size:.9rem}'
+                    + '.endbtn:hover{background:rgba(255,255,255,.08)}'
+                    + '</style></head><body data-density="">'
+                    + '<div class="stg">'
+                    + '<div class="brand"><img src="/images/sciverse_summit_logo_final.png" onerror="this.style.display=\'none\'">SCIVERSE SUMMIT</div>'
+                    + '<div class="sess">Session name: <b id="sSess">' + safeSession + '</b></div>'
+                    + '<div class="rule"></div>'
+                    + '<div class="lbl">Now speaking</div>'
+                    + '<div class="now" id="sNow">—</div>'
+                    + '<div class="lbl" style="margin-top:14px">Up next</div>'
+                    + '<div class="queue" id="sQueue"></div>'
+                    + '<div class="timers">'
+                    + '<div class="tcard"><div class="lbl">Speaker timer</div><div class="t" id="sSpkT">—</div><div><span class="pill idle" id="sSpkS">STANDBY</span></div></div>'
+                    + '<div class="tcard"><div class="lbl">Segment timer</div><div class="t" id="sSegT">—</div>'
+                    + '<div class="segline" id="sSegL">STANDBY</div><div><span class="pill idle" id="sSegS">IDLE</span></div></div>'
+                    + '</div>'
+                    + '<button class="endbtn" onclick="window.close()">End Presentation</button>'
+                    + '</div>'
+                    + '<script>'
+                    + 'function fmt(s){s=Math.max(0,s|0);var m=Math.floor(s/60),r=s%60;return m+":"+(r<10?"0":"")+r;}'
+                    + 'function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}'
+                    + 'function tstate(t){if(!t)return{t:"—",s:"idle",l:"STANDBY"};'
+                    + 'var rem=(t.isRunning&&t.endTime)?Math.max(0,Math.floor((t.endTime-Date.now())/1000)):(t.timeRemaining||0);'
+                    + 'var st=t.isRunning?(rem>0?"run":"end"):(t.endTime?"end":(rem>0?"pause":"idle"));'
+                    + 'var lb=t.isRunning?(rem>0?"RUNNING":"ENDED"):(t.endTime?"ENDED":(rem>0?"PAUSED":"STANDBY"));'
+                    + 'return{t:fmt(rem),s:st,l:lb};}'
+                    + 'var seg={live:false};var tickN=0;'
+                    + 'function tick(){'
+                    + 'var st={};try{st=JSON.parse(localStorage.getItem("speakersState")||"{}");}catch(e){st={};}'
+                    + 'var timers={};try{timers=JSON.parse(localStorage.getItem("summitTimers")||"{}");}catch(e){timers={};}'
+                    + 'var now=st.nowSpeaking||"—";'
+                    + 'document.getElementById("sNow").textContent=now;'
+                    + 'var q=[].concat(st.nextQueue||[],st.queue||[]);'
+                    + 'document.body.dataset.density=q.length>20?"xs":(q.length>12?"sm":"");'
+                    + "var qh='';for(var i=0;i<q.length;i++){qh+='<span class=\"chip\"><span class=\"n\">'+(i+1)+'</span>'+esc(q[i])+'</span>';}"
+                    + 'document.getElementById("sQueue").innerHTML=qh||\'<span class="qempty">Queue empty</span>\';'
+                    + 'var sp=tstate(timers["speaker"]);'
+                    + 'document.getElementById("sSpkT").textContent=sp.t;'
+                    + 'var spS=document.getElementById("sSpkS");spS.textContent=sp.l;spS.className="pill "+sp.s;'
+                    + 'if(seg.live){'
+                    + 'document.getElementById("sSegT").textContent=fmt(seg.rem);'
+                    + 'document.getElementById("sSegL").textContent=esc(seg.label||"SEGMENT")+(seg.paused?" • PAUSED":"");'
+                    + 'var sgS=document.getElementById("sSegS");sgS.textContent=seg.paused?"PAUSED":"LIVE";sgS.className="pill "+(seg.paused?"pause":"run");'
+                    + '}else{'
+                    + 'var cz=tstate(timers["caucus"]);'
+                    + 'document.getElementById("sSegT").textContent=cz.t;'
+                    + 'document.getElementById("sSegL").textContent="SEGMENT";'
+                    + 'var sgS2=document.getElementById("sSegS");sgS2.textContent=cz.l;sgS2.className="pill "+cz.s;'
+                    + '}'
+                    + 'if(tickN%3===0){fetch("/api/segment/status",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(s){'
+                    + 'seg=s&&s.live?{live:true,rem:s.remainingSecs||0,label:String(s.label||"SEGMENT").toUpperCase(),paused:!!s.paused}:{live:false};'
+                    + '}).catch(function(){});}'
+                    + 'tickN++;}'
+                    + 'tick();setInterval(tick,1000);'
+                    + '<\/script></body></html>';
+            }
+            if (presentBtn) presentBtn.addEventListener('click', openDisplayPicker);
+            document.getElementById('displayCancelBtn').addEventListener('click', () => {
+                displayModal.style.display = 'none';
+            });
+            displayModal.addEventListener('click', (e) => {
+                if (e.target.id === 'displayModal') displayModal.style.display = 'none';
             });
         });
 
     </script>
 
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('speakers');
+        });
+    </script>
 </body>
 </html>

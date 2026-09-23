@@ -1,7 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - Sciverse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
     
@@ -57,44 +60,115 @@
             text-align: center;
         }
         .action-btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            border-radius: 12px;
-            min-width: 200px;
-            transition: all 0.2s;
+            padding: 16px 32px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            border-radius: 14px;
+            min-width: 210px;
+            transition: transform 0.12s ease-out, box-shadow 0.15s ease-out, background 0.15s ease-out;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none !important;
+            letter-spacing: 0.01em;
+        }
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 50%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.35), transparent 60%);
+            pointer-events: none;
+            border-radius: inherit;
         }
         .btn-history {
-            background-color: #4b5563;
+            background: linear-gradient(135deg, rgba(71,85,105,0.9), rgba(100,116,139,0.8));
             color: white;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-top-color: rgba(255,255,255,0.3);
+            box-shadow:
+                0 6px 20px rgba(71,85,105,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                inset 0 -1px 0 rgba(255,255,255,0.05);
         }
         .btn-history:hover {
-            background-color: #374151;
+            background: linear-gradient(135deg, rgba(55,65,81,0.95), rgba(71,85,105,0.9));
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(75, 85, 99, 0.3);
+            transform: translateY(-3px);
+            box-shadow:
+                0 10px 30px rgba(71,85,105,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -1px 0 rgba(255,255,255,0.08);
+        }
+        .btn-history:active {
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 12px rgba(71,85,105,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.15);
         }
         .btn-create {
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            background: linear-gradient(135deg, rgba(124,58,237,0.92), rgba(124,58,237,0.88));
             color: white;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-top-color: rgba(255,255,255,0.45);
+            box-shadow:
+                0 6px 22px rgba(124,58,237,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(255,255,255,0.08);
         }
         .btn-create:hover {
-            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            background: linear-gradient(135deg, rgba(67,56,202,0.95), rgba(124,58,237,0.92));
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            transform: translateY(-3px);
+            box-shadow:
+                0 12px 34px rgba(124,58,237,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.35),
+                inset 0 -1px 0 rgba(255,255,255,0.1);
+        }
+        .btn-create:active {
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 14px rgba(124,58,237,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .action-btn.btn-primary {
+            background: linear-gradient(135deg, rgba(6,182,212,0.92), rgba(124,58,237,0.88));
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-top-color: rgba(255,255,255,0.45);
+            box-shadow:
+                0 6px 22px rgba(6,182,212,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(255,255,255,0.08);
+        }
+        .action-btn.btn-primary:hover {
+            background: linear-gradient(135deg, rgba(8,145,178,0.95), rgba(124,58,237,0.92));
+            color: white;
+            transform: translateY(-3px);
+            box-shadow:
+                0 12px 34px rgba(6,182,212,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.35),
+                inset 0 -1px 0 rgba(255,255,255,0.1);
+        }
+        .action-btn.btn-primary:active {
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 14px rgba(6,182,212,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .content .text-center .text-muted {
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
-        /* Glassmorphism Modal Styles — scoped to dashboard modals only */
+        /* Glassmorphism Modal Styles - scoped to dashboard modals only */
         #createSessionModal .modal-content,
         #continueSessionModal .modal-content,
-        #ebReviewModal .modal-content {
+        #ebReviewModal .modal-content,
+        #createWarningModal .modal-content {
             background: rgba(255, 255, 255, 0.1) !important;
             backdrop-filter: blur(28px) saturate(160%);
             -webkit-backdrop-filter: blur(28px) saturate(160%);
@@ -106,20 +180,23 @@
 
         #createSessionModal .modal-header,
         #continueSessionModal .modal-header,
-        #ebReviewModal .modal-header {
+        #ebReviewModal .modal-header,
+        #createWarningModal .modal-header {
             border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
         }
 
         #createSessionModal .modal-title,
         #continueSessionModal .modal-title,
-        #ebReviewModal .modal-title {
+        #ebReviewModal .modal-title,
+        #createWarningModal .modal-title {
             color: rgba(255, 255, 255, 0.95);
             font-size: 1.25rem;
         }
 
         #createSessionModal .modal-body,
         #continueSessionModal .modal-body,
-        #ebReviewModal .modal-body {
+        #ebReviewModal .modal-body,
+        #createWarningModal .modal-body {
             color: rgba(255, 255, 255, 0.88);
         }
 
@@ -183,18 +260,20 @@
         /* Modal Buttons */
         #createSessionModal .modal .btn-primary,
         #continueSessionModal .modal .btn-primary,
-        #ebReviewModal .modal .btn-primary {
-            background: rgba(79, 70, 229, 0.9);
-            border: 1px solid rgba(79, 70, 229, 0.5);
+        #ebReviewModal .modal .btn-primary,
+        #createWarningModal .modal .btn-primary {
+            background: rgba(124, 58, 237, 0.9);
+            border: 1px solid rgba(124, 58, 237, 0.5);
             color: rgba(255, 255, 255, 0.95);
             font-weight: 600;
         }
 
         #createSessionModal .modal .btn-primary:hover,
         #continueSessionModal .modal .btn-primary:hover,
-        #ebReviewModal .modal .btn-primary:hover {
-            background: rgba(79, 70, 229, 1);
-            border-color: rgba(79, 70, 229, 0.8);
+        #ebReviewModal .modal .btn-primary:hover,
+        #createWarningModal .modal .btn-primary:hover {
+            background: rgba(124, 58, 237, 1);
+            border-color: rgba(124, 58, 237, 0.8);
         }
 
         #createSessionModal .btn-success,
@@ -231,6 +310,414 @@
             color: #fecaca;
         }
 
+        /* =========================================================
+           LIQUID GLASS - Create Session Modal (theme-aware)
+           ========================================================= */
+        #createSessionModal .modal-content {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.22)) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-top-color: rgba(255,255,255,0.75) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+            overflow: hidden;
+        }
+        /* Glossy top sheen */
+        #createSessionModal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -15%;
+            width: 130%;
+            height: 80%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 45%, transparent 70%);
+            pointer-events: none;
+        }
+        /* Soft liquid accent glow */
+        #createSessionModal .modal-content::after {
+            content: '';
+            position: absolute;
+            bottom: -45%;
+            right: -20%;
+            width: 120%;
+            height: 70%;
+            background: radial-gradient(ellipse at 70% 100%, rgba(167,139,250,0.18), transparent 65%);
+            pointer-events: none;
+        }
+        #createSessionModal .modal-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1)) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.45) !important;
+            border-radius: 24px 24px 0 0 !important;
+            padding: 18px 24px 14px;
+        }
+        #createSessionModal .modal-title {
+            color: #1e293b;
+            font-size: 1.05rem;
+        }
+        #createSessionModal .modal-body {
+            color: #1e293b;
+            position: relative;
+            z-index: 1;
+        }
+        #createSessionModal .form-label {
+            color: rgba(30,41,59,0.78);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        #createSessionModal .form-control,
+        #createSessionModal .form-select {
+            background: rgba(255,255,255,0.6) !important;
+            border: 1px solid rgba(255,255,255,0.7) !important;
+            border-radius: 12px !important;
+            color: #1e293b !important;
+            padding: 12px 16px;
+        }
+        #createSessionModal .form-control::placeholder {
+            color: rgba(30,41,59,0.45);
+        }
+        #createSessionModal .form-control:focus,
+        #createSessionModal .form-select:focus {
+            background: rgba(255,255,255,0.8) !important;
+            border-color: rgba(16,185,129,0.6) !important;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.18) !important;
+            color: #1e293b !important;
+        }
+        #createSessionModal .form-select option {
+            background: #ffffff;
+            color: #1e293b;
+        }
+        #createSessionModal .btn-close {
+            opacity: 0.65;
+        }
+        #createSessionModal .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Liquid glass - dark mode */
+        body.dark-mode #createSessionModal .modal-content {
+            background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.45)) !important;
+            border: 1px solid rgba(255,255,255,0.18) !important;
+            border-top-color: rgba(255,255,255,0.28) !important;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #createSessionModal .modal-content::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 45%, transparent 70%);
+        }
+        body.dark-mode #createSessionModal .modal-content::after {
+            background: radial-gradient(ellipse at 70% 100%, rgba(124,58,237,0.2), transparent 65%);
+        }
+        body.dark-mode #createSessionModal .modal-header {
+            background: linear-gradient(135deg, rgba(148,163,184,0.12), rgba(148,163,184,0.04)) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #createSessionModal .modal-title {
+            color: #f1f5f9;
+        }
+        body.dark-mode #createSessionModal .modal-body {
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark-mode #createSessionModal .form-label {
+            color: rgba(255,255,255,0.8);
+        }
+        body.dark-mode #createSessionModal .form-control,
+        body.dark-mode #createSessionModal .form-select {
+            background: rgba(255,255,255,0.08) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        body.dark-mode #createSessionModal .form-control::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+        body.dark-mode #createSessionModal .form-control:focus,
+        body.dark-mode #createSessionModal .form-select:focus {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        body.dark-mode #createSessionModal .form-select option {
+            background: #1e293b;
+            color: #fff;
+        }
+        body.dark-mode #createSessionModal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.8;
+        }
+
+        /* =========================================================
+           LIQUID GLASS - Continue Session Modal (theme-aware)
+           ========================================================= */
+        #continueSessionModal .modal-content {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.22)) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-top-color: rgba(255,255,255,0.75) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+            overflow: hidden;
+        }
+        #continueSessionModal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -15%;
+            width: 130%;
+            height: 80%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 45%, transparent 70%);
+            pointer-events: none;
+        }
+        #continueSessionModal .modal-content::after {
+            content: '';
+            position: absolute;
+            bottom: -45%;
+            right: -20%;
+            width: 120%;
+            height: 70%;
+            background: radial-gradient(ellipse at 70% 100%, rgba(167,139,250,0.18), transparent 65%);
+            pointer-events: none;
+        }
+        #continueSessionModal .modal-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1)) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.45) !important;
+            border-radius: 24px 24px 0 0 !important;
+            padding: 18px 24px 14px;
+        }
+        #continueSessionModal .modal-title {
+            color: #1e293b;
+            font-size: 1.05rem;
+        }
+        #continueSessionModal .modal-body {
+            color: #1e293b;
+            position: relative;
+            z-index: 1;
+        }
+        #continueSessionModal .modal-body h4 {
+            color: #0f172a;
+        }
+        #continueSessionModal .modal-body p {
+            color: rgba(30,41,59,0.82);
+            font-weight: 500;
+        }
+        #continueSessionModal .btn-close {
+            opacity: 0.65;
+        }
+        #continueSessionModal .btn-close:hover {
+            opacity: 1;
+        }
+        /* Liquid-glass Continue button */
+        #continueSessionModal .btn-primary {
+            background: linear-gradient(135deg, rgba(6,182,212,0.88), rgba(124,58,237,0.88)) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-top-color: rgba(255,255,255,0.75) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(255,255,255,0.1), 0 4px 14px rgba(6,182,212,0.3) !important;
+            color: #fff;
+            font-weight: 700;
+        }
+        #continueSessionModal .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(6,182,212,1), rgba(124,58,237,1)) !important;
+            border-color: rgba(255,255,255,0.7) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 20px rgba(6,182,212,0.45) !important;
+        }
+        /* Liquid-glass End Session button */
+        #continueSessionModal .btn-outline-danger {
+            background: rgba(239,68,68,0.12) !important;
+            border: 1px solid rgba(255,255,255,0.5) !important;
+            border-top-color: rgba(255,255,255,0.65) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 12px rgba(239,68,68,0.15) !important;
+            color: #dc2626 !important;
+            font-weight: 700;
+        }
+        #continueSessionModal .btn-outline-danger:hover {
+            background: rgba(239,68,68,0.22) !important;
+            border-color: rgba(255,255,255,0.65) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 16px rgba(239,68,68,0.25) !important;
+        }
+
+        /* Liquid glass - dark mode (Continue Session Modal) */
+        body.dark-mode #continueSessionModal .modal-content {
+            background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.45)) !important;
+            border: 1px solid rgba(255,255,255,0.18) !important;
+            border-top-color: rgba(255,255,255,0.28) !important;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #continueSessionModal .modal-content::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 45%, transparent 70%);
+        }
+        body.dark-mode #continueSessionModal .modal-content::after {
+            background: radial-gradient(ellipse at 70% 100%, rgba(124,58,237,0.2), transparent 65%);
+        }
+        body.dark-mode #continueSessionModal .modal-header {
+            background: linear-gradient(135deg, rgba(148,163,184,0.12), rgba(148,163,184,0.04)) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #continueSessionModal .modal-title {
+            color: #f1f5f9;
+        }
+        body.dark-mode #continueSessionModal .modal-body {
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark-mode #continueSessionModal .modal-body h4 {
+            color: #fff;
+        }
+        body.dark-mode #continueSessionModal .modal-body p {
+            color: rgba(255,255,255,0.82);
+            font-weight: 500;
+        }
+        body.dark-mode #continueSessionModal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.8;
+        }
+        body.dark-mode #continueSessionModal .btn-primary {
+            background: linear-gradient(135deg, rgba(6,182,212,0.88), rgba(124,58,237,0.88)) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+        }
+        body.dark-mode #continueSessionModal .btn-outline-danger {
+            background: rgba(239,68,68,0.2) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: #fca5a5 !important;
+        }
+        body.dark-mode #continueSessionModal .btn-outline-danger:hover {
+            background: rgba(239,68,68,0.3) !important;
+            border-color: rgba(255,255,255,0.28) !important;
+        }
+
+        /* =========================================================
+           LIQUID GLASS - Create Session Warning Modal (theme-aware)
+           ========================================================= */
+        #createWarningModal .modal-content {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.22)) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-top-color: rgba(255,255,255,0.75) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+            overflow: hidden;
+        }
+        /* Glossy top sheen */
+        #createWarningModal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -15%;
+            width: 130%;
+            height: 80%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 45%, transparent 70%);
+            pointer-events: none;
+        }
+        /* Soft liquid accent glow (amber) */
+        #createWarningModal .modal-content::after {
+            content: '';
+            position: absolute;
+            bottom: -45%;
+            right: -20%;
+            width: 120%;
+            height: 70%;
+            background: radial-gradient(ellipse at 70% 100%, rgba(245,158,11,0.22), transparent 65%);
+            pointer-events: none;
+        }
+        #createWarningModal .modal-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1)) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.45) !important;
+            border-radius: 24px 24px 0 0 !important;
+            padding: 18px 24px 14px;
+        }
+        #createWarningModal .modal-title {
+            color: #1e293b;
+            font-size: 1.05rem;
+        }
+        #createWarningModal .modal-body {
+            color: #1e293b;
+            position: relative;
+            z-index: 1;
+        }
+        #createWarningModal .modal-body p {
+            color: rgba(30,41,59,0.85);
+            font-weight: 500;
+        }
+        #createWarningModal .btn-close {
+            opacity: 0.65;
+        }
+        #createWarningModal .btn-close:hover {
+            opacity: 1;
+        }
+        /* Liquid-glass Proceed button (amber) */
+        #createWarningModal .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-top-color: rgba(255,255,255,0.75) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(255,255,255,0.1), 0 4px 14px rgba(245,158,11,0.35) !important;
+            color: #fff;
+            font-weight: 700;
+        }
+        #createWarningModal .btn-warning:hover {
+            background: linear-gradient(135deg, #d97706, #b45309) !important;
+            border-color: rgba(255,255,255,0.7) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 20px rgba(245,158,11,0.5) !important;
+        }
+        /* Liquid-glass Manage button (blue) */
+        #createWarningModal .btn-primary {
+            background: linear-gradient(135deg, rgba(6,182,212,0.88), rgba(124,58,237,0.88)) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-top-color: rgba(255,255,255,0.75) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(255,255,255,0.1), 0 4px 14px rgba(6,182,212,0.3) !important;
+            color: #fff;
+            font-weight: 700;
+        }
+        #createWarningModal .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(6,182,212,1), rgba(124,58,237,1)) !important;
+            border-color: rgba(255,255,255,0.7) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 20px rgba(6,182,212,0.45) !important;
+        }
+
+        /* Liquid glass - dark mode (Warning Modal) */
+        body.dark-mode #createWarningModal .modal-content {
+            background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.45)) !important;
+            border: 1px solid rgba(255,255,255,0.18) !important;
+            border-top-color: rgba(255,255,255,0.28) !important;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #createWarningModal .modal-content::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 45%, transparent 70%);
+        }
+        body.dark-mode #createWarningModal .modal-content::after {
+            background: radial-gradient(ellipse at 70% 100%, rgba(245,158,11,0.25), transparent 65%);
+        }
+        body.dark-mode #createWarningModal .modal-header {
+            background: linear-gradient(135deg, rgba(148,163,184,0.12), rgba(148,163,184,0.04)) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #createWarningModal .modal-title {
+            color: #f1f5f9;
+        }
+        body.dark-mode #createWarningModal .modal-body {
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark-mode #createWarningModal .modal-body p {
+            color: rgba(255,255,255,0.85);
+        }
+        body.dark-mode #createWarningModal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.8;
+        }
+        body.dark-mode #createWarningModal .btn-warning {
+            background: linear-gradient(135deg, rgba(245,158,11,0.85), rgba(217,119,6,0.85)) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(245,158,11,0.3) !important;
+        }
+        body.dark-mode #createWarningModal .btn-primary {
+            background: linear-gradient(135deg, rgba(6,182,212,0.85), rgba(124,58,237,0.85)) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(6,182,212,0.3) !important;
+        }
+
         /* Dark Mode */
         body.dark-mode {
             background: #0f172a !important;
@@ -246,28 +733,140 @@
 
         /* Dark mode for buttons */
         body.dark-mode .btn-history {
-            background: linear-gradient(135deg, #475569, #64748b);
+            background: linear-gradient(135deg, rgba(71,85,105,0.75), rgba(100,116,139,0.65));
             color: #f1f5f9;
+            border-color: rgba(255,255,255,0.12);
+            box-shadow:
+                0 6px 20px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(255,255,255,0.03);
         }
 
         body.dark-mode .btn-history:hover {
-            background: linear-gradient(135deg, #64748b, #475569);
+            background: linear-gradient(135deg, rgba(100,116,139,0.8), rgba(71,85,105,0.75));
+            box-shadow:
+                0 10px 30px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                inset 0 -1px 0 rgba(255,255,255,0.05);
         }
 
         body.dark-mode .btn-create {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            background: linear-gradient(135deg, rgba(124,58,237,0.85), rgba(124,58,237,0.8));
+            border-color: rgba(255,255,255,0.15);
+            box-shadow:
+                0 6px 22px rgba(124,58,237,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                inset 0 -1px 0 rgba(255,255,255,0.04);
+        }
+
+        body.dark-mode .btn-create:hover {
+            box-shadow:
+                0 12px 34px rgba(124,58,237,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.15),
+                inset 0 -1px 0 rgba(255,255,255,0.06);
+        }
+
+        body.dark-mode .action-btn.btn-primary {
+            background: linear-gradient(135deg, rgba(6,182,212,0.85), rgba(124,58,237,0.8));
+            border-color: rgba(255,255,255,0.15);
+            box-shadow:
+                0 6px 22px rgba(6,182,212,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                inset 0 -1px 0 rgba(255,255,255,0.04);
+        }
+
+        body.dark-mode .action-btn.btn-primary:hover {
+            box-shadow:
+                0 12px 34px rgba(6,182,212,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.15),
+                inset 0 -1px 0 rgba(255,255,255,0.06);
         }
 
         body.dark-mode .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
         }
 
         body.dark-mode .text-muted {
             color: #94a3b8 !important;
         }
+
+        /* ── Active session list ────────────────────────── */
+        .active-session-list {
+            display: flex; flex-direction: column; gap: 10px;
+            max-height: 320px; overflow-y: auto; padding-right: 4px;
+        }
+        .active-session-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 14px;
+            padding: 14px 16px; border: 2px solid rgba(15, 23, 42, 0.10); border-radius: 14px;
+            background: rgba(255, 255, 255, 0.55); transition: all .15s ease;
+        }
+        .active-session-item:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.05); }
+        .asi-info { min-width: 0; }
+        .asi-name { font-weight: 700; font-size: 0.98rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .asi-meta { font-size: 0.84rem; color: #64748b; margin-top: 3px; font-weight: 500; }
+        .asi-dot { margin: 0 6px; opacity: 0.6; }
+        .asi-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .asi-actions .btn { border-radius: 10px; font-weight: 600; }
+
+        body.dark-mode .active-session-item { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.14); }
+        body.dark-mode .active-session-item:hover { border-color: #22d3ee; background: rgba(6, 182, 212, 0.15); }
+        body.dark-mode .asi-name { color: #f1f5f9; }
+        body.dark-mode .asi-meta { color: #94a3b8; }
+
+        /* ── Warning / error alerts ─────────────────────── */
+        .dash-alert {
+            display: flex; align-items: flex-start; gap: 12px;
+            max-width: 640px; padding: 14px 18px; border-radius: 14px;
+            background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.30);
+            color: #92400e; font-size: 0.92rem; line-height: 1.6;
+        }
+        body.dark-mode .dash-alert { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color: #fcd34d; }
+        body.dark-mode .join-code-dashboard {
+            background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(6,182,212,0.12)) !important;
+            border-color: rgba(124,58,237,0.45) !important;
+        }
+        body.dark-mode .join-code-dashboard .join-code-text {
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode .join-code-dashboard .join-code-hint {
+            color: #94a3b8 !important;
+        }
+    </style>
+    <style>
+        /* Phase 1: anime.js owns hover/press motion — CSS keeps color/shadow only
+           (a CSS transform transition would fight anime's per-frame transforms). */
+        html body .action-btn:hover, html body .action-btn:active { transform: none; }
+        html body .action-btn {
+            transition: box-shadow .15s ease-out, background .15s ease-out !important;
+        }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - dashboard (trial) */
+        body.liquid-glass .welcome-text {
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+        }
+        body.liquid-glass.dark-mode .welcome-text {
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        body.liquid-glass .dash-alert,
+        body.liquid-glass .action-btn.btn-history,
+        body.liquid-glass .action-btn.btn-create,
+        body.liquid-glass .action-btn.btn-primary {
+            backdrop-filter: blur(14px) saturate(200%);
+            -webkit-backdrop-filter: blur(14px) saturate(200%);
+        }
+
+        html.anime-ready .entrance,
+        html.anime-ready .entrance-1,
+        html.anime-ready .entrance-2,
+        html.anime-ready .entrance-3 {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: none;
+        }
+    </style>
 
     <!-- 1. HEADER (NAVBAR) FRAGMENT -->
     <div th:replace="fragments :: header"></div>
@@ -279,20 +878,47 @@
     <div class="content" style="margin-left: 0;">
         
         <h1 class="welcome-text">Welcome! What would you like to do today?</h1>
+
+        <div th:if="${sessionLimitError}" class="dash-alert mb-4 lg-reactive">
+            <i class="bi bi-exclamation-octagon-fill mt-1" style="font-size:1.1rem;"></i>
+            <span th:text="${sessionLimitError}">Session limit reached.</span>
+        </div>
         
+        <div th:if="${!#lists.isEmpty(activeSessions)}" class="mb-4 join-code-dashboard" style="max-width:640px;width:100%;">
+            <div style="background:linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.08)); border:1px solid rgba(124,58,237,0.35); border-radius:16px; padding:16px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0;box-shadow:0 4px 14px rgba(124,58,237,0.35);">
+                    <i class="bi bi-key-fill"></i>
+                </div>
+                <div style="flex:1;min-width:180px;">
+                    <div style="font-weight:700;color:#7c3aed;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Delegate Join Code</div>
+                    <div th:if="${#lists.size(activeSessions) == 1}" class="join-code-text" style="font-size:1.5rem;font-weight:800;color:#0f172a;letter-spacing:0.06em;font-variant-numeric:tabular-nums;" th:text="${activeSessions[0].joinCode}">ABC123</div>
+                    <div th:if="${#lists.size(activeSessions) > 1}">
+                        <select id="dashboardJoinCodeSelect" onchange="updateDashboardJoinCode(this)" style="font-size:1.3rem;font-weight:800;color:#0f172a;letter-spacing:0.06em;font-variant-numeric:tabular-nums;background:transparent;border:none;padding:0;margin-bottom:2px;cursor:pointer;width:auto;max-width:100%;" th:each="s : ${activeSessions}" th:data-code="${s.joinCode}">
+                            <option th:value="${s.id}" th:text="${s.joinCode}" th:selected="${s == activeSessions[0]}">ABC123</option>
+                        </select>
+                        <div class="join-code-hint" style="font-size:0.78rem;color:#64748b;margin-top:2px;">Select a session, then share its code with delegates</div>
+                    </div>
+                    <div th:if="${#lists.size(activeSessions) == 1}" class="join-code-hint" style="font-size:0.78rem;color:#64748b;margin-top:2px;">Share this code with delegates so they can join</div>
+                </div>
+                <button type="button" class="btn btn-sm" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-weight:700;font-size:0.82rem;box-shadow:0 4px 12px rgba(124,58,237,0.3);" onclick="copyDashboardJoinCode(this)" th:attr="data-code=${activeSessions[0].joinCode}" id="dashboardCopyBtn">
+                    <i class="bi bi-clipboard me-1"></i> Copy
+                </button>
+            </div>
+        </div>
+
         <div class="d-flex gap-4 align-items-start">
-            <a href="/history" class="btn action-btn btn-history text-decoration-none d-flex align-items-center justify-content-center">
+            <a href="/history" class="btn action-btn btn-history text-decoration-none d-flex align-items-center justify-content-center lg-reactive">
                 <i class="bi bi-clock-history"></i> History
             </a>
-            <button class="btn action-btn btn-create" data-bs-toggle="modal" data-bs-target="#createSessionModal">
+            <button class="btn action-btn btn-create lg-reactive" onclick="handleCreateSessionClick()">
                 <i class="bi bi-plus-circle-fill"></i> Create Session
             </button>
             
             <!-- Active Session Button -->
-            <div th:if="${activeSession != null}" class="text-center">
-                <button class="btn action-btn btn-primary" data-bs-toggle="modal" data-bs-target="#continueSessionModal">
+            <div th:if="${!#lists.isEmpty(activeSessions)}" class="text-center">
+                <button class="btn action-btn btn-primary lg-reactive" data-bs-toggle="modal" data-bs-target="#continueSessionModal">
                     <i class="bi bi-play-circle-fill"></i>
-                    <span th:text="${activeSession.name}">Session Name</span>
+                    <span th:text="${#lists.size(activeSessions) == 1 ? activeSessions[0].name : #lists.size(activeSessions) + ' Active Sessions'}">Session Name</span>
                 </button>
                 <div class="mt-2 text-muted small">Continue Session</div>
             </div>
@@ -301,30 +927,53 @@
     </div>
 
     <!-- Continue Session Modal -->
-    <div class="modal fade" id="continueSessionModal" tabindex="-1" aria-hidden="true" th:if="${activeSession != null}">
+    <div class="modal fade" id="continueSessionModal" tabindex="-1" aria-hidden="true" th:if="${!#lists.isEmpty(activeSessions)}">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:18px;color:rgba(255,255,255,0.9);">
-                <div class="modal-header" style="background:rgba(59,130,246,0.10);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:18px 18px 0 0;padding:18px 24px 14px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;"><i class="bi bi-gear-fill"></i></div>
-                        <h5 class="modal-title fw-bold mb-0" style="color:#fff;font-size:1.05rem;">Manage Session</h5>
+                        <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(6,182,212,0.4);"><i class="bi bi-gear-fill"></i></div>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size:1.05rem;">Manage Sessions</h5>
                     </div>
-                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center" style="padding:28px 24px;">
-                    <h4 class="mb-3 fw-bold" th:text="${activeSession.name}" style="color:#fff;">Session Name</h4>
-                    <p class="mb-4" style="color:rgba(255,255,255,0.6);font-size:0.9rem;">What would you like to do with this session?</p>
-                    <div class="d-grid gap-3 col-8 mx-auto">
-                        <a href="/" class="btn btn-lg d-flex align-items-center justify-content-center gap-2"
-                           style="background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;color:#fff;font-weight:700;border-radius:12px;padding:12px;">
-                            <i class="bi bi-arrow-right-circle-fill"></i> Continue Session
-                        </a>
-                        <button type="button"
-                                class="btn btn-lg d-flex align-items-center justify-content-center gap-2"
-                                style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-weight:700;border-radius:12px;padding:12px;"
-                                onclick="openEbReviewModal()">
-                            <i class="bi bi-stop-circle-fill"></i> End Session
-                        </button>
+                <div class="modal-body text-center" style="padding:24px 24px;">
+                    <p class="mb-4" style="font-size:0.9rem; position:relative; z-index:2;">
+                        You have <b th:text="${#lists.size(activeSessions)}">1</b> active session<span th:if="${#lists.size(activeSessions) != 1}">s</span>. Choose a session to continue or end.
+                    </p>
+                    <div class="active-session-list text-start" style="position:relative; z-index:1;">
+                        <div class="active-session-item" th:each="s : ${activeSessions}">
+                            <div class="asi-info">
+                                <div class="asi-name" th:text="${s.name}">Session Name</div>
+                                <div class="asi-meta">
+                                    <span th:text="${s.committee}">Committee</span>
+                                    <span class="asi-dot">&bull;</span>
+                                    <span th:text="${s.topic}">Topic</span>
+                                </div>
+                                <div th:if="${s.joinCode != null}"
+                                     class="d-flex align-items-center gap-2 mt-2"
+                                     style="cursor:pointer;"
+                                     title="Click to copy - share with your delegates so they can join this session"
+                                     onclick="copySessionJoinCode(this)"
+                                     th:attr="data-code=${s.joinCode}">
+                                    <span class="join-code-chip" style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:50px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);color:#7c3aed;font-weight:700;font-size:0.78rem;letter-spacing:0.12em;">
+                                        <i class="bi bi-key-fill"></i>
+                                        <span th:text="${s.joinCode}">ABC123</span>
+                                        <i class="bi bi-clipboard"></i>
+                                    </span>
+                                    <span class="small text-muted">Join code - click to copy</span>
+                                </div>
+                            </div>
+                            <div class="asi-actions">
+                                <a th:href="@{/(sessionId=${s.id})}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                    <i class="bi bi-arrow-right-circle-fill"></i> Continue
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                                        th:onclick="|openEbReviewModal(${s.id})|">
+                                    <i class="bi bi-stop-circle-fill"></i> End
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -340,7 +989,7 @@
                     <div>
                         <h5 class="modal-title fw-bold mb-1" id="ebReviewModalLabel"
                             style="color: rgba(255,255,255,0.95); font-size: 1.15rem;">
-                            <i class="bi bi-journal-check me-2" style="opacity:0.75;"></i>End Session — EB Review
+                            <i class="bi bi-journal-check me-2" style="opacity:0.75;"></i>End Session - EB Review
                         </h5>
                         <p class="mb-0" style="color:rgba(255,255,255,0.5); font-size:0.82rem;">
                             Write your Executive Board review before closing this session. This will be saved in history.
@@ -385,22 +1034,71 @@
     </div>
 
     <!-- Hidden form used by confirmEndSession() to POST /session/end with ebReview -->
-    <form id="endSessionForm" th:if="${activeSession != null}"
+    <form id="endSessionForm" th:if="${!#lists.isEmpty(activeSessions)}"
           th:action="@{/session/end}" method="post" style="display:none;">
-        <input type="hidden" name="sessionId" th:value="${activeSession.id}" />
+        <input type="hidden" name="sessionId" id="endSessionFormSessionId" value="" />
         <input type="hidden" name="ebReview"  id="endSessionEbReview" value="" />
     </form>
+
+    <!-- Hidden active sessions data for the Create-Session warning JS -->
+    <div id="activeSessionsData" style="display:none;">
+        <span th:each="s : ${activeSessions}" class="active-session-entry"
+              th:data-id="${s.id}" th:data-name="${s.name}"
+              th:data-committee="${s.committee}" th:data-topic="${s.topic}"></span>
+    </div>
+
+    <!-- Auto-resume last session (Settings → Session → Auto-resume Last Session) -->
+    <script th:if="${!#lists.isEmpty(activeSessions) and #lists.size(activeSessions) == 1}">
+        (function() {
+            try {
+                if (typeof window.getSetting === 'function' && window.getSetting('autoResumeSession')) {
+                    var entry = document.querySelector('#activeSessionsData .active-session-entry');
+                    if (entry && entry.getAttribute('data-id')) {
+                        window.location.replace('/?sessionId=' + entry.getAttribute('data-id'));
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+
+    <!-- Create Session Warning Modal (shown when active sessions exist) -->
+    <div class="modal fade" id="createWarningModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(245,158,11,0.4);"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        <h5 class="modal-title fw-bold mb-0" id="createWarnTitle" style="font-size:1.05rem;">Active Sessions Detected</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center" style="padding:24px 28px;">
+                    <p id="createWarnText" style="font-size:0.95rem; line-height:1.7;"></p>
+                    <div class="d-grid gap-2 col-8 mx-auto mt-3" id="createWarnProceedWrap" style="display:none;">
+                        <button type="button" class="btn btn-warning fw-bold" onclick="proceedToCreate()">
+                            <i class="bi bi-plus-circle-fill"></i> Proceed to Create
+                        </button>
+                    </div>
+                    <div class="d-grid gap-2 col-8 mx-auto mt-3" id="createWarnManageWrap" style="display:none;">
+                        <button type="button" class="btn btn-primary fw-bold" onclick="openManageFromWarning()">
+                            <i class="bi bi-gear-fill"></i> Manage Active Sessions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Create Session Modal -->
     <div class="modal fade" id="createSessionModal" tabindex="-1" aria-labelledby="createSessionModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background:rgba(10,15,30,0.92)!important;backdrop-filter:blur(48px) saturate(160%);-webkit-backdrop-filter:blur(48px) saturate(160%);border:1px solid rgba(255,255,255,0.15)!important;border-radius:18px;color:rgba(255,255,255,0.9);">
-                <div class="modal-header" style="background:rgba(16,185,129,0.10);border-bottom:1px solid rgba(255,255,255,0.1);border-radius:18px 18px 0 0;padding:18px 24px 14px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;"><i class="bi bi-plus-square-fill"></i></div>
-                        <h5 class="modal-title fw-bold mb-0" id="createSessionModalLabel" style="color:#fff;font-size:1.05rem;">Create New Session</h5>
+                        <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(16,185,129,0.4);"><i class="bi bi-plus-square-fill"></i></div>
+                        <h5 class="modal-title fw-bold mb-0" id="createSessionModalLabel" style="font-size:1.05rem;">Create New Session</h5>
                     </div>
-                    <button type="button" class="btn-close" style="filter:invert(1) grayscale(100%) brightness(200%);" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form th:action="@{/session/create}" th:object="${newSession}" method="post">
@@ -448,9 +1146,14 @@
 
     <script src="/js/bootstrap.bundle.min.js"></script>
 
-    <!-- EB Review modal helpers -->
+    <!-- EB Review modal helpers + session management helpers -->
     <script>
-        function openEbReviewModal() {
+        let ebReviewSessionId = null;
+
+        function openEbReviewModal(sessionId) {
+            // Remember which session is being ended
+            ebReviewSessionId = sessionId;
+            document.getElementById('endSessionFormSessionId').value = sessionId ?? '';
             // Close the continue-session modal first
             const contModal = bootstrap.Modal.getInstance(document.getElementById('continueSessionModal'));
             if (contModal) contModal.hide();
@@ -471,11 +1174,102 @@
             document.getElementById('endSessionEbReview').value = review;
             document.getElementById('endSessionForm').submit();
         }
+
+        function collectActiveSessions() {
+            return Array.from(document.querySelectorAll('#activeSessionsData .active-session-entry')).map(el => ({
+                id: el.dataset.id,
+                name: el.dataset.name,
+                committee: el.dataset.committee,
+                topic: el.dataset.topic
+            }));
+        }
+
+        function handleCreateSessionClick() {
+            const sessions = collectActiveSessions();
+            const warnText = document.getElementById('createWarnText');
+            const proceedWrap = document.getElementById('createWarnProceedWrap');
+            const manageWrap = document.getElementById('createWarnManageWrap');
+            const title = document.getElementById('createWarnTitle');
+
+            if (sessions.length >= 3) {
+                title.textContent = 'Session Limit Reached';
+                warnText.textContent = 'You already have 3 active sessions - the maximum allowed. Please end an active session before creating a new one.';
+                proceedWrap.style.display = 'none';
+                manageWrap.style.display = 'grid';
+            } else if (sessions.length > 0) {
+                title.textContent = 'Active Sessions Detected';
+                const names = sessions.map(s => '“' + s.name + '”').join(', ');
+                warnText.textContent = 'You have ' + sessions.length + ' active session' + (sessions.length === 1 ? '' : 's') + ': ' + names + '. Creating another session while these are active could split your delegates. Do you want to continue?';
+                proceedWrap.style.display = 'grid';
+                manageWrap.style.display = 'none';
+            } else {
+                // No active sessions - go straight to the create form
+                new bootstrap.Modal(document.getElementById('createSessionModal')).show();
+                return;
+            }
+            new bootstrap.Modal(document.getElementById('createWarningModal')).show();
+        }
+
+        function proceedToCreate() {
+            bootstrap.Modal.getInstance(document.getElementById('createWarningModal'))?.hide();
+            new bootstrap.Modal(document.getElementById('createSessionModal')).show();
+        }
+
+        function openManageFromWarning() {
+            bootstrap.Modal.getInstance(document.getElementById('createWarningModal'))?.hide();
+            new bootstrap.Modal(document.getElementById('continueSessionModal')).show();
+        }
+
+        function copySessionJoinCode(el) {
+            const code = el.getAttribute('data-code');
+            if (!code) return;
+            const done = () => {
+                const chip = el.querySelector('.join-code-chip');
+                const icon = chip?.querySelector('.bi-clipboard');
+                if (icon) { icon.classList.remove('bi-clipboard'); icon.classList.add('bi-check2'); }
+                if (chip) chip.style.color = '#10b981';
+                setTimeout(() => {
+                    if (icon) { icon.classList.remove('bi-check2'); icon.classList.add('bi-clipboard'); }
+                    if (chip) chip.style.color = '#7c3aed';
+                }, 1200);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(done);
+            } else { done(); }
+        }
+
+        function copyDashboardJoinCode(btn) {
+            var select = document.getElementById('dashboardJoinCodeSelect');
+            var code = '';
+            if (select) {
+                code = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+            } else {
+                code = btn.getAttribute('data-code') || '';
+            }
+            if (!code) return;
+            navigator.clipboard.writeText(code).then(function() {
+                var original = btn.innerHTML;
+                var originalBg = btn.style.background;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied';
+                btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                setTimeout(function() {
+                    btn.innerHTML = original;
+                    btn.style.background = originalBg;
+                }, 1500);
+            });
+        }
+
+        function updateDashboardJoinCode(select) {
+            var btn = document.getElementById('dashboardCopyBtn');
+            if (!btn || !select) return;
+            var code = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+            btn.setAttribute('data-code', code || '');
+        }
     </script>
 
     <!-- Theme Toggle Script -->
     <script>
-        // Simplified setTheme — the navbar toggle pill handles visuals via CSS body.dark-mode
+        // Simplified setTheme - the navbar toggle pill handles visuals via CSS body.dark-mode
         window.setTheme = function(theme) {
             const html = document.documentElement;
             const body = document.body;
@@ -490,12 +1284,22 @@
                 body.classList.remove('dark-mode');
                 localStorage.setItem('theme', 'light');
             }
+            if (window.summitSettings) {
+                window.summitSettings.theme = theme === 'dark' ? 'dark' : 'light';
+                localStorage.setItem('summitSettings', JSON.stringify(window.summitSettings));
+            }
         };
 
         document.addEventListener('DOMContentLoaded', function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             setTheme(savedTheme);
+            if (window.SummitLive) {
+                window.SummitLive.on('session.changed', () => window.location.reload());
+                window.SummitLive.on('delegate.changed', () => window.location.reload());
+            }
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('dashboard');
         });
+
     </script>
 </body>
 </html>

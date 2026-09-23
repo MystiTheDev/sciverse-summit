@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Audit Log - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc; --bg-card: #ffffff; --bg-secondary: #f1f5f9; --bg-elevated: #ffffff;
+            --text-primary: #1e293b; --text-secondary: #475569; --text-muted: #94a3b8;
+            --border-color: #e2e8f0; --border-strong: #cbd5e1;
+            --accent-primary: #06b6d4; --accent-secondary: #7c3aed;
+            --accent-success: #10b981; --accent-warning: #f59e0b; --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 16px rgba(0,0,0,0.06); --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55); --glass-border: rgba(255,255,255,0.5);
+        }
+        body.dark-mode {
+            --bg-primary: #0f172a; --bg-card: #1e293b; --bg-secondary: #334155; --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
+            --border-color: #334155; --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 16px rgba(0,0,0,0.3); --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65); --glass-border: rgba(255,255,255,0.12);
+        }
+        body { background: var(--bg-primary); color: var(--text-primary); transition: background 0.3s ease, color 0.3s ease; }
+        .sidebar { position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width); padding-top: 0.5rem; background-color: var(--bg-secondary); z-index: 1000; transition: all 0.3s; }
+        .content { margin-left: var(--sidebar-width); padding: 95px 20px 40px 20px; position: relative; z-index: 1; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .sidebar { width: 0; } .content { margin-left: 0; } }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) { transform: translateX(calc(-1 * var(--sidebar-width))); margin-left: 0; }
+
+        .page-heading { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0; display: flex; align-items: center; gap: 12px; }
+        .page-heading i { color: var(--accent-primary); font-size: 1.7rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; margin: 6px 0 0 40px; }
+        .heading-block { margin-bottom: 1.5rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+
+        .filter-bar {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+            background: var(--bg-elevated); border: 1px solid var(--border-color);
+            border-radius: 16px; box-shadow: var(--shadow-md);
+            padding: 16px 18px; margin-bottom: 16px;
+        }
+        .filter-field { display: flex; flex-direction: column; gap: 4px; }
+        .filter-field label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+        .filter-field select, .filter-field input {
+            border-radius: 10px; padding: 8px 12px; font-size: 0.86rem; font-weight: 500;
+            border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-primary);
+            min-width: 150px;
+        }
+        .filter-field select:focus, .filter-field input:focus { border-color: var(--accent-primary); outline: none; }
+        .btn-filter {
+            border: none; border-radius: 10px; padding: 9px 20px; font-weight: 700; font-size: 0.86rem;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed); color: #fff;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.35);
+            display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+        }
+        .btn-filter:hover { color: #fff; filter: brightness(1.06); }
+        .session-lock {
+            display: inline-flex; align-items: center; gap: 7px;
+            border-radius: 10px; padding: 8px 14px; font-size: 0.86rem; font-weight: 700;
+            background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.22); color: #6d28d9;
+        }
+        .session-lock i { font-size: 0.8rem; }
+        .session-lock.none { background: rgba(100,116,139,0.1); border-color: var(--border-strong); color: var(--text-muted); }
+        body.dark-mode .session-lock { background: rgba(124,58,237,0.16); color: #c4b5fd; }
+        .btn-export {
+            border-radius: 10px; padding: 9px 20px; font-weight: 700; font-size: 0.86rem;
+            background: rgba(16,185,129,0.12); color: #047857; border: 1px solid rgba(16,185,129,0.3);
+            display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+        }
+        .btn-export:hover { background: rgba(16,185,129,0.2); color: #047857; }
+        body.dark-mode .btn-export { background: rgba(16,185,129,0.16); color: #6ee7b7; border-color: rgba(16,185,129,0.35); }
+
+        .audit-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .modern-table { margin: 0; background: var(--bg-elevated); }
+        .modern-table thead { background: linear-gradient(135deg, var(--bg-secondary), var(--border-color)); }
+        body.dark-mode .modern-table thead { background: rgba(255,255,255,0.05); }
+        .modern-table thead th { padding: 14px 16px; font-weight: 700; font-size: 0.74rem; color: var(--text-primary); text-align: left; border: none; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--border-color); background: transparent; }
+        body.dark-mode .modern-table thead th { color: #94a3b8; border-bottom-color: rgba(255,255,255,0.12); }
+        .modern-table tbody tr { border-bottom: 1px solid var(--border-color); }
+        .modern-table tbody tr:last-child { border-bottom: none; }
+        .modern-table tbody td { padding: 12px 16px; vertical-align: top; font-size: 0.86rem; color: var(--text-primary); }
+        /* Dark mode: force row surfaces explicitly — Bootstrap's table cell
+           background otherwise wins and renders rows white. */
+        body.dark-mode .modern-table tbody tr { background: transparent !important; }
+        body.dark-mode .modern-table tbody td {
+            background: rgba(255,255,255,0.03) !important;
+            color: #e2e8f0 !important;
+            border-bottom-color: rgba(255,255,255,0.08) !important;
+        }
+        body.dark-mode .modern-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.06) !important; }
+        body.dark-mode .audit-time { color: #94a3b8 !important; }
+        body.dark-mode .audit-details { color: #cbd5e1 !important; }
+        .audit-time { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-secondary); font-size: 0.8rem; }
+        .audit-actor { font-weight: 700; }
+        .audit-role { display: block; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.04em; }
+        .audit-details { color: var(--text-secondary); line-height: 1.45; max-width: 420px; }
+        .action-chip {
+            display: inline-block; padding: 4px 12px; border-radius: 999px; white-space: nowrap;
+            background: rgba(124,58,237,0.1); color: #6d28d9;
+            border: 1px solid rgba(124,58,237,0.25);
+            font-size: 0.72rem; font-weight: 800; letter-spacing: 0.03em;
+        }
+        .action-chip.danger { background: rgba(239,68,68,0.1); color: #b91c1c; border-color: rgba(239,68,68,0.3); }
+        body.dark-mode .action-chip { background: rgba(124,58,237,0.2); color: #c4b5fd; }
+        body.dark-mode .action-chip.danger { background: rgba(239,68,68,0.18); color: #fca5a5; }
+
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.2rem; opacity: 0.5; }
+        .empty-state p { margin-top: 10px; font-size: 0.9rem; }
+        .count-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;
+            background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.18); color: #7c3aed;
+        }
+        body.dark-mode .count-chip { background: rgba(124,58,237,0.16); color: #a5b4fc; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - admin-audit */
+        body.liquid-glass .audit-card, body.liquid-glass .filter-bar {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255,255,255,0.72), rgba(248,250,252,0.45));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border-color: rgba(255,255,255,0.6);
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+        body.liquid-glass.dark-mode .audit-card, body.liquid-glass.dark-mode .filter-bar {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42));
+            border-color: rgba(255,255,255,0.14);
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+    </style>
+
+    <div th:replace="fragments :: header"></div>
+    <div th:replace="fragments :: sidebar"></div>
+
+    <!-- Notification banner (toast popups for server notifications) -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="container-fluid p-0 mx-auto" style="max-width: 1200px;">
+            <div class="heading-block entrance">
+                <div>
+                    <h2 class="page-heading"><i class="bi bi-clock-history"></i>Audit Log</h2>
+                    <div class="page-subtitle"><i class="bi bi-shield-check me-1"></i>Every significant action, who did it, and when. Newest first.</div>
+                </div>
+                <span class="count-chip"><i class="bi bi-list-check me-1"></i><span th:text="${#lists.size(entries)}">0</span>&nbsp;entries</span>
+            </div>
+
+            <form class="filter-bar entrance entrance-1" method="get" action="/admin/audit">
+                <div class="filter-field">
+                    <label>Session (locked)</label>
+                    <span class="session-lock" th:if="${activeSession != null}">
+                        <i class="bi bi-lock-fill"></i><span th:text="${activeSession.name}">Session</span>
+                    </span>
+                    <span class="session-lock none" th:if="${activeSession == null}">No active session</span>
+                </div>
+                <div class="filter-field">
+                    <label for="fAction">Action</label>
+                    <select id="fAction" name="action">
+                        <option value="" th:selected="${action == null or action == ''}">All actions</option>
+                        <option th:each="a : ${actions}" th:value="${a}" th:text="${a}"
+                                th:selected="${action == a}">ACTION</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="fActor">Actor</label>
+                    <input id="fActor" type="text" name="actor" placeholder="username…" th:value="${actor}">
+                </div>
+                <div class="filter-field">
+                    <label for="fQ">Search details</label>
+                    <input id="fQ" type="text" name="q" placeholder="e.g. ballot, motion…" th:value="${q}">
+                </div>
+                <button type="submit" class="btn-filter"><i class="bi bi-funnel-fill"></i>Filter</button>
+                <a class="btn-export"
+                   th:href="@{/admin/audit/export-csv(action=${action}, actor=${actor}, q=${q})}">
+                    <i class="bi bi-download"></i>Export CSV
+                </a>
+            </form>
+
+            <div class="audit-card entrance entrance-2 lg-reactive">
+                <div class="table-responsive">
+                    <table class="table modern-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Actor</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="e : ${entries}">
+                                <td><span class="audit-time" th:text="${e.createdAt != null ? #temporals.format(e.createdAt, 'dd-MM-yyyy HH:mm:ss') : '-'}">-</span></td>
+                                <td>
+                                    <span class="audit-actor" th:text="${e.actorUsername}">user</span>
+                                    <span class="audit-role" th:text="${e.actorRole}">ROLE</span>
+                                </td>
+                                <td><span class="action-chip" th:text="${e.action}"
+                                          th:classappend="${#strings.contains(e.action, 'DELET') or #strings.contains(e.action, 'FAILED') or #strings.contains(e.action, 'LOOKUP')} ? ' danger' : ''">ACTION</span></td>
+                                <td><span class="audit-details" th:text="${e.details}">details</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div th:if="${#lists.isEmpty(entries)}" class="empty-state">
+                        <i class="bi bi-shield-check"></i>
+                        <p>No audit entries yet. Actions will appear here as chairs and delegates use the app.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('admin-audit');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SciVerse Summit Delegate</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="updateOverlay" aria-hidden="true">
+  <div class="update-floaters" aria-hidden="true">
+    <span class="floater">◈</span><span class="floater">⬢</span><span class="floater">✦</span><span class="floater">⬣</span><span class="floater">◆</span><span class="floater">✧</span>
+  </div>
+  <div class="update-card">
+    <div class="update-badge">⟡ SciVerse Summit Update</div>
+    <h2 class="update-title" id="updateTitle">Checking for updates…</h2>
+    <p class="update-sub" id="updateSub">This will only take a moment.</p>
+    <div class="update-bar"><span id="updateBar"></span></div>
+    <div class="update-meta"><span id="updatePct">—</span><span id="updateSpeed"></span></div>
+    <div class="update-tip" id="updateTip"></div>
+    <div class="update-actions" id="updateActions" style="display:none">
+      <button id="updateRestartBtn" class="primary">Restart to Update</button>
+      <button id="updateLaterBtn" class="ghost">Later</button>
+    </div>
+  </div>
+</div>
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">S</div>
+    <h1 class="splash-title">SciVerse Summit</h1>
+    <p class="splash-sub">Delegate</p>
+    <div class="splash-bar"><span></span></div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">S</div>
+    <h1>SciVerse Summit</h1>
+    <p class="sub">Delegate &mdash; connect to your chair&rsquo;s session.</p>
+
+    <div id="form">
+      <label for="host">Chair address (shown on the chair&rsquo;s screen)</label>
+      <input type="text" id="host" placeholder="e.g. 192.168.1.42">
+      <button id="connectBtn" class="primary" style="width:100%">Connect</button>
+    </div>
+
+    <div class="status" id="status" style="display:none">
+      <span class="dot starting"></span><span id="statusText">Waiting for the chair to start the session…</span>
+    </div>
+
+    <p class="hint">Leave this open — you&rsquo;ll be taken in automatically once the session server is up.</p>
+  </div>
+</div>
+<script src="update-tips.js"></script>
+<script>
+// Update overlay — interesting download + ready states, floating icons, tip rotator.
+(function () {
+  const api0 = window.summitAPI;
+  if (!api0) return;
+  const overlay = document.getElementById('updateOverlay');
+  const title = document.getElementById('updateTitle');
+  const sub = document.getElementById('updateSub');
+  const bar = document.getElementById('updateBar');
+  const pct = document.getElementById('updatePct');
+  const speed = document.getElementById('updateSpeed');
+  const tipEl = document.getElementById('updateTip');
+  const actions = document.getElementById('updateActions');
+  const restartBtn = document.getElementById('updateRestartBtn');
+  const laterBtn = document.getElementById('updateLaterBtn');
+  let tipTimer = null;
+  let tipIdx = 0;
+  function tips() { return (typeof UPDATE_TIPS !== 'undefined' && Array.isArray(UPDATE_TIPS) && UPDATE_TIPS.length) ? UPDATE_TIPS : ["Tip: Updates install on restart."]; }
+  function showTip() {
+    const arr = tips();
+    tipEl.style.opacity = '0';
+    setTimeout(() => {
+      tipEl.textContent = arr[tipIdx % arr.length];
+      tipEl.style.opacity = '1';
+      tipIdx++;
+    }, 320);
+  }
+  function startTips() {
+    tipIdx = Math.floor(Math.random() * tips().length);
+    showTip();
+    tipTimer = setInterval(showTip, 3200);
+  }
+  function stopTips() { if (tipTimer) clearInterval(tipTimer); tipTimer = null; }
+  function open() { overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false'); }
+  function fmtSpeed(bps) {
+    if (!bps || bps <= 0) return '';
+    const kb = bps / 1024;
+    return kb > 1024 ? (kb / 1024).toFixed(1) + ' MB/s' : Math.round(kb) + ' KB/s';
+  }
+  if (api0.onUpdateAvailable) api0.onUpdateAvailable((info) => {
+    open(); stopTips();
+    const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
+    title.textContent = 'Update available' + ver;
+    sub.textContent = 'A new version is ready to download. Want to update now?';
+    bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
+    tipEl.textContent = 'Tip: You can continue working — download starts only if you click Download.';
+    actions.innerHTML = '<button id="updDownloadBtn" class="primary">Download Update</button><button id="updLaterBtn" class="ghost">Later</button>';
+    actions.style.display = 'flex';
+    const dl = document.getElementById('updDownloadBtn');
+    const later = document.getElementById('updLaterBtn');
+    if (dl) dl.addEventListener('click', () => {
+      title.textContent = 'Downloading update…';
+      sub.textContent = 'Hang tight — almost there.';
+      bar.style.width = '6%'; pct.textContent = '6%';
+      actions.style.display = 'none';
+      startTips();
+      if (api0.downloadUpdate) api0.downloadUpdate();
+    });
+    if (later) later.addEventListener('click', () => { overlay.classList.remove('open'); stopTips(); });
+  });
+  if (api0.onUpdateProgress) api0.onUpdateProgress((p) => {
+    open();
+    const n = Math.max(0, Math.min(100, Math.round(p.percent || 0)));
+    bar.style.width = n + '%'; pct.textContent = n + '%';
+    speed.textContent = fmtSpeed(p.bytesPerSecond);
+    title.textContent = 'Downloading update…';
+    sub.textContent = 'Hang tight — almost there.';
+    actions.style.display = 'none';
+    if (!tipTimer) startTips();
+  });
+  if (api0.onUpdateDownloaded) api0.onUpdateDownloaded((info) => {
+    open(); stopTips();
+    const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
+    bar.style.width = '100%'; pct.textContent = '100%'; speed.textContent = '';
+    title.textContent = 'Update ready' + ver;
+    sub.textContent = 'SciVerse Summit ' + ver.trim() + ' is ready — restart to apply it.';
+    actions.innerHTML = '<button id="updateRestartBtn" class="primary">Restart to Update</button><button id="updateLaterBtn2" class="ghost">Later</button>';
+    actions.style.display = 'flex';
+    tipEl.textContent = 'Tip: Click Restart to Update when you are ready.';
+    const rb = document.getElementById('updateRestartBtn');
+    const lb = document.getElementById('updateLaterBtn2');
+    if (rb) rb.addEventListener('click', () => { if (api0.restartToUpdate) api0.restartToUpdate(); });
+    if (lb) lb.addEventListener('click', () => { overlay.classList.remove('open'); });
+  });
+  if (api0.onUpdateError) api0.onUpdateError((msg) => {
+    bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
+    title.textContent = 'Update check failed';
+    sub.textContent = String(msg || 'Will retry next launch. Your current version keeps working.');
+    stopTips(); tipEl.textContent = '';
+    actions.style.display = 'none';
+    setTimeout(() => overlay.classList.remove('open'), 4200);
+  });
+  // Fallback wiring for pre-rendered buttons
+  if (restartBtn) restartBtn.addEventListener('click', () => { if (api0.restartToUpdate) api0.restartToUpdate(); });
+  if (laterBtn) laterBtn.addEventListener('click', () => { overlay.classList.remove('open'); });
+})();
+</script>
+<script>
+// In-app splash: follows the native splash window, holds ~20s so the handoff
+// reads as one continuous loading sequence (minimum 20s once the page loads).
+(function () {
+  const started = Date.now();
+  function hide() {
+    const wait = Math.max(0, 20000 - (Date.now() - started));
+    setTimeout(() => {
+      const el = document.getElementById('splash');
+      if (!el) return;
+      el.classList.add('hidden');
+      setTimeout(() => el.remove(), 500);
+    }, wait);
+  }
+  if (document.readyState === 'complete') hide();
+  else window.addEventListener('load', hide);
+  setTimeout(hide, 25000); // failsafe: never trap the user behind the splash
+})();
+const hostInput = document.getElementById('host');
+const connectBtn = document.getElementById('connectBtn');
+const form = document.getElementById('form');
+const status = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+hostInput.value = localStorage.getItem('sv_chair_host') || '';
+
+async function serverUp(base) {
+  try { await fetch(base + '/login', { mode: 'no-cors' }); return true; }
+  catch { return false; }
+}
+
+connectBtn.addEventListener('click', async () => {
+  const host = hostInput.value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  if (!host) { hostInput.focus(); return; }
+  localStorage.setItem('sv_chair_host', host);
+  const base = 'http://' + host + ':8080';
+  form.style.display = 'none';
+  status.style.display = 'flex';
+  // Poll until the chair starts the server (no timeout — committee sessions
+  // start when they start). Errors are silent retries.
+  for (;;) {
+    if (await serverUp(base)) {
+      statusText.textContent = 'Session found — joining…';
+      window.location.href = base + '/delegate';
+      return;
+    }
+    statusText.textContent = 'Waiting for the chair to start the session… (retrying)';
+    await new Promise(r => setTimeout(r, 2000));
+  }
+});
+</script>
+</body>
+</html>

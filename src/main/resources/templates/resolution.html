@@ -1,0 +1,888 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resolution - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Theme initialization script - prevents flash of wrong theme -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+
+    <style>
+        /* ================================
+           THEME VARIABLES (Light Default)
+           ================================ */
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-secondary: #f1f5f9;
+            --bg-elevated: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --accent-primary: #06b6d4;
+            --accent-secondary: #7c3aed;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55);
+            --glass-border: rgba(255,255,255,0.5);
+        }
+
+        body.dark-mode {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-secondary: #334155;
+            --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65);
+            --glass-border: rgba(255,255,255,0.12);
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ================================
+           SIDEBAR LAYOUT
+           ================================ */
+        .sidebar {
+            position: fixed; top: 80px; left: 0;
+            height: calc(100% - 80px); width: var(--sidebar-width);
+            padding-top: 0.5rem;
+            background-color: var(--bg-secondary);
+            z-index: 1000; transition: all 0.3s;
+        }
+        .content {
+            margin-left: var(--sidebar-width);
+            padding: 95px 20px 40px 20px;
+            position: relative; z-index: 1;
+            transition: all 0.3s;
+        }
+        @media (max-width: 991.98px) {
+            .sidebar { width: 0; }
+            .content { margin-left: 0; }
+        }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
+            transform: translateX(calc(-1 * var(--sidebar-width)));
+            margin-left: 0;
+        }
+
+        /* ================================
+           PAGE HEADING
+           ================================ */
+        .page-heading {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-heading i {
+            color: var(--accent-primary);
+            font-size: 1.7rem;
+        }
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin: 6px 0 0 40px;
+        }
+        .heading-block {
+            margin-bottom: 1.5rem;
+        }
+
+        /* ================================
+           PANEL CARDS (Glass)
+           ================================ */
+        .panel-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 20px !important;
+            box-shadow:
+                0 16px 44px rgba(15,23,42,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.65),
+                inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+        body.dark-mode .panel-card {
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                inset 0 -1px 0 rgba(255,255,255,0.03) !important;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-primary);
+        }
+        .panel-header > i {
+            color: var(--accent-primary);
+            font-size: 1.05rem;
+        }
+        .panel-header .count-badge {
+            margin-left: auto;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.02em;
+        }
+
+        /* ================================
+           LEFT PANEL - RESOLUTIONS LIST
+           ================================ */
+        .res-list-wrap {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            padding: 14px;
+        }
+        .res-list-wrap::-webkit-scrollbar { width: 6px; }
+        .res-list-wrap::-webkit-scrollbar-track { background: transparent; }
+        .res-list-wrap::-webkit-scrollbar-thumb {
+            background: rgba(100,116,139,0.25);
+            border-radius: 10px;
+        }
+
+        .res-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 13px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.16s ease;
+            margin-bottom: 4px;
+        }
+        .res-item:hover {
+            background: var(--bg-elevated);
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(2px);
+        }
+        .res-item.active {
+            background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(124,58,237,0.10));
+            border-color: rgba(6,182,212,0.4);
+            box-shadow: 0 4px 14px rgba(6,182,212,0.14);
+        }
+        body.dark-mode .res-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .res-item-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(6,182,212,0.14));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--accent-secondary);
+            font-size: 1.05rem;
+        }
+        .res-item.active .res-item-icon {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(6,182,212,0.35);
+        }
+
+        .res-item-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .res-item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .res-item-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .res-item-arrow {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            transition: transform 0.16s ease;
+        }
+        .res-item.active .res-item-arrow { transform: translateX(3px); color: var(--accent-primary); }
+
+        .res-item-meta b { color: var(--text-secondary); font-weight: 700; }
+        .res-item-badges {
+            display: inline-flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;
+        }
+        .res-item-badges .res-file-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.04em;
+            padding: 2px 8px; border-radius: 50px;
+            color: var(--accent-secondary);
+            background: rgba(124,58,237,0.12);
+            border: 1px solid rgba(124,58,237,0.28);
+            text-transform: uppercase;
+        }
+        .res-item-badges .res-file-badge.pdf { color: #dc2626; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.28); }
+        .res-item-badges .res-file-badge.word { color: #0891b2; background: rgba(6,182,212,0.12); border-color: rgba(6,182,212,0.28); }
+        .res-item-badges .res-file-badge.nofile { color: var(--text-muted); background: rgba(100,116,139,0.1); border-color: var(--border-strong); }
+
+        .res-item-outcome-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.64rem; font-weight: 800; letter-spacing: 0.04em;
+            text-transform: uppercase; padding: 3px 10px; border-radius: 50px;
+            margin-top: 3px;
+        }
+        .res-item-outcome-pill.passed { color: #059669; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.32); }
+        .res-item-outcome-pill.failed { color: #dc2626; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.32); }
+
+        /* ================================
+           RIGHT PANEL - RESOLUTION DETAILS
+           ================================ */
+        .detail-body { padding: 22px; }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 48px 20px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .empty-state i { font-size: 2.6rem; opacity: 0.5; }
+        .empty-state strong { color: var(--text-secondary); font-size: 0.95rem; }
+        .empty-state span { font-size: 0.8rem; max-width: 300px; }
+
+        .detail-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .detail-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 5px 16px rgba(6,182,212,0.35);
+            flex-shrink: 0;
+        }
+        .detail-title-wrap { flex: 1; min-width: 0; }
+        .detail-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 2px 0 2px;
+            line-height: 1.35;
+        }
+        .detail-group {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .detail-cell {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        .detail-cell:hover {
+            border-color: var(--border-strong);
+        }
+        .detail-cell-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        .detail-cell-label i { color: var(--accent-primary); font-size: 0.8rem; }
+        .detail-cell-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .detail-section {
+            margin-top: 18px;
+        }
+        .detail-section-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .detail-section-body {
+            font-size: 0.92rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 16px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .detail-file-link {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+        .detail-file-link:hover { text-decoration: underline; }
+
+        .draft-file-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .draft-file-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+        .draft-file-card .df-icon {
+            width: 40px; height: 40px; border-radius: 11px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.15rem; flex-shrink: 0; color: #fff;
+        }
+        .draft-file-card .df-icon.pdf { background: linear-gradient(135deg, #f87171, #dc2626); box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+        .draft-file-card .df-icon.word { background: linear-gradient(135deg, #22d3ee, #0891b2); box-shadow: 0 4px 12px rgba(8,145,178,0.3); }
+        .draft-file-card .df-icon.other { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 4px 12px rgba(100,116,139,0.3); }
+        .draft-file-card .df-body { flex: 1; min-width: 0; }
+        .draft-file-card .df-type {
+            font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted);
+        }
+        .draft-file-card .df-name {
+            font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .vote-zone {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+        .btn-ballot {
+            border: none; font-weight: 700; color: #fff;
+            padding: 11px 26px; border-radius: 12px; transition: all 0.2s ease;
+        }
+        .btn-ballot:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-open-ballot {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 8px 20px rgba(16,185,129,0.35);
+        }
+        .btn-open-ballot:hover:not(:disabled) { color: #fff; transform: translateY(-1px); }
+        .btn-close-ballot {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 8px 20px rgba(239,68,68,0.32);
+        }
+        .btn-close-ballot:hover:not(:disabled) { color: #fff; transform: translateY(-1px); }
+        .ballot-live-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(16,185,129,0.14); color: #059669;
+            border: 1px solid rgba(16,185,129,0.35);
+            padding: 7px 16px; border-radius: 50px; font-weight: 700; font-size: 0.8rem;
+        }
+        .ballot-warn-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(245,158,11,0.14); color: var(--accent-warning);
+            border: 1px solid rgba(245,158,11,0.35);
+            padding: 7px 16px; border-radius: 50px; font-weight: 700; font-size: 0.8rem;
+        }
+        .ballot-live-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: #10b981; animation: res-pulse 1.4s infinite;
+        }
+        @keyframes res-pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.8); }
+        }
+        .vote-note {
+            font-size: 0.78rem; color: var(--text-muted); margin-top: 10px;
+        }
+        .ballot-outcome-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 16px; border-radius: 50px; font-weight: 700; font-size: 0.8rem;
+            margin-bottom: 12px;
+        }
+        .ballot-outcome-pill.passed { background: rgba(16,185,129,0.14); color: #059669; border: 1px solid rgba(16,185,129,0.35); }
+        .ballot-outcome-pill.failed { background: rgba(239,68,68,0.14); color: #dc2626; border: 1px solid rgba(239,68,68,0.35); }
+        .ballot-outcome-pill .ballot-outcome-sub { font-weight: 600; opacity: 0.8; text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
+
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - resolution (trial) */
+        body.liquid-glass .panel-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .panel-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.14) !important;
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
+
+    <!-- 1. HEADER (NAVBAR) FRAGMENT -->
+    <div th:replace="fragments :: header"></div>
+
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <!-- 2. SIDEBAR FRAGMENT -->
+    <div th:replace="fragments :: sidebar"></div>
+
+    <!-- 3. MAIN CONTENT AREA -->
+    <div class="content">
+        <div class="container-fluid">
+
+            <!-- PAGE HEADING -->
+            <div class="heading-block entrance">
+                <h2 class="page-heading">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>Resolution</span>
+                </h2>
+                <div class="page-subtitle">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Review every draft resolution uploaded by delegates, then open a live ballot to vote on it.
+                </div>
+            </div>
+
+            <div class="row g-4">
+
+                <!-- LEFT PANEL - ALL RESOLUTIONS -->
+                <div class="col-lg-5 col-xl-4 entrance entrance-1">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-file-earmark-richtext"></i>
+                            <span>All Resolutions</span>
+                            <span class="count-badge" id="resolutions-count">0</span>
+                        </div>
+                        <div class="res-list-wrap" id="resolutions-list">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <strong>No resolutions yet</strong>
+                                <span>Draft resolutions uploaded by delegates will appear here.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL - RESOLUTION DETAILS -->
+                <div class="col-lg-7 col-xl-8 entrance entrance-2">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span>Resolution Details</span>
+                        </div>
+                        <div class="detail-body" id="resolution-detail-body">
+                            <div class="empty-state">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <strong>Select a resolution</strong>
+                                <span>Choose a resolution from the list to view its full details.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Functionality -->
+    <script>
+        // ------------------------------------------------------------------
+        // RESOLUTIONS LIST + DETAIL
+        // ------------------------------------------------------------------
+        let resolutions = [];
+        let selectedResId = null;
+        let lastDetailKey = null;
+        let lastListKey = null;
+
+        function esc(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function authorsLine(r) {
+            const parts = [];
+            if (r.primaryAuthor) parts.push(r.primaryAuthor);
+            if (r.primaryAuthor2) parts.push(r.primaryAuthor2);
+            return parts.length ? parts.join(', ') : '-';
+        }
+
+        async function loadResolutions() {
+            try {
+                const resp = await fetch('/api/resolutions');
+                const data = await resp.json();
+                const key = JSON.stringify(data);
+                if (key !== lastListKey) {
+                    lastListKey = key;
+                    resolutions = data;
+                    renderResolutions();
+                }
+            } catch (err) {
+                // keep last known state
+            }
+        }
+
+        function fileBadges(r) {
+            const types = r.fileTypes || [];
+            let html = '';
+            if (types.includes('PDF')) html += '<span class="res-file-badge pdf"><i class="bi bi-filetype-pdf"></i> PDF</span>';
+            if (types.includes('DOC')) html += '<span class="res-file-badge word"><i class="bi bi-file-earmark-word"></i> Word</span>';
+            if (!html) {
+                html = r.hasFile
+                    ? '<span class="res-file-badge nofile"><i class="bi bi-file-earmark"></i> File</span>'
+                    : '<span class="res-file-badge nofile">No file</span>';
+            }
+            return '<span class="res-item-badges">' + html + '</span>';
+        }
+
+        function renderResolutions() {
+            const listEl = document.getElementById('resolutions-list');
+            document.getElementById('resolutions-count').textContent = resolutions.length;
+
+            if (resolutions.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <strong>No resolutions yet</strong>
+                        <span>Draft resolutions uploaded by delegates will appear here.</span>
+                    </div>`;
+                return;
+            }
+
+            listEl.innerHTML = resolutions.map(r => {
+                const authors = authorsLine(r);
+                const outcome = r.votingDone
+                    ? `<span class="res-item-outcome-pill ${r.votingOutcome === 'PASSED' ? 'passed' : 'failed'}">
+                        <i class="bi ${r.votingOutcome === 'PASSED' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                        Voting done - ${r.votingOutcome === 'PASSED' ? 'Passed' : 'Failed'}
+                       </span>`
+                    : '';
+                return `
+                    <div class="res-item${r.id === selectedResId ? ' active' : ''}" data-id="${r.id}" onclick="selectResolution(${r.id})">
+                        <span class="res-item-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
+                        <span class="res-item-text">
+                            <span class="res-item-name">${esc(r.title)}</span>
+                            <span class="res-item-meta"><i class="bi bi-send-fill"></i> Sent by <b>${esc(r.primaryAuthor || '-')}</b></span>
+                            <span class="res-item-meta"><i class="bi bi-pen-fill"></i> Written by <b>${esc(authors)}</b></span>
+                            ${r.sponsors ? `<span class="res-item-meta"><i class="bi bi-people-fill"></i> Sponsors: ${esc(r.sponsors)}</span>` : ''}
+                            ${fileBadges(r)}
+                            ${outcome}
+                        </span>
+                        <i class="bi bi-chevron-right res-item-arrow"></i>
+                    </div>`;
+            }).join('');
+        }
+
+        async function selectResolution(id) {
+            selectedResId = id;
+            renderResolutions();
+            try {
+                const resp = await fetch('/api/resolutions/' + id);
+                const d = await resp.json();
+                if (!d || !d.success) {
+                    document.getElementById('resolution-detail-body').innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Resolution not found</strong>
+                        </div>`;
+                    return;
+                }
+                cachedDetail = d;
+                renderDetail(d);
+            } catch (err) {
+                // keep last detail
+            }
+        }
+
+        function draftFilesHtml(d) {
+            const files = (d.files && d.files.length)
+                ? d.files
+                : (d.hasFile ? [{ id: null, fileName: d.fileName, fileType: 'FILE' }] : []);
+            if (!files.length) {
+                return '<span class="text-muted small">No file attached</span>';
+            }
+            return files.map(f => {
+                const type = f.fileType || 'FILE';
+                const href = f.id != null ? '/api/resolution/file/entry/' + f.id : '/api/resolution/file/' + d.id;
+                const iconCls = type === 'PDF' ? 'pdf' : (type === 'DOC' ? 'word' : 'other');
+                const icon = type === 'PDF' ? 'bi-filetype-pdf' : (type === 'DOC' ? 'bi-file-earmark-word' : 'bi-file-earmark-text');
+                const label = type === 'PDF' ? 'PDF Document' : (type === 'DOC' ? 'Word Document' : 'Document');
+                return '<a class="draft-file-card text-decoration-none" href="' + href + '" target="_blank">'
+                    + '<span class="df-icon ' + iconCls + '"><i class="bi ' + icon + '"></i></span>'
+                    + '<span class="df-body">'
+                    + '<span class="df-type">' + label + '</span>'
+                    + '<span class="df-name d-block">' + esc(f.fileName || 'Download draft') + '</span>'
+                    + '</span>'
+                    + '<i class="bi bi-box-arrow-up-right text-muted"></i>'
+                    + '</a>';
+            }).join('');
+        }
+
+        function renderDetail(d) {
+            const body = document.getElementById('resolution-detail-body');
+            const key = JSON.stringify(d);
+            if (key === lastDetailKey) {
+                return;
+            }
+            lastDetailKey = key;
+
+            const authors = authorsLine(d);
+            let voteHtml = '';
+            if (d.votingOpen) {
+                voteHtml = `
+                    <div class="vote-zone">
+                        <span class="ballot-live-pill"><span class="ballot-live-dot"></span> Voting open</span>
+                        <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
+                            <button class="btn btn-ballot btn-close-ballot" onclick="closeBallot()">
+                                <i class="bi bi-stop-circle me-1"></i> Close Ballot
+                            </button>
+                        </div>
+                        <div class="vote-note"><i class="bi bi-bullseye me-1"></i>Delegates are voting live - close the ballot when you are ready.</div>
+                    </div>`;
+            } else if (d.ballotOpen) {
+                voteHtml = `
+                    <div class="vote-zone">
+                        <span class="ballot-warn-pill"><i class="bi bi-exclamation-triangle-fill"></i> Another ballot is open in this session</span>
+                        <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
+                            <button class="btn btn-ballot btn-open-ballot" disabled><i class="bi bi-play-circle me-1"></i> Open Ballot</button>
+                        </div>
+                        <div class="vote-note"><i class="bi bi-info-circle me-1"></i>Close the current ballot before opening a new one.</div>
+                    </div>`;
+            } else {
+                const donePill = d.votingDone
+                    ? `<span class="ballot-outcome-pill ${d.votingOutcome === 'PASSED' ? 'passed' : 'failed'}">
+                        <i class="bi ${d.votingOutcome === 'PASSED' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                        Voting done - ${d.votingOutcome === 'PASSED' ? 'Passed' : 'Failed'}
+                        <span class="ballot-outcome-sub">(closed ${esc(d.votingClosedAt || '')})</span>
+                       </span>`
+                    : '';
+                voteHtml = `
+                    <div class="vote-zone">
+                        ${donePill}
+                        <div class="vote-note">
+                            <a href="/voting" class="detail-file-link"><i class="bi bi-box-arrow-up-right me-1"></i>Open the Voting page to start voting</a>
+                        </div>
+                    </div>`;
+            }
+
+            const fileHtml = draftFilesHtml(d);
+
+            body.innerHTML = `
+                <div class="detail-head">
+                    <span class="detail-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
+                    <div class="detail-title-wrap">
+                        <h3 class="detail-title">${esc(d.title)}</h3>
+                        <span class="detail-group"><i class="bi bi-clock-fill"></i> Submitted ${esc(d.time || '-')}</span>
+                    </div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-person-badge"></i> Primary Author</div>
+                        <div class="detail-cell-value">${esc(d.primaryAuthor || '-')}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-person-plus"></i> Second Author</div>
+                        <div class="detail-cell-value">${esc(d.primaryAuthor2 || '-')}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-people"></i> Co-Sponsors</div>
+                        <div class="detail-cell-value">${esc(d.sponsors || '-')}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-download"></i> Draft Files</div>
+                        <div class="detail-cell-value">${fileHtml}</div>
+                    </div>
+                </div>
+                ${d.description ? `
+                <div class="detail-section">
+                    <div class="detail-section-label"><i class="bi bi-card-text"></i> Description</div>
+                    <div class="detail-section-body">${esc(d.description)}</div>
+                </div>` : ''}
+                ${d.operativeClauses ? `
+                <div class="detail-section">
+                    <div class="detail-section-label"><i class="bi bi-list-ol"></i> Operative Clauses</div>
+                    <div class="detail-section-body">${esc(d.operativeClauses)}</div>
+                </div>` : ''}
+                ${voteHtml}`;
+        }
+
+        function openBallot() {
+            const d = currentDetail();
+            if (!d) return;
+            fetch('/api/voting/open', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'sessionId=' + d.sessionId + '&ballotType=RESOLUTION&ballotRefId=' + d.id
+            }).then(r => r.text()).then(() => {
+                refreshSelected();
+            }).catch(() => alert('Network error - could not open the ballot.'));
+        }
+
+        function closeBallot() {
+            const d = currentDetail();
+            if (!d) return;
+            fetch('/api/voting/close?sessionId=' + d.sessionId, { method: 'POST', credentials: 'same-origin' })
+                .then(() => refreshSelected())
+                .catch(() => alert('Network error - could not close the ballot.'));
+        }
+
+        let cachedDetail = null;
+        function currentDetail() {
+            return cachedDetail;
+        }
+
+        async function refreshSelected() {
+            if (!selectedResId) return;
+            try {
+                const resp = await fetch('/api/resolutions/' + selectedResId);
+                const d = await resp.json();
+                if (d && d.success) {
+                    cachedDetail = d;
+                    renderDetail(d);
+                }
+            } catch (err) { /* keep last detail */ }
+        }
+
+        // ------------------------------------------------------------------
+        // INITIALIZATION
+        // ------------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            loadResolutions();
+            setInterval(() => {
+                loadResolutions();
+                refreshSelected();
+            }, 3000);
+            if (window.SummitLive) window.SummitLive.on('motion.changed', () => { loadResolutions(); refreshSelected(); });
+        });
+    </script>
+
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('resolution');
+        });
+    </script>
+</body>
+</html>

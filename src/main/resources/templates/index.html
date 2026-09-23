@@ -1,7 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Delegate List - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
     
@@ -11,7 +14,13 @@
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark-mode-loading');
-                document.body.classList.add('dark-mode');
+                if (document.body) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                    });
+                }
             }
         })();
     </script>
@@ -34,15 +43,20 @@
         }
         .content {
             margin-left: var(--sidebar-width); 
-            padding: 95px 20px 20px 20px; 
+            padding: 95px 28px 28px 28px; 
             position: relative; 
             z-index: 1;
             transition: all 0.3s;
+            min-height: 100vh;
         }
         /* Style for when the sidebar is collapsed */
         #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
             margin-left: calc(-1 * var(--sidebar-width));
         }
+
+        /* Glassmorphic page background: canonical ambient (body.sv-ambient in fragments) */
+
+        /* Decorative blurred blobs: canonical ambient (#svBgDecor in fragments) */
 
         /* Modern Page Heading */
         .page-heading {
@@ -54,34 +68,51 @@
             margin-bottom: 0;
         }
 
-        /* Modern Delegates Card */
+        /* Liquid-glass Delegates Card */
         .delegates-card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            position: relative;
             overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(248,250,252,0.55));
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top-color: rgba(255,255,255,0.85);
+            border-radius: 22px;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.08),
+                0 6px 20px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        /* Glossy top sheen */
+        .delegates-card::before {
+            content: '';
+            position: absolute;
+            top: -40%; left: -15%;
+            width: 130%; height: 85%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.06) 45%, transparent 75%);
+            pointer-events: none;
         }
 
         .table-responsive {
-            background: #fff;
+            background: transparent;
         }
 
         /* Modern Table Styles */
         .modern-delegates-table {
             margin: 0;
-            background: #fff;
+            background: transparent;
         }
 
         .modern-delegates-table thead {
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.42), rgba(255,255,255,0.14));
         }
 
         .modern-delegates-table thead th {
             padding: 18px 20px;
             font-weight: 700;
             font-size: 0.85rem;
-            color: #000000;
+            color: #334155;
             text-align: center;
             vertical-align: middle;
             border: none;
@@ -94,16 +125,16 @@
         }
 
         .modern-delegates-table tbody {
-            background: #fff;
+            background: transparent;
         }
 
         .modern-delegates-table tbody tr {
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid rgba(15,23,42,0.06);
             transition: background-color 0.15s ease;
         }
 
         .modern-delegates-table tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: rgba(255,255,255,0.5);
         }
 
         .modern-delegates-table tbody tr:last-child {
@@ -115,7 +146,7 @@
             text-align: center;
             vertical-align: middle;
             font-size: 0.95rem;
-            color: #1e293b;
+            color: #334155;
             font-weight: 600;
         }
 
@@ -136,13 +167,32 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            font-weight: 800;
+            box-shadow: 0 3px 10px rgba(124,58,237,0.35);
+            flex-shrink: 0;
         }
+
+        .delegate-meta {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .delegate-name {
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        body.dark-mode .delegate-name { color: #f1f5f9; }
 
         /* Modern Status Badges */
         .status-badge {
@@ -153,22 +203,37 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
+            backdrop-filter: blur(8px);
         }
 
         .status-badge.yes {
-            background: #dcfce7;
-            color: #166534;
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #047857;
         }
 
         .status-badge.no {
-            background: #fee2e2;
-            color: #991b1b;
+            background: rgba(100, 116, 139, 0.12);
+            border: 1px solid rgba(100, 116, 139, 0.25);
+            color: #475569;
+        }
+
+        body.dark-mode .status-badge.yes {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #6ee7b7;
+        }
+
+        body.dark-mode .status-badge.no {
+            background: rgba(148, 163, 184, 0.12);
+            border-color: rgba(148, 163, 184, 0.25);
+            color: #94a3b8;
         }
 
         /* Modern Action Buttons */
         .action-btn {
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.85rem;
             font-weight: 600;
             border: none;
@@ -177,64 +242,110 @@
             align-items: center;
             gap: 6px;
             text-decoration: none;
+            backdrop-filter: blur(8px);
         }
 
         .action-btn.edit {
-            background: #dbeafe;
-            color: #1e40af;
+            background: rgba(59, 130, 246, 0.14);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            color: #1d4ed8;
             text-decoration: none;
         }
 
         .action-btn.edit:hover {
-            background: #bfdbfe;
+            background: rgba(59, 130, 246, 0.22);
+            border-color: rgba(59, 130, 246, 0.45);
             transform: translateY(-1px);
             text-decoration: none;
+            box-shadow: 0 4px 12px rgba(6,182,212,0.22);
         }
 
         .action-btn.delete {
-            background: #fee2e2;
-            color: #991b1b;
+            background: rgba(239, 68, 68, 0.10);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #b91c1c;
             text-decoration: none;
         }
 
         .action-btn.delete:hover {
-            background: #fecaca;
+            background: rgba(239, 68, 68, 0.18);
+            border-color: rgba(239, 68, 68, 0.45);
             transform: translateY(-1px);
             text-decoration: none;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.22);
         }
 
         .action-btn i {
             font-size: 1rem;
         }
 
+        body.dark-mode .action-btn.edit {
+            background: rgba(59, 130, 246, 0.16);
+            border-color: rgba(59, 130, 246, 0.35);
+            color: #93c5fd;
+        }
+
+        body.dark-mode .action-btn.delete {
+            background: rgba(239, 68, 68, 0.16);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #fca5a5;
+        }
+
         /* Add New Button */
         .btn-add-new {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, rgba(16,185,129,0.92), rgba(5,150,105,0.9));
             color: #fff;
             padding: 10px 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-top-color: rgba(255,255,255,0.55);
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             text-decoration: none;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.28), inset 0 1px 0 rgba(255,255,255,0.3);
         }
 
         .btn-add-new:hover {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(135deg, rgba(5,150,105,0.95), rgba(4,120,87,0.95));
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 22px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
             color: #fff;
             text-decoration: none;
         }
 
-        /* Delegate count inline — bold text, no pill */
+        /* Import Students Button */
+        .btn-import {
+            background: linear-gradient(135deg, rgba(6,182,212,0.92), rgba(124,58,237,0.9));
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-top-color: rgba(255,255,255,0.55);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.28), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .btn-import:hover {
+            background: linear-gradient(135deg, rgba(8,145,178,0.95), rgba(124,58,237,0.95));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6,182,212,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* Delegate count inline - bold text, no pill */
         .delegate-inline-count {
             font-size: 1.05rem;
             font-weight: 900;
-            color: #2563eb;
+            color: #0891b2;
             letter-spacing: -0.01em;
             margin-left: 4px;
             vertical-align: middle;
@@ -242,59 +353,53 @@
         .delegate-inline-count.near-limit { color: #d97706; }
         .delegate-inline-count.at-limit   { color: #dc2626; }
 
-        /* Blocked add button — shown when committee is full */
+        /* Blocked add button - shown when committee is full */
         .btn-add-new--blocked {
-            background: #f1f5f9;
-            color: #94a3b8;
+            background: rgba(148,163,184,0.18);
+            color: #64748b;
             padding: 10px 18px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: not-allowed;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            border: 1.5px dashed #cbd5e1;
+            border: 1.5px dashed rgba(148,163,184,0.6);
             font-size: 0.9rem;
             user-select: none;
+            backdrop-filter: blur(8px);
         }
 
         /* Dark mode */
-        body.dark-mode .delegate-inline-count            { color: #60a5fa; }
+        body.dark-mode .delegate-inline-count            { color: #22d3ee; }
         body.dark-mode .delegate-inline-count.near-limit { color: #fbbf24; }
         body.dark-mode .delegate-inline-count.at-limit   { color: #f87171; }
-        body.dark-mode .btn-add-new--blocked            { background: #1e293b; color: #475569; border-color: #334155; }
+        body.dark-mode .btn-add-new--blocked            { background: rgba(30,41,59,0.6); color: #64748b; border-color: rgba(51,65,85,0.6); }
 
         /* ================================
            DARK MODE STYLES
            ================================ */
-        body.dark-mode {
-            background: #0f172a;
-        }
-
-        body.dark-mode .content {
-            background: #0f172a;
-        }
-
         body.dark-mode .page-heading {
             color: #f1f5f9;
         }
 
         body.dark-mode .delegates-card {
-            background: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, rgba(30,41,59,0.6), rgba(15,23,42,0.4));
+            border: 1px solid rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.22);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
         }
 
         body.dark-mode .table-responsive {
-            background-color: #1e293b !important;
+            background-color: transparent !important;
         }
 
         body.dark-mode .modern-delegates-table {
-            background-color: #1e293b !important;
+            background-color: transparent !important;
         }
 
         body.dark-mode .modern-delegates-table thead {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)) !important;
         }
 
         body.dark-mode .modern-delegates-table thead th {
@@ -303,16 +408,16 @@
         }
 
         body.dark-mode .modern-delegates-table tbody {
-            background-color: #1e293b !important;
+            background-color: transparent !important;
         }
 
         body.dark-mode .modern-delegates-table tbody tr {
-            border-bottom-color: #334155;
-            background-color: #1e293b !important;
+            border-bottom-color: rgba(255,255,255,0.07);
+            background-color: transparent !important;
         }
 
         body.dark-mode .modern-delegates-table tbody tr:hover {
-            background-color: #334155 !important;
+            background-color: rgba(255,255,255,0.05) !important;
         }
 
         body.dark-mode .modern-delegates-table tbody td {
@@ -325,40 +430,296 @@
         }
 
         body.dark-mode .status-badge.yes {
-            background: #065f46;
-            color: #d1fae5;
+            background: rgba(16,185,129,0.16);
+            border-color: rgba(16,185,129,0.35);
+            color: #a7f3d0;
         }
 
         body.dark-mode .status-badge.no {
-            background: #7f1d1d;
+            background: rgba(239,68,68,0.14);
+            border-color: rgba(239,68,68,0.3);
             color: #fecaca;
         }
 
         body.dark-mode .action-btn.edit {
-            background: #1e3a8a;
+            background: rgba(6,182,212,0.18);
+            border-color: rgba(6,182,212,0.3);
             color: #bfdbfe;
         }
 
         body.dark-mode .action-btn.edit:hover {
-            background: #1e40af;
+            background: rgba(6,182,212,0.3);
+            border-color: rgba(6,182,212,0.5);
         }
 
         body.dark-mode .action-btn.delete {
-            background: #7f1d1d;
+            background: rgba(239,68,68,0.14);
+            border-color: rgba(239,68,68,0.3);
             color: #fecaca;
         }
 
         body.dark-mode .action-btn.delete:hover {
-            background: #991b1b;
+            background: rgba(239,68,68,0.24);
+            border-color: rgba(239,68,68,0.5);
+        }
+
+        /* ================================================
+           BULK ACTIONS TOOLBAR (glass)
+           ================================================ */
+        .bulk-actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 13px 18px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(248,250,252,0.35));
+            backdrop-filter: blur(32px) saturate(180%);
+            -webkit-backdrop-filter: blur(32px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.55);
+            border-top-color: rgba(255,255,255,0.8);
+            border-radius: 18px;
+            box-shadow:
+                0 14px 40px rgba(15,23,42,0.07),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        body.dark-mode .bulk-actions-bar {
+            background: linear-gradient(135deg, rgba(30,41,59,0.55), rgba(15,23,42,0.35));
+            border-color: rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.2);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .bulk-actions-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #475569;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        body.dark-mode .bulk-actions-label { color: #cbd5e1; }
+        .bulk-actions-label i {
+            font-size: 1.05rem;
+            color: #7c3aed;
+        }
+        .bulk-actions-btns {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .bulk-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .bulk-btn {
+            border: 1px solid rgba(124,58,237,0.28);
+            background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(6,182,212,0.10));
+            color: #4338ca;
+            border-radius: 12px;
+            padding: 9px 15px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all .2s ease;
+            cursor: pointer;
+        }
+        body.dark-mode .bulk-btn {
+            border-color: rgba(167,139,250,0.35);
+            background: linear-gradient(135deg, rgba(124,58,237,0.22), rgba(6,182,212,0.14));
+            color: #c7d2fe;
+        }
+        .bulk-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(124,58,237,0.24), rgba(6,182,212,0.18));
+            border-color: rgba(124,58,237,0.5);
+            box-shadow: 0 6px 18px rgba(124,58,237,0.28);
+        }
+        body.dark-mode .bulk-btn:hover {
+            background: linear-gradient(135deg, rgba(124,58,237,0.34), rgba(6,182,212,0.24));
+            border-color: rgba(167,139,250,0.6);
+        }
+        .bulk-btn:active { transform: translateY(0) scale(.98); }
+        .bulk-btn.danger {
+            border-color: rgba(239,68,68,0.28);
+            background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(244,63,94,0.08));
+            color: #be123c;
+        }
+        body.dark-mode .bulk-btn.danger {
+            border-color: rgba(248,113,113,0.35);
+            background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(244,63,94,0.12));
+            color: #fecaca;
+        }
+        .bulk-btn.danger:hover {
+            background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(244,63,94,0.16));
+            border-color: rgba(239,68,68,0.5);
+            box-shadow: 0 6px 18px rgba(239,68,68,0.28);
+        }
+        body.dark-mode .bulk-btn.danger:hover {
+            background: linear-gradient(135deg, rgba(239,68,68,0.28), rgba(244,63,94,0.2));
+            border-color: rgba(248,113,113,0.55);
+        }
+        .bulk-btn:disabled {
+            opacity: .55;
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ================================================
+           TOOLBAR ROW: bulk actions + standalone filters bar
+           ================================================ */
+        .toolbar-row {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .toolbar-row .bulk-actions-bar {
+            flex: 1 1 480px;
+            margin-bottom: 0;
+        }
+        .filters-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 18px;
+            border: 1px solid rgba(255,255,255,0.55);
+            border-top-color: rgba(255,255,255,0.8);
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(248,250,252,0.35));
+            backdrop-filter: blur(32px) saturate(180%);
+            -webkit-backdrop-filter: blur(32px) saturate(180%);
+            box-shadow:
+                0 14px 40px rgba(15,23,42,0.07),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+            flex: 0 0 auto;
+        }
+        body.dark-mode .filters-bar {
+            background: linear-gradient(135deg, rgba(30,41,59,0.55), rgba(15,23,42,0.35));
+            border-color: rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.2);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .filters-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #475569;
+            white-space: nowrap;
+        }
+        body.dark-mode .filters-label { color: #cbd5e1; }
+        .filters-label i {
+            font-size: 1rem;
+            color: #06b6d4;
+        }
+        @media (max-width: 768px) {
+            .toolbar-row { flex-direction: column; }
+            .toolbar-row .bulk-actions-bar,
+            .filters-bar { flex: 1 1 auto; }
+        }
+        .filter-segmented {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid rgba(124,58,237,0.28);
+            background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(6,182,212,0.06));
+        }
+        .filter-seg-btn {
+            border: none;
+            background: transparent;
+            color: #4b5563;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all .15s ease;
+            white-space: nowrap;
+        }
+        .filter-seg-btn:hover {
+            background: rgba(124,58,237,0.10);
+            color: #4338ca;
+        }
+        .filter-seg-btn.active {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.35);
+        }
+        body.dark-mode .filter-segmented {
+            border-color: rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark-mode .filter-seg-btn {
+            color: #cbd5e1;
+        }
+        body.dark-mode .filter-seg-btn:hover {
+            background: rgba(124,58,237,0.18);
+            color: #e2e8f0;
+        }
+        body.dark-mode .filter-seg-btn.active {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+        }
+        @media (max-width: 576px) {
+            .filter-seg-btn { padding: 8px 10px; font-size: 0.78rem; }
+        }
+
+        /* Filtered row states */
+        .modern-delegates-table tbody tr.row-dimmed {
+            opacity: 0.35 !important;
+            background-color: rgba(100,116,139,0.10) !important;
+        }
+        body.dark-mode .modern-delegates-table tbody tr.row-dimmed {
+            background-color: rgba(148,163,184,0.08) !important;
+        }
+        .modern-delegates-table tbody tr.row-hidden {
+            display: none !important;
+        }
+        .modern-delegates-table tbody tr.row-disabled {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+        .modern-delegates-table tbody tr.row-disabled .action-btn {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .modern-delegates-table tbody tr.row-disabled .action-btn:hover {
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         /* Empty State Message */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            background: #f8fafc;
-            border-radius: 16px;
-            border: 2px dashed #cbd5e1;
+            background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(248,250,252,0.35));
+            backdrop-filter: blur(32px) saturate(180%);
+            -webkit-backdrop-filter: blur(32px) saturate(180%);
+            border-radius: 22px;
+            border: 1.5px dashed rgba(148,163,184,0.6);
+            box-shadow: 0 14px 40px rgba(15,23,42,0.06);
         }
 
         .empty-state-icon {
@@ -381,8 +742,8 @@
         }
 
         body.dark-mode .empty-state {
-            background: #334155;
-            border-color: #475569;
+            background: linear-gradient(135deg, rgba(30,41,59,0.5), rgba(15,23,42,0.35));
+            border-color: rgba(148,163,184,0.35);
         }
 
         body.dark-mode .empty-state-icon {
@@ -396,12 +757,104 @@
         body.dark-mode .empty-state-text {
             color: #94a3b8;
         }
+        /* ================================
+           LIQUID GLASS - index (trial)
+           ================================ */
+        body.liquid-glass .delegates-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.50), rgba(248,250,252,0.26));
+            backdrop-filter: blur(28px) saturate(240%);
+            -webkit-backdrop-filter: blur(28px) saturate(240%);
+            border: 1px solid rgba(255,255,255,0.7);
+            border-top-color: rgba(255,255,255,1);
+            border-radius: 24px;
+            box-shadow:
+                0 28px 70px rgba(15,23,42,0.12),
+                0 8px 24px rgba(15,23,42,0.06),
+                inset 0 1px 0 rgba(255,255,255,1),
+                inset 0 -1px 0 rgba(255,255,255,0.25);
+        }
+        /* Static liquid rim - bright top-left edge, always visible */
+        body.liquid-glass .delegates-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.15) 40%, rgba(255,255,255,0.55));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+        }
+        body.liquid-glass.dark-mode .delegates-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.42), rgba(15,23,42,0.26));
+            border: 1px solid rgba(255,255,255,0.16);
+            border-top-color: rgba(255,255,255,0.30);
+            box-shadow: 0 28px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14);
+        }
+        body.liquid-glass.dark-mode .delegates-card::after {
+            background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.28));
+        }
+        body.liquid-glass .delegates-card > .table-responsive {
+            position: relative;
+            z-index: 1;
+        }
+        body.liquid-glass .bulk-actions-bar,
+        body.liquid-glass .filters-bar,
+        body.liquid-glass .empty-state {
+            background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(248,250,252,0.30));
+            backdrop-filter: blur(28px) saturate(240%);
+            -webkit-backdrop-filter: blur(28px) saturate(240%);
+        }
+        body.liquid-glass.dark-mode .bulk-actions-bar,
+        body.liquid-glass.dark-mode .filters-bar,
+        body.liquid-glass.dark-mode .empty-state {
+            background: linear-gradient(135deg, rgba(30,41,59,0.50), rgba(15,23,42,0.34));
+        }
+        body.liquid-glass .bulk-actions-bar > *,
+        body.liquid-glass .filters-bar > *,
+        body.liquid-glass .empty-state > * {
+            position: relative;
+            z-index: 1;
+        }
+        /* Vivid colour bleed behind the glass: canonical ambient blobs (fragments) */
+        body.liquid-glass .join-code-chip {
+            background: rgba(124,58,237,0.16);
+            border-color: rgba(124,58,237,0.45);
+            box-shadow: 0 4px 14px rgba(124,58,237,0.22), inset 0 1px 0 rgba(255,255,255,0.45);
+            backdrop-filter: blur(10px) saturate(200%);
+        }
+        body.liquid-glass .btn-add-new {
+            box-shadow: 0 6px 20px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 0 0 1px rgba(255,255,255,0.25);
+            backdrop-filter: blur(12px) saturate(200%);
+        }
+        body.liquid-glass .btn-import {
+            box-shadow: 0 6px 20px rgba(6,182,212,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 0 0 1px rgba(255,255,255,0.25);
+            backdrop-filter: blur(12px) saturate(200%);
+        }
+        body.liquid-glass .status-badge,
+        body.liquid-glass .action-btn,
+        body.liquid-glass .bulk-btn {
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+        }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
 
     <!-- 1. HEADER (NAVBAR) FRAGMENT -->
     <div th:replace="fragments :: header"></div>
+
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
 
     <!-- 2. SIDEBAR FRAGMENT -->
     <div th:replace="fragments :: sidebar"></div>
@@ -410,13 +863,27 @@
     <div class="content">
         <div class="container-fluid">
 
+            <!-- Import feedback banner (shown after importing students) -->
+            <div th:if="${param.imported}" class="alert d-flex align-items-center gap-3 mb-4"
+                 style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);
+                        border-radius:14px;color:#059669;padding:14px 18px;">
+                <i class="bi bi-check-circle-fill" style="font-size:1.2rem;flex-shrink:0;"></i>
+                <div>
+                    <strong>Import complete</strong> -
+                    <span th:text="${param.imported[0]}">0</span> student(s) added,
+                    <span th:text="${param.skipped != null and !#arrays.isEmpty(param.skipped) ? param.skipped[0] : 0}">0</span> skipped (duplicates or capacity).
+                </div>
+                <button type="button" class="btn-close ms-auto" style="filter:invert(1);opacity:.6;"
+                        onclick="this.closest('.alert').remove()"></button>
+            </div>
+
             <!-- No-delegate access banner (shown when redirected from Speakers or Motions) -->
             <div th:if="${param.noDelegates}" class="alert d-flex align-items-center gap-3 mb-4"
                  style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);
                         border-radius:14px;color:#fcd34d;padding:14px 18px;">
                 <i class="bi bi-lock-fill" style="font-size:1.2rem;flex-shrink:0;"></i>
                 <div>
-                    <strong>Delegates required</strong> —
+                    <strong>Delegates required</strong> -
                     <span th:if="${param.noDelegates[0] == 'speakers'}">the Speakers page</span>
                     <span th:if="${param.noDelegates[0] == 'motions'}">the Motions page</span>
                     is only available after at least one delegate has been added to the session.
@@ -428,30 +895,90 @@
 
             <!-- Heading with Icon -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="page-heading" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+                <h2 class="page-heading entrance" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
                     <i class="bi bi-people-fill me-2"></i>Delegate Records
-                    <!-- Delegate count inline — only shown when session has a strength limit -->
+                    <!-- Delegate count inline - only shown when session has a strength limit -->
                     <span th:if="${currentSession != null and currentSession.strength > 0}"
                           class="delegate-inline-count"
                           th:classappend="${delegateCount >= currentSession.strength ? ' at-limit' : (delegateCount * 100 >= currentSession.strength * 75 ? ' near-limit' : '')}">
                         <th:block th:text="${delegateCount}">0</th:block>&thinsp;/&thinsp;<th:block th:text="${currentSession.strength}">0</th:block>
                     </span>
+                     <!-- Session join code - share with delegates so they can join -->
+                     <span th:if="${currentSession != null and currentSession.joinCode != null}"
+                           class="join-code-chip"
+                           title="Share this code so delegates can join this session"
+                           style="display:inline-flex;align-items:center;gap:8px;margin-left:6px;padding:7px 18px;border-radius:50px;background:rgba(124,58,237,0.18);border:2px solid rgba(124,58,237,0.45);color:#7c3aed;font-weight:800;font-size:1rem;letter-spacing:0.14em;cursor:pointer;user-select:none;box-shadow:0 6px 18px rgba(124,58,237,0.25);"
+                           onclick="copyJoinCode(this)"
+                           th:attr="data-code=${currentSession.joinCode}">
+                         <i class="bi bi-key-fill" style="font-size:1rem;"></i>
+                         <span th:text="${currentSession.joinCode}">ABC123</span>
+                         <i class="bi bi-clipboard" style="font-size:1rem;"></i>
+                     </span>
                 </h2>
-                <!-- Normal add button when under the limit (or no limit set) -->
-                <a th:if="${currentSession == null or currentSession.strength == 0 or delegateCount < currentSession.strength}"
-                   href="/add" class="btn-add-new">
-                    <i class="bi bi-plus-circle-fill"></i> Add New
-                </a>
-                <!-- Blocked state when committee is full -->
-                <span th:if="${currentSession != null and currentSession.strength > 0 and delegateCount >= currentSession.strength}"
-                      class="btn-add-new--blocked"
-                      title="Committee is full — delete a delegate to add more">
-                    <i class="bi bi-people-fill"></i> Committee Full
-                </span>
+                <!-- Header action buttons - kept together so they stay aligned -->
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <!-- Normal add button when under the limit (or no limit set) -->
+                    <a th:if="${currentSession == null or currentSession.strength == 0 or delegateCount < currentSession.strength}"
+                       href="/add" class="btn-add-new">
+                        <i class="bi bi-plus-circle-fill"></i> Add New
+                    </a>
+                    <!-- Blocked state when committee is full -->
+                    <span th:if="${currentSession != null and currentSession.strength > 0 and delegateCount >= currentSession.strength}"
+                          class="btn-add-new--blocked"
+                          title="Committee is full - delete a delegate to add more">
+                        <i class="bi bi-people-fill"></i> Committee Full
+                    </span>
+                    <!-- Import Students button -->
+                    <a href="/import" class="btn-import">
+                        <i class="bi bi-upload"></i> Import Students
+                    </a>
+                </div>
+            </div>
+
+            <!-- Toolbar row: bulk actions + standalone filters bar -->
+            <div class="toolbar-row">
+            <div th:unless="${#lists.isEmpty(presentations)}" class="bulk-actions-bar entrance entrance-2 lg-reactive">
+                <div class="bulk-actions-left">
+                    <span class="bulk-actions-label">
+                        <i class="bi bi-sliders2-vertical"></i> Bulk Actions
+                    </span>
+                    <div class="bulk-actions-btns">
+                        <button type="button" class="bulk-btn" data-action="presenting">
+                            <i class="bi bi-person-check-fill"></i><span>Everyone Present</span>
+                        </button>
+                        <button type="button" class="bulk-btn" data-action="voting">
+                            <i class="bi bi-check2-square"></i><span>Everyone Voting</span>
+                        </button>
+                        <button type="button" class="bulk-btn" data-action="not-voting">
+                            <i class="bi bi-square"></i><span>Everyone Not Voting</span>
+                        </button>
+                        <button type="button" class="bulk-btn danger" data-action="reset-scores">
+                            <i class="bi bi-arrow-counterclockwise"></i><span>Reset Scores</span>
+                        </button>
+                        <button type="button" class="bulk-btn danger" data-action="delete-all">
+                            <i class="bi bi-trash-fill"></i><span>Delete All</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${#lists.isEmpty(presentations)}" class="filters-bar entrance entrance-2 lg-reactive">
+                <span class="filters-label"><i class="bi bi-funnel-fill"></i> Filters</span>
+                    <div class="filter-segmented" role="group" aria-label="Filter delegates">
+                        <button type="button" class="filter-seg-btn active" data-filter="all" onclick="applyFilter('all')">
+                            <i class="bi bi-people-fill"></i> All
+                        </button>
+                        <button type="button" class="filter-seg-btn" data-filter="present" onclick="applyFilter('present')">
+                            <i class="bi bi-person-check-fill"></i> Present
+                        </button>
+                        <button type="button" class="filter-seg-btn" data-filter="voting" onclick="applyFilter('voting')">
+                            <i class="bi bi-check2-square"></i> Voting
+                        </button>
+                    </div>
+            </div>
             </div>
 
             <!-- Empty State Message (shown when no delegates) -->
-            <div th:if="${#lists.isEmpty(presentations)}" class="empty-state">
+            <div th:if="${#lists.isEmpty(presentations)}" class="empty-state lg-reactive">
                 <div class="empty-state-icon">
                     <i class="bi bi-people"></i>
                 </div>
@@ -463,26 +990,33 @@
             </div>
 
             <!-- Modern Delegates Table (shown when delegates exist) -->
-            <div th:unless="${#lists.isEmpty(presentations)}" class="delegates-card">
+            <div th:unless="${#lists.isEmpty(presentations)}" class="delegates-card lg-reactive">
                 <div class="table-responsive">
                     <table class="table modern-delegates-table mb-0">
                         <thead>
                             <tr>
-                                <th>Delegate Name</th>
+                                <th>Delegate</th>
+                                <th>Status</th>
                                 <th>Presenting</th>
                                 <th>Voting</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="p : ${presentations}">
+                            <tr th:each="p : ${presentations}" th:attr="data-delegate-name=${p.name},data-presenting=${p.presenting},data-voting=${p.voting}">
                                 <td>
                                     <div class="delegate-badge">
-                                        <div class="delegate-icon">
-                                            <i class="bi bi-person-fill"></i>
+                                        <div class="delegate-icon"
+                                             th:text="${#strings.isEmpty(p.name) ? '?' : #strings.toUpperCase(#strings.substring(p.name, 0, 1))}">D</div>
+                                        <div class="delegate-meta">
+                                            <span class="delegate-name" th:text="${p.name}">Delegate Name</span>
                                         </div>
-                                        <span th:text="${p.name}">Delegate Name</span>
                                     </div>
+                                </td>
+                                <td class="join-status-cell">
+                                    <span class="status-badge no">
+                                        <i class="bi bi-x-circle-fill"></i> Not Joined
+                                    </span>
                                 </td>
                                 <td>
                                     <span th:if="${p.presenting}" class="status-badge yes">
@@ -518,5 +1052,208 @@
     </div>
 
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            var labels = {
+                'presenting':    'Make EVERY delegate Presenting = Yes?',
+                'voting':        'Make EVERY delegate Voting = Yes?',
+                'not-voting':    'Make EVERY delegate Voting = No?',
+                'reset-scores':  'Reset ALL evaluation scores to 0 for every delegate? This cannot be undone.',
+                'delete-all':    'Delete ALL delegates from this session? This cannot be undone.'
+            };
+            document.querySelectorAll('.bulk-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var action = btn.getAttribute('data-action');
+                    if (!confirm(labels[action] || 'Confirm bulk action?')) return;
+                    btn.disabled = true;
+                    var original = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>Working\u2026</span>';
+                    var spinIcon = btn.querySelector('.bi-arrow-repeat');
+                    if (spinIcon && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                        window.sciVerseAnime.spinElement(spinIcon);
+                    }
+                    fetch('/api/delegates/bulk?action=' + encodeURIComponent(action), { method: 'POST' })
+                        .then(function(resp) { return resp.text(); })
+                        .then(function(text) {
+                            if (text === 'Success') {
+                                window.location.reload();
+                            } else {
+                                alert('Something went wrong: ' + text);
+                                btn.innerHTML = original;
+                                btn.disabled = false;
+                            }
+                        })
+                        .catch(function(err) {
+                            alert('Request failed: ' + err);
+                            btn.innerHTML = original;
+                            btn.disabled = false;
+                        });
+                });
+            });
+        })();
+    </script>
+
+    <script>
+        (function() {
+            console.log('[filter] script running');
+            var rows = document.querySelectorAll('.modern-delegates-table tbody tr');
+            console.log('[filter] found rows:', rows.length);
+            var originalOrder = [];
+            rows.forEach(function(row) {
+                originalOrder.push(row);
+                var editBtn = row.querySelector('.action-btn.edit');
+                var deleteBtn = row.querySelector('.action-btn.delete');
+                if (editBtn && !editBtn.getAttribute('data-original-href')) {
+                    editBtn.setAttribute('data-original-href', editBtn.getAttribute('href'));
+                }
+                if (deleteBtn && !deleteBtn.getAttribute('data-original-href')) {
+                    deleteBtn.setAttribute('data-original-href', deleteBtn.getAttribute('href'));
+                }
+            });
+            console.log('[filter] originalOrder length:', originalOrder.length);
+
+            function applyFilter(type) {
+                var tableBody = document.querySelector('.modern-delegates-table tbody');
+                document.querySelectorAll('.filter-seg-btn').forEach(function(btn) {
+                    btn.classList.toggle('active', btn.getAttribute('data-filter') === type);
+                });
+
+                console.log('[filter] applyFilter called with type:', type, 'rows:', originalOrder.length);
+
+                var matched = [];
+                var unmatched = [];
+                originalOrder.forEach(function(row) {
+                    var presenting = row.getAttribute('data-presenting');
+                    var voting = row.getAttribute('data-voting');
+                    console.log('[filter] row presenting:', presenting, 'voting:', voting);
+                    var isPresenting = presenting === 'true';
+                    var isVoting = voting === 'true';
+                    if (type === 'all') {
+                        row.classList.remove('row-dimmed', 'row-hidden', 'row-disabled');
+                        enableRowActions(row);
+                        matched.push(row);
+                        return;
+                    }
+                    var isMatch = (type === 'present' && isPresenting) || (type === 'voting' && isVoting);
+                    if (isMatch) {
+                        row.classList.remove('row-dimmed', 'row-disabled');
+                        enableRowActions(row);
+                        matched.push(row);
+                    } else {
+                        row.classList.remove('row-disabled', 'row-hidden');
+                        row.classList.add('row-dimmed');
+                        disableRowActions(row);
+                        unmatched.push(row);
+                    }
+                });
+
+                if (type === 'all') {
+                    originalOrder.forEach(function(row) { tableBody.appendChild(row); });
+                } else {
+                    matched.forEach(function(row) { tableBody.appendChild(row); });
+                    unmatched.forEach(function(row) { tableBody.appendChild(row); });
+                }
+                console.log('[filter] matched:', matched.length, 'unmatched:', unmatched.length);
+            }
+
+            function disableRowActions(row) {
+                row.querySelectorAll('.action-btn').forEach(function(btn) {
+                    btn.setAttribute('disabled', 'disabled');
+                    btn.setAttribute('aria-disabled', 'true');
+                    btn.removeAttribute('href');
+                    btn.style.pointerEvents = 'none';
+                });
+            }
+
+            function enableRowActions(row) {
+                row.querySelectorAll('.action-btn').forEach(function(btn) {
+                    btn.removeAttribute('disabled');
+                    btn.removeAttribute('aria-disabled');
+                });
+                var editBtn = row.querySelector('.action-btn.edit');
+                var deleteBtn = row.querySelector('.action-btn.delete');
+                if (editBtn && editBtn.getAttribute('data-original-href')) {
+                    editBtn.setAttribute('href', editBtn.getAttribute('data-original-href'));
+                }
+                if (deleteBtn && deleteBtn.getAttribute('data-original-href')) {
+                    deleteBtn.setAttribute('href', deleteBtn.getAttribute('data-original-href'));
+                }
+                editBtn.style.pointerEvents = '';
+                deleteBtn.style.pointerEvents = '';
+            }
+
+            window.applyFilter = applyFilter;
+        })();
+    </script>
+
+    <script>
+        function copyJoinCode(el) {
+            var code = el.getAttribute('data-code');
+            if (!code) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(function() { flashJoinCode(el); });
+            } else {
+                flashJoinCode(el);
+            }
+        }
+        function flashJoinCode(el) {
+            var icon = el.querySelector('.bi-clipboard');
+            if (icon) icon.classList.remove('bi-clipboard');
+            if (icon) icon.classList.add('bi-check2');
+            var original = el.style.borderColor;
+            el.style.borderColor = '#10b981';
+            el.style.color = '#10b981';
+            setTimeout(function() {
+                el.style.borderColor = original;
+                el.style.color = '#7c3aed';
+                if (icon) { icon.classList.remove('bi-check2'); icon.classList.add('bi-clipboard'); }
+            }, 1200);
+        }
+    </script>
+
+    <script>
+        (function() {
+            function esc(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            function pollStatus() {
+                fetch('/api/delegate-memberships', { credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (!Array.isArray(data)) return;
+                        data.forEach(function(d) {
+                            var row = document.querySelector('tr[data-delegate-name="' + CSS.escape(d.name) + '"]');
+                            if (!row) return;
+                            var cell = row.querySelector('.join-status-cell');
+                            if (!cell) return;
+                            if (d.joined) {
+                                cell.innerHTML = '<span class="status-badge yes">'
+                                    + '<i class="bi bi-check-circle-fill"></i> Joined</span>'
+                                    + (d.joinedAt ? '<div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">' + esc(d.joinedAt) + '</div>' : '');
+                            } else {
+                                cell.innerHTML = '<span class="status-badge no">'
+                                    + '<i class="bi bi-x-circle-fill"></i> Not Joined</span>';
+                            }
+                        });
+                    })
+                    .catch(function() {});
+            }
+
+            pollStatus();
+            setInterval(pollStatus, 3000);
+            if (window.SummitLive) window.SummitLive.on('delegate.changed', pollStatus);
+        })();
+    </script>
+
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('index');
+        });
+    </script>
 </body>
 </html>

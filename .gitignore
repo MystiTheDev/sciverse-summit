@@ -1,0 +1,22 @@
+# Build outputs
+target/
+node_modules/
+dist/
+*.log
+
+# Runtime data (never commit databases or uploads)
+data/
+
+# Local staging: jar + per-OS runtimes are fetched at build time (see .github/workflows/release.yml)
+summit-desktop/chair/server/summit.jar
+summit-desktop/chair/server/jre/
+/summit-*.jar
+
+# Installer artifacts live on GitHub Releases, not in git
+*.exe
+*.AppImage
+*.blockmap
+
+# OS / editor noise
+.DS_Store
+Thumbs.db

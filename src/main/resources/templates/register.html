@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>User Registration</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Load Bootstrap 5 CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -10,9 +12,25 @@
     <!-- Load Inter font -->
     <link href="/css/inter.css" rel="stylesheet">
     
+    <script>
+        (function() {
+            var saved = localStorage.getItem('theme');
+            if (saved === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                    });
+                }
+            }
+        })();
+    </script>
+
     <style>
         body {
-            background-color: #f4f7fa;
+            background: linear-gradient(135deg, #f5f3ff 0%, #f8fafc 40%, #cffafe 100%);
             font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
@@ -21,13 +39,19 @@
             margin: 0;
         }
         .registration-card {
-            /* Max width to maintain readability */
             max-width: 500px;
             width: 90%;
-            background: #fff;
+            background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.55));
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top-color: rgba(255,255,255,0.9);
+            box-shadow:
+                0 18px 50px rgba(15, 23, 42, 0.10),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(255,255,255,0.12);
         }
         .card-title {
             font-size: 2rem;
@@ -52,18 +76,19 @@
             color: #475569;
         }
         .register-btn {
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
             border: none;
+            box-shadow: 0 6px 18px rgba(6,182,212,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
             padding: 10px 20px;
             font-size: 1.1rem;
             font-weight: 600;
             border-radius: 6px;
-            transition: background-color 0.2s;
+            transition: background 0.2s;
             width: 100%;
             margin-top: 20px;
         }
         .register-btn:hover {
-            background-color: #0b5ed7;
+            background: linear-gradient(135deg, #0891b2, #0e7490);
         }
         .error-message {
             color: #dc3545;
@@ -71,14 +96,66 @@
             margin-top: 5px;
         }
         .text-center a {
-            color: #0d6efd;
+            color: #0891b2;
             text-decoration: none;
             font-weight: 500;
         }
 
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f0a1e 0%, #0f172a 40%, #0f1b2d 100%);
+        }
+        body.dark-mode .registration-card {
+            background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.55));
+            border-color: rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.2);
+            box-shadow:
+                0 12px 34px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                inset 0 -1px 0 rgba(255,255,255,0.02);
+        }
+        body.dark-mode .card-title { color: #f1f5f9; }
+        body.dark-mode .form-label { color: rgba(255,255,255,0.75); }
+        body.dark-mode .form-control {
+            background: rgba(255,255,255,0.07) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        body.dark-mode .form-control::placeholder { color: rgba(255,255,255,0.35); }
+        body.dark-mode .form-control:focus {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(6,182,212,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18) !important;
+        }
+        body.dark-mode .gender-options label { color: #cbd5e1; }
+        body.dark-mode .register-btn {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        body.dark-mode .register-btn:hover {
+            background: linear-gradient(135deg, #0e7490, #155e75);
+        }
+        body.dark-mode .error-message { color: #f87171; }
+        body.dark-mode .text-center a { color: #22d3ee; }
+
+        .svm-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(6,182,212,0.25);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+        }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+
+    <div style="position:fixed;top:20px;right:24px;z-index:100;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.45);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,0.5);border-top-color:rgba(255,255,255,0.75);border-radius:50px;padding:6px 12px;cursor:pointer;transition:all 0.25s;box-shadow:0 4px 16px rgba(15,23,42,0.08);user-select:none;-webkit-user-select:none;" onclick="toggleRegisterTheme()" title="Toggle dark / light mode">
+        <i class="bi bi-sun-fill" style="font-size:0.85rem;color:#f59e0b;"></i>
+        <span style="position:relative;width:34px;height:18px;background:rgba(30,41,59,0.15);border-radius:50px;transition:background 0.25s;display:inline-block;">
+            <span id="regThumb" style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform 0.25s;display:block;box-shadow:0 1px 3px rgba(0,0,0,0.15);"></span>
+        </span>
+        <i class="bi bi-moon-stars-fill" style="font-size:0.85rem;color:rgba(30,41,59,0.35);"></i>
+    </div>
 
     <div class="registration-card">
         <h1 class="card-title">Registration</h1>
@@ -164,6 +241,13 @@
 
     <!-- Load Bootstrap 5 JS Bundle -->
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/anime.min.js"></script>
+    <script src="/js/anime-init.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('register');
+        });
+    </script>
     <script>
         // Client-side validation to ensure Password and Confirm Password fields match
         function validateForm() {
@@ -177,6 +261,22 @@
             } else {
                 errorDiv.style.display = 'none';
                 return true; // Allow form submission
+            }
+        }
+    </script>
+    <script>
+        function toggleRegisterTheme() {
+            var body = document.body;
+            var thumb = document.getElementById('regThumb');
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                document.documentElement.classList.remove('dark-mode-loading');
+                localStorage.setItem('theme', 'light');
+                if (thumb) thumb.style.transform = 'translateX(0)';
+            } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+                if (thumb) thumb.style.transform = 'translateX(16px)';
             }
         }
     </script>

@@ -1,375 +1,1143 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Notes - SciVerse Summit</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Notes &amp; Evaluation - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Theme initialization script - prevents flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
+
     <style>
-        :root { --sidebar-width: 250px; }
+        :root {
+            --sidebar-width: 250px;
+        }
         .sidebar {
-            position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width);
-            padding-top: 0.5rem; background-color: #f8f9fa; z-index: 1000; transition: all 0.3s;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            height: calc(100% - 80px);
+            width: var(--sidebar-width);
+            padding-top: 0.5rem;
+            background-color: #f8f9fa;
+            z-index: 1000;
+            transition: all 0.3s;
         }
         .content {
-            margin-left: var(--sidebar-width); padding: 95px 40px 40px 40px;
-            position: relative; z-index: 1; transition: all 0.3s;
-        }
-        @media (max-width: 991.98px) {
-            .sidebar { width: 0; }
-            .content { margin-left: 0; }
+            margin-left: var(--sidebar-width);
+            padding: 95px 28px 28px 28px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+            min-height: 100vh;
         }
         #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
             margin-left: calc(-1 * var(--sidebar-width));
         }
 
-        .section-heading {
+        /* Glassmorphic page background: canonical ambient (body.sv-ambient in fragments) */
+
+        /* Decorative blurred blobs: canonical ambient (#svBgDecor in fragments) */
+
+        /* Page heading */
+        .page-heading {
             font-size: 1.6rem;
             font-weight: 700;
             color: #1e293b;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            margin-bottom: 1.25rem;
+            margin-bottom: 0;
         }
-        .section-divider {
-            border: none;
-            border-top: 2px solid #e2e8f0;
-            margin: 2.5rem 0;
+        body.dark-mode .page-heading { color: #f1f5f9; }
+        .page-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        body.dark-mode .page-subtitle { color: #94a3b8; }
+
+        /* Back button */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .btn-back:hover {
+            background: #fff;
+            color: #0891b2;
+            transform: translateX(-2px);
+            border-color: #bfdbfe;
+        }
+        body.dark-mode .btn-back {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+        }
+        body.dark-mode .btn-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: #93c5fd;
+            border-color: rgba(6,182,212,0.4);
         }
 
-        /* ── Evaluation Card ── */
-        .eval-card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #1e293b;
-            border-radius: 10px;
-            padding: 24px 28px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        /* Liquid-glass card */
+        .glass-card {
             position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(248,250,252,0.55));
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top-color: rgba(255,255,255,0.85);
+            border-radius: 22px;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.08),
+                0 6px 20px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.7);
         }
-        .eval-delegate-name {
-            font-size: 1.1rem;
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -40%; left: -15%;
+            width: 130%; height: 85%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.06) 45%, transparent 75%);
+            pointer-events: none;
+        }
+        body.dark-mode .glass-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.78), rgba(15,23,42,0.66));
+            border-color: rgba(255,255,255,0.1);
+            border-top-color: rgba(255,255,255,0.18);
+            box-shadow:
+                0 24px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        body.dark-mode .glass-card::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.08), rgba(255,255,255,0.01) 45%, transparent 75%);
+        }
+
+        .card-accent {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+        }
+        .card-title2 {
+            font-size: 1.05rem;
             font-weight: 700;
             color: #1e293b;
         }
-        .eval-score-box {
-            text-align: right;
+        body.dark-mode .card-title2 { color: #f1f5f9; }
+        .card-desc {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.5;
         }
-        .eval-score-label {
-            font-size: 0.78rem;
+        body.dark-mode .card-desc { color: #94a3b8; }
+
+        /* Action buttons */
+        .btn-imp {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            border: none;
+            border-radius: 11px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.3);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-imp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.4);
+            color: #fff;
+        }
+        .btn-imp.green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-imp.green:hover { box-shadow: 0 6px 18px rgba(16,185,129,0.4); }
+        .btn-imp.danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 14px rgba(239,68,68,0.3);
+        }
+        .btn-imp.danger:hover { box-shadow: 0 6px 18px rgba(239,68,68,0.4); }
+        .btn-imp.ghost {
+            background: rgba(255,255,255,0.55);
+            border: 1px solid rgba(226,232,240,0.9);
+            color: #475569;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .btn-imp.ghost:hover {
+            background: rgba(255,255,255,0.8);
+            color: #1e293b;
+        }
+        body.dark-mode .btn-imp.ghost {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.18);
+            color: #cbd5e1;
+        }
+        body.dark-mode .btn-imp.ghost:hover {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+        }
+
+        /* No-session warning */
+        .no-session-alert {
+            background: rgba(245,158,11,0.10);
+            border: 1px solid rgba(245,158,11,0.30);
+            border-radius: 14px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+        }
+        .no-session-alert-title { font-weight: 700; color: #92400e; font-size: 0.92rem; margin-bottom: 3px; }
+        .no-session-alert-body { color: #78350f; font-size: 0.85rem; }
+        .no-session-alert-body a { color: #b45309; font-weight: 600; text-decoration: underline; }
+        body.dark-mode .no-session-alert { background: rgba(120,53,15,0.28); border-color: rgba(245,158,11,0.34); }
+        body.dark-mode .no-session-alert-title { color: #fcd34d; }
+        body.dark-mode .no-session-alert-body { color: rgba(255,255,255,0.78); }
+
+        /* Note preview */
+        .note-preview {
+            background: rgba(15,23,42,0.03);
+            border: 1px solid rgba(226,232,240,0.8);
+            border-radius: 14px;
+            padding: 16px 18px;
+            position: relative;
+        }
+        body.dark-mode .note-preview {
+            background: rgba(15,23,42,0.5);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .note-preview-content {
+            font-size: 0.93rem;
+            color: #334155;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        body.dark-mode .note-preview-content { color: #cbd5e1; }
+        .note-char {
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 700;
             color: #94a3b8;
-            font-weight: 500;
+        }
+        body.dark-mode .note-char { color: #64748b; }
+        .session-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.28);
+            color: #047857;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        body.dark-mode .session-chip { color: #6ee7b7; }
+
+        /* Evaluation card (panel view) */
+        .eval-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(248,250,252,0.55));
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top-color: rgba(255,255,255,0.85);
+            border-radius: 22px;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.08),
+                0 6px 20px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .eval-card::before {
+            content: '';
+            position: absolute;
+            top: -40%; left: -15%;
+            width: 130%; height: 85%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.06) 45%, transparent 75%);
+            pointer-events: none;
+        }
+        body.dark-mode .eval-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.78), rgba(15,23,42,0.66));
+            border-color: rgba(255,255,255,0.1);
+            border-top-color: rgba(255,255,255,0.18);
+            box-shadow:
+                0 24px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        body.dark-mode .eval-card::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.08), rgba(255,255,255,0.01) 45%, transparent 75%);
+        }
+
+        .eval-delegate-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: 0.01em;
+        }
+        body.dark-mode .eval-delegate-name { color: #f1f5f9; }
+        .eval-score-label {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
         .eval-score-value {
-            font-size: 1.9rem;
+            font-size: 2rem;
             font-weight: 800;
-            color: #2563eb;
+            background: linear-gradient(135deg, #0891b2, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             line-height: 1.1;
         }
         .eval-score-value span {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
             color: #94a3b8;
         }
-
-        /* Search bar */
-        .eval-search-wrapper { position: relative; max-width: 300px; }
-        .eval-search-input { border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px 8px 36px; font-size: 0.9rem; width: 100%; background: #f8fafc; transition: border-color 0.15s; }
-        .eval-search-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); background: #fff; }
-        .eval-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.95rem; pointer-events: none; }
-        .search-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 500; max-height: 220px; overflow-y: auto; display: none; }
-        .search-dropdown.open { display: block; }
-        .search-option { padding: 9px 14px; font-size: 0.88rem; color: #1e293b; cursor: pointer; }
-        .search-option:hover, .search-option.highlighted { background: #f1f5f9; }
-
-        /* Metric inputs */
-        .metric-label {
-            font-size: 0.75rem;
-            color: #64748b;
-            font-weight: 500;
-            margin-bottom: 4px;
-            min-height: 2.4em;
-            display: flex;
-            align-items: flex-end;
+        body.dark-mode .eval-score-value {
+            background: linear-gradient(135deg, #22d3ee, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .metric-input {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #1e293b;
-            width: 100%;
-            background: #f8fafc;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-        .metric-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-            background: #fff;
-        }
-        .metric-input:invalid {
-            border-color: #ef4444;
+        body.dark-mode .eval-score-value span {
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
+            color: #94a3b8;
         }
 
         /* Nav arrows */
         .eval-nav-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 1px solid #cbd5e1;
-            background: #f1f5f9;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(226,232,240,0.8);
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
             color: #475569;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .eval-nav-btn:hover { background: linear-gradient(135deg, #e2e8f0, #cbd5e1); border-color: #94a3b8; transform: scale(1.05); }
+        .eval-nav-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+        .eval-nav-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.35);
+        }
+        body.dark-mode .eval-nav-btn {
+            border-color: rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, rgba(51,65,85,0.6), rgba(71,85,105,0.5));
+            color: #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        body.dark-mode .eval-nav-btn:hover {
+            background: linear-gradient(135deg, rgba(71,85,105,0.8), rgba(100,116,139,0.6));
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* Metric inputs */
+        .metric-label {
+            font-size: 0.72rem;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 6px;
+            min-height: 2.4em;
+            display: flex;
+            align-items: flex-end;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        body.dark-mode .metric-label { color: #cbd5e1; }
+        .metric-input {
+            border: 1px solid rgba(226,232,240,0.8);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+            width: 100%;
+            background: rgba(248,250,252,0.8);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .metric-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12), 0 2px 8px rgba(6,182,212,0.08);
+            background: #fff;
+        }
+        .metric-input:invalid { border-color: #ef4444; }
+        body.dark-mode .metric-input {
+            background: rgba(15,23,42,0.6);
+            border-color: rgba(255,255,255,0.1);
+            color: #f1f5f9;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+        body.dark-mode .metric-input:focus {
+            background: rgba(15,23,42,0.8);
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.2), 0 2px 8px rgba(6,182,212,0.1);
+        }
+
+        /* Metric sliders */
+        .metric-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .metric-range {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            min-width: 0;
+            height: 6px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #06b6d4 var(--fill, 0%), rgba(226,232,240,0.7) var(--fill, 0%));
+            outline: none;
+            cursor: pointer;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .metric-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #06b6d4;
+            box-shadow: 0 2px 6px rgba(6,182,212,0.4);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .metric-range::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 3px 10px rgba(6,182,212,0.55);
+        }
+        .metric-range::-moz-range-track {
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(226,232,240,0.7);
+        }
+        .metric-range::-moz-range-progress {
+            height: 6px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #06b6d4, #7c3aed);
+        }
+        .metric-range::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #06b6d4;
+            box-shadow: 0 2px 6px rgba(6,182,212,0.4);
+            cursor: pointer;
+        }
+        body.dark-mode .metric-range {
+            background: linear-gradient(90deg, #06b6d4 var(--fill, 0%), rgba(148,163,184,0.25) var(--fill, 0%));
+        }
+        body.dark-mode .metric-range::-moz-range-track {
+            background: rgba(148,163,184,0.25);
+        }
+        body.dark-mode .metric-range::-moz-range-progress {
+            background: linear-gradient(90deg, #06b6d4, #7c3aed);
+        }
+        body.dark-mode .metric-range::-webkit-slider-thumb {
+            background: #e2e8f0;
+            border-color: #22d3ee;
+        }
+        body.dark-mode .metric-range::-moz-range-thumb {
+            background: #e2e8f0;
+            border-color: #22d3ee;
+        }
+        .metric-range:focus-visible { outline: none; }
+        .metric-range:focus-visible::-webkit-slider-thumb {
+            box-shadow: 0 0 0 4px rgba(6,182,212,0.25), 0 2px 6px rgba(6,182,212,0.4);
+        }
+        .metric-range:focus-visible::-moz-range-thumb {
+            box-shadow: 0 0 0 4px rgba(6,182,212,0.25), 0 2px 6px rgba(6,182,212,0.4);
+        }
+        .metric-value {
+            min-width: 34px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(124,58,237,0.08));
+            border: 1px solid rgba(6,182,212,0.3);
+            color: #0891b2;
+            font-weight: 800;
+            font-size: 0.85rem;
             flex-shrink: 0;
         }
-        .eval-nav-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
-        .eval-nav-btn:disabled { opacity: 0.35; cursor: default; }
+        body.dark-mode .metric-value {
+            background: rgba(6,182,212,0.18);
+            border-color: rgba(6,182,212,0.45);
+            color: #93c5fd;
+        }
 
-        /* Update button */
+        /* Update metrics button */
         .btn-update-metrics {
-            background: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
             color: #fff;
             border: none;
-            border-radius: 8px;
-            padding: 10px 24px;
+            border-radius: 12px;
+            padding: 12px 26px;
             font-size: 0.9rem;
             font-weight: 700;
             letter-spacing: 0.02em;
-            transition: background 0.15s;
+            transition: all 0.25s ease;
             cursor: pointer;
-            width: 100%;
-            height: 100%;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.3);
         }
-        .btn-update-metrics:hover { background: #334155; }
+        .btn-update-metrics:hover { background: linear-gradient(135deg, #0891b2, #7c3aed); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(6,182,212,0.4); }
+        .btn-update-metrics:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.35);
+        }
 
+        /* Score progress bar */
+        .eval-score-block { min-width: 150px; }
+        .score-bar {
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.08);
+            overflow: hidden;
+            margin-top: 7px;
+        }
+        body.dark-mode .score-bar { background: rgba(255,255,255,0.12); }
+        .score-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #06b6d4, #7c3aed);
+            transition: width 0.3s ease;
+        }
+
+        /* Total chip */
+        .score-total-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: rgba(15,23,42,0.04);
+            border: 1px solid rgba(226,232,240,0.8);
+        }
+        body.dark-mode .score-total-chip {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .score-total-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0891b2;
+            line-height: 1;
+        }
+        body.dark-mode .score-total-value { color: #22d3ee; }
+        .score-total-value span {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        /* Section headers & dividers */
+        .eval-section-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 14px;
+        }
+        body.dark-mode .eval-section-title { color: #94a3b8; }
+        .eval-section-title i { color: #7c3aed; }
+        body.dark-mode .eval-section-title i { color: #a78bfa; }
+        .eval-divider {
+            border-top: 1px solid rgba(15,23,42,0.08);
+        }
+        body.dark-mode .eval-divider { border-top-color: rgba(255,255,255,0.1); }
+
+        /* Search bar */
+        .eval-search-wrapper {
+            position: relative; width: 100%; max-width: 420px;
+        }
+        .eval-search-input {
+            border: 1.5px solid rgba(226,232,240,0.8);
+            border-radius: 12px;
+            padding: 11px 14px 11px 42px;
+            font-size: 0.9rem;
+            width: 100%;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px) saturate(150%);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8);
+            color: #1e293b;
+        }
+        .eval-search-input::placeholder { color: #94a3b8; font-weight: 500; }
+        .eval-search-input:focus {
+            outline: none;
+            border-color: rgba(6,182,212,0.45);
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.1), 0 4px 16px rgba(6,182,212,0.08);
+        }
+        .eval-search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: #94a3b8; font-size: 0.95rem; pointer-events: none;
+            z-index: 2; transition: color 0.25s;
+        }
+        .eval-search-wrapper:focus-within .eval-search-icon { color: #06b6d4; }
+        body.dark-mode .eval-search-input {
+            background: rgba(30,41,59,0.55);
+            border-color: rgba(255,255,255,0.1);
+            color: #f1f5f9;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        body.dark-mode .eval-search-input::placeholder { color: #94a3b8; }
+        body.dark-mode .eval-search-input:focus {
+            border-color: rgba(6,182,212,0.5);
+            background: rgba(30,41,59,0.75);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.2), 0 4px 16px rgba(6,182,212,0.1);
+        }
+        body.dark-mode .eval-search-icon { color: #64748b; }
+        body.dark-mode .eval-search-wrapper:focus-within .eval-search-icon { color: #22d3ee; }
+
+        .search-dropdown {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(226,232,240,0.6);
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+            z-index: 500; max-height: 220px; overflow-y: auto;
+            display: none;
+        }
+        .search-dropdown.open { display: block; animation: search-drop-in 0.18s ease-out; }
+        @keyframes search-drop-in {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .search-option {
+            padding: 10px 14px; font-size: 0.88rem; color: #1e293b;
+            cursor: pointer; transition: all 0.15s;
+            border-bottom: 1px solid rgba(226,232,240,0.4);
+        }
+        .search-option:last-child { border-bottom: none; }
+        .search-option:hover, .search-option.highlighted { background: rgba(6,182,212,0.08); }
+        body.dark-mode .search-dropdown {
+            background: rgba(30,41,59,0.88);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 14px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        body.dark-mode .search-option {
+            color: #e2e8f0;
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+        body.dark-mode .search-option:hover,
+        body.dark-mode .search-option.highlighted { background: rgba(6,182,212,0.18); }
+
+        /* View toggle */
+        .view-toggle .btn { border-radius: 50px; padding: 6px 20px; font-size: 0.85rem; }
+        body.dark-mode .btn-outline-primary {
+            color: #93c5fd;
+            border-color: #06b6d4;
+        }
+        body.dark-mode .btn-outline-primary:hover:not(.active) {
+            background: rgba(6,182,212,0.15);
+            color: #bfdbfe;
+        }
+        body.dark-mode .btn-outline-primary.active {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: #fff;
+        }
+
+        /* Grid table */
+        #evaluationTable {
+            margin: 0;
+            background: transparent;
+        }
+        #evaluationTable thead th {
+            padding: 16px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #334155;
+            text-align: center;
+            border: none;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, rgba(255,255,255,0.42), rgba(255,255,255,0.14));
+            border-bottom: 1px solid rgba(15,23,42,0.06);
+        }
+        #evaluationTable thead th:first-child { text-align: left; }
+        #evaluationTable thead th span {
+            color: #64748b;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        #evaluationTable tbody tr {
+            border-bottom: 1px solid rgba(15,23,42,0.06);
+            transition: background-color 0.15s ease;
+        }
+        #evaluationTable tbody tr:hover { background-color: rgba(255,255,255,0.5); }
+        #evaluationTable tbody tr:last-child { border-bottom: none; }
+        #evaluationTable tbody td {
+            padding: 14px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.93rem;
+            color: #334155;
+            font-weight: 600;
+        }
+        #evaluationTable tbody td.grid-name { text-align: left; font-weight: 700; color: #0f172a; }
+        #evaluationTable tbody td.grid-total { color: #0891b2; font-size: 1.05rem; font-weight: 800; }
+
+        body.dark-mode #evaluationTable {
+            --bs-table-bg: transparent;
+            --bs-table-color: #e2e8f0;
+            --bs-table-border-color: rgba(148,163,184,0.12);
+        }
+        body.dark-mode #evaluationTable thead th {
+            color: #f1f5f9;
+            background: rgba(255,255,255,0.04);
+            border-bottom-color: rgba(148,163,184,0.15);
+        }
+        body.dark-mode #evaluationTable thead th span { color: #94a3b8; }
+        body.dark-mode #evaluationTable tbody tr { border-bottom-color: rgba(148,163,184,0.12); }
+        body.dark-mode #evaluationTable tbody tr:hover { background-color: rgba(6,182,212,0.10); }
+        body.dark-mode #evaluationTable tbody td { color: #cbd5e1; }
+        body.dark-mode #evaluationTable tbody td.grid-name { color: #f1f5f9; }
+        body.dark-mode #evaluationTable tbody td.grid-total { color: #22d3ee; }
+        body.dark-mode #evaluationTable .btn-outline-primary {
+            color: #22d3ee;
+            border-color: #06b6d4;
+            background: transparent;
+        }
+        body.dark-mode #evaluationTable .btn-outline-primary:hover {
+            background: #0891b2;
+            color: #fff;
+            border-color: #0891b2;
+        }
+
+        /* Export button */
+        .btn-export {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            border-radius: 11px;
+            padding: 9px 18px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16,185,129,0.4);
+            color: #fff;
+        }
+
+        /* Toast */
         .save-toast {
             position: fixed;
             bottom: 24px; right: 24px;
-            background: #1e293b; color: #fff;
+            background: #1e293b;
+            color: #fff;
             padding: 10px 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 0.88rem;
             font-weight: 500;
             opacity: 0;
             transition: opacity 0.3s;
             z-index: 9999;
             pointer-events: none;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.2);
         }
+        body.dark-mode .save-toast { background: #1d4ed8; }
         .save-toast.show { opacity: 1; }
 
-        /* Note pill card */
-        .note-pill-card {
+        /* Notes editor modal - liquid glass */
+        #notesModal .modal-content {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(150deg, rgba(255,255,255,0.55), rgba(248,250,252,0.3));
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.55);
+            border-top-color: rgba(255,255,255,0.85);
+            border-radius: 24px;
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.18),
+                inset 0 1px 0 rgba(255,255,255,0.65),
+                inset 0 -1px 0 rgba(255,255,255,0.1);
+        }
+        #notesModal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -35%; left: -20%;
+            width: 140%; height: 80%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 50%, transparent 75%);
+            pointer-events: none;
+        }
+        #notesModal .modal-content::after {
+            content: '';
+            position: absolute;
+            bottom: -45%; right: -20%;
+            width: 120%; height: 70%;
+            background: radial-gradient(ellipse at 70% 100%, rgba(167,139,250,0.22), transparent 65%);
+            pointer-events: none;
+        }
+        #notesModal .modal-header {
+            background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(6,182,212,0.02));
+            border-bottom: 1px solid rgba(255,255,255,0.45);
+            border-radius: 24px 24px 0 0;
+            position: relative;
+            z-index: 1;
+        }
+        #notesModal .modal-body {
+            position: relative;
+            z-index: 1;
+        }
+        #notesModal .modal-footer {
+            border-top: 1px solid rgba(255,255,255,0.45);
+            border-radius: 0 0 24px 24px;
+            position: relative;
+            z-index: 1;
+        }
+        #notesModal .modal-title { color: #1e293b; }
+        #notesModal .notes-modal-subtitle { font-size: 0.78rem; color: rgba(30,41,59,0.55); }
+        #notesModal .notes-modal-icon {
+            box-shadow: 0 4px 14px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        #notesModal .notes-editor-textarea {
+            background: rgba(248,250,252,0.7);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 14px;
+            color: #1e293b !important;
+            font-size: 1rem;
+            line-height: 1.65;
+            resize: vertical;
+            padding: 14px 16px;
+            box-shadow: inset 0 1px 2px rgba(15,23,42,0.04);
+        }
+        #notesModal .notes-editor-textarea::placeholder { color: #94a3b8; }
+        #notesModal .notes-editor-textarea:focus {
+            background: rgba(255,255,255,0.85);
+            border-color: rgba(6,182,212,0.5);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+            color: #1e293b !important;
+            outline: none;
+        }
+        body.dark-mode #notesModal .modal-content {
+            background: linear-gradient(150deg, rgba(30,41,59,0.6), rgba(15,23,42,0.4)) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            border-top-color: rgba(255,255,255,0.28) !important;
+            box-shadow:
+                0 24px 60px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+        body.dark-mode #notesModal .modal-content::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 45%, transparent 70%);
+        }
+        body.dark-mode #notesModal .modal-content::after {
+            background: radial-gradient(ellipse at 70% 100%, rgba(124,58,237,0.22), transparent 65%);
+        }
+        body.dark-mode #notesModal .modal-header {
+            background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(124,58,237,0.04)) !important;
+            border-bottom-color: rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #notesModal .modal-footer {
+            border-top-color: rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #notesModal .modal-title { color: #f1f5f9; }
+        body.dark-mode #notesModal .notes-modal-subtitle { color: rgba(241,245,249,0.55); }
+        body.dark-mode #notesModal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.8; }
+        body.dark-mode #notesModal .notes-editor-textarea {
+            background: rgba(15,23,42,0.5);
+            border-color: rgba(255,255,255,0.14);
+            color: #f1f5f9 !important;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
+        }
+        body.dark-mode #notesModal .notes-editor-textarea::placeholder { color: #64748b; }
+        body.dark-mode #notesModal .notes-editor-textarea:focus {
+            background: rgba(15,23,42,0.75);
+            border-color: #7c3aed;
+            color: #f1f5f9 !important;
+        }
+
+        /* Delegate Notes editor inside the evaluation card */
+        .eval-card .notes-editor-textarea {
+            background: rgba(248,250,252,0.7);
+            border: 1px solid rgba(226,232,240,0.8);
+            border-radius: 12px;
+            color: #1e293b;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+            padding: 12px 14px;
+            box-shadow: inset 0 1px 2px rgba(15,23,42,0.04);
+        }
+        .eval-card .notes-editor-textarea:focus {
             background: #fff;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #3b82f6;
-            border-radius: 10px;
-            padding: 14px 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: box-shadow 0.15s, background 0.15s;
-            max-width: 680px;
-            cursor: pointer;
-            margin-top: 1rem;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+            color: #1e293b;
+            outline: none;
         }
-        .note-pill-card:hover {
-            background: #f8fafc;
-            box-shadow: 0 4px 16px rgba(37,99,235,0.1);
+        body.dark-mode .eval-card .notes-editor-textarea {
+            background: rgba(15,23,42,0.5);
+            border-color: rgba(255,255,255,0.14);
+            color: #f1f5f9;
         }
-        .note-pill-icon-wrap {
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            border-radius: 9px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 1.1rem; flex-shrink: 0;
+        body.dark-mode .eval-card .notes-editor-textarea:focus {
+            background: rgba(15,23,42,0.75);
+            border-color: #7c3aed;
+            color: #f1f5f9;
         }
-        .note-pill-title {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-weight: 600;
-            color: #94a3b8;
-            margin-bottom: 2px;
+
+        /* Delegate Notes block - hardened dark-mode contrast (label, helper, field) */
+        .eval-card .eval-divider .form-text { color: #64748b; font-size: 0.8rem; }
+        body.dark-mode .eval-card .eval-divider .form-text { color: #94a3b8; }
+        body.dark-mode .eval-card .eval-divider .metric-label { color: #e2e8f0; }
+        body.dark-mode .eval-card textarea#f_notes.notes-editor-textarea {
+            background: rgba(15,23,42,0.65);
+            border-color: rgba(255,255,255,0.16);
+            color: #f1f5f9;
+            caret-color: #22d3ee;
         }
-        .note-pill-preview {
-            font-size: 0.92rem;
-            color: #334155;
-            line-height: 1.5;
+        body.dark-mode .eval-card textarea#f_notes.notes-editor-textarea::placeholder { color: #7c8aa0; opacity: 1; }
+        body.dark-mode .eval-card textarea#f_notes.notes-editor-textarea:focus {
+            background: rgba(15,23,42,0.85);
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.25);
+            color: #f1f5f9;
+            outline: none;
+        }
+
+        /* Grid view delegate-notes cells (theme-aware; replaces hardcoded inline colors) */
+        #evaluationTable tbody td.grid-notes {
+            max-width: 220px;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #64748b;
         }
-
-        /* ================================
-           DARK MODE — GRID VIEW TABLE
-           ================================
-           These rules use !important to override the inline `style="color: #1e293b"` etc.
-           attributes set on the static <thead> HTML and the JS-generated <td> cells in
-           populateGridView(). The general body.dark-mode rules in fragments.html
-           (`thead { background: ... }`, `table { color: ... }`) are not specific enough
-           to beat inline styles, so we target the table by ID here.
-        */
-        body.dark-mode #evaluationTable thead,
-        body.dark-mode #evaluationTable thead tr {
-            background: #0f172a !important;
-            border-bottom-color: #334155 !important;
-        }
-        body.dark-mode #evaluationTable thead th {
-            color: #f1f5f9 !important;
-            background: transparent !important;
-            border-color: #334155 !important;
-        }
-        /* "(max XX)" sub-label inside each header */
-        body.dark-mode #evaluationTable thead th span {
-            color: #94a3b8 !important;
-        }
-        /* Total Score column header keeps a brighter blue accent */
-        body.dark-mode #evaluationTable thead th:nth-child(9) {
-            color: #60a5fa !important;
-        }
-        body.dark-mode #evaluationTable tbody tr {
-            background: transparent !important;
-        }
-        body.dark-mode #evaluationTable tbody td {
-            color: #cbd5e1 !important;
-            background: transparent !important;
-            border-color: #334155 !important;
-        }
-        /* Delegate Name column (1st col) — emphasized */
-        body.dark-mode #evaluationTable tbody td:first-child {
-            color: #f1f5f9 !important;
-        }
-        /* Total Score column (9th col) — blue accent */
-        body.dark-mode #evaluationTable tbody td:nth-child(9) {
-            color: #60a5fa !important;
-        }
-        body.dark-mode #evaluationTable tbody tr:hover td {
-            background: rgba(59, 130, 246, 0.10) !important;
-        }
-        /* Edit button inside grid view rows */
-        body.dark-mode #evaluationTable .btn-outline-primary {
-            color: #60a5fa !important;
-            border-color: #3b82f6 !important;
-            background: transparent !important;
-        }
-        body.dark-mode #evaluationTable .btn-outline-primary:hover {
-            background: #3b82f6 !important;
-            color: #ffffff !important;
-            border-color: #3b82f6 !important;
-        }
-        /* Export to CSV button stays vibrant in dark mode */
-        body.dark-mode #gridView .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            color: #ffffff;
-        }
-        body.dark-mode #gridView .btn-success:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            color: #ffffff;
-        }
-
-        /* ================================
-           DARK MODE — UPDATE METRICS BUTTON (Panel View)
-           ================================
-           The default dark slate background (#1e293b) is nearly identical to the page
-           background in dark mode (#0f172a), making the button blend in. Switch to a
-           bright blue gradient for high contrast.
-        */
-        body.dark-mode .btn-update-metrics {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.30);
-        }
-        body.dark-mode .btn-update-metrics:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45);
-            transform: translateY(-1px);
-        }
+        #evaluationTable tbody td.grid-notes.empty-notes { color: #94a3b8; }
+        body.dark-mode #evaluationTable tbody td.grid-notes { color: #cbd5e1; }
+        body.dark-mode #evaluationTable tbody td.grid-notes.empty-notes { color: #64748b; }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - notes (trial) */
+        body.liquid-glass .glass-card,
+        body.liquid-glass .eval-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.62), rgba(248,250,252,0.40));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border: 1px solid rgba(255,255,255,0.65);
+            border-top-color: rgba(255,255,255,0.95);
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.08),
+                0 6px 20px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        body.liquid-glass.dark-mode .glass-card,
+        body.liquid-glass.dark-mode .eval-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.55), rgba(15,23,42,0.38));
+            border: 1px solid rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.22);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+        body.liquid-glass .glass-card > *,
+        body.liquid-glass .eval-card > * { position: relative; z-index: 1; }
+
+        html.anime-ready .entrance,
+        html.anime-ready .entrance-1,
+        html.anime-ready .entrance-2,
+        html.anime-ready .entrance-3 {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: none;
+        }
+    </style>
 
     <!-- HEADER -->
-    <div th:replace="fragments :: header"></div>
+    <div th:replace="~{fragments :: header}"></div>
 
     <!-- SIDEBAR -->
-    <div th:replace="fragments :: sidebar"></div>
+    <div th:replace="~{fragments :: sidebar}"></div>
+
+    <!-- Notification banner (toast popups for server notifications) -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
 
     <!-- MAIN CONTENT -->
     <div class="content">
+        <div class="container-fluid">
 
-        <!-- NOTES Section -->
-        <h1 class="section-heading">Notes</h1>
-
-        <!-- No Session Warning -->
-        <div th:if="${currentSession == null}" style="max-width:700px;margin-bottom:18px;display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-radius:14px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.30);backdrop-filter:blur(12px);">
-            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.05rem;flex-shrink:0;">
-                <i class="bi bi-exclamation-triangle-fill"></i>
+            <!-- Page header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-heading entrance" style="display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-journal-text me-1"></i>Notes &amp; Evaluation
+                    </h2>
+                    <div class="page-subtitle mt-1">Session notes and delegate performance matrix</div>
+                </div>
+                <a href="/" class="btn-back entrance entrance-1">
+                    <i class="bi bi-arrow-left"></i> Back to Delegates
+                </a>
             </div>
-            <div>
-                <div style="font-weight:700;color:#fcd34d;font-size:0.92rem;margin-bottom:3px;">No session found</div>
-                <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">Please <a href="/dashboard" style="color:#fbbf24;font-weight:600;text-decoration:underline;">create a session</a> from the dashboard before adding notes.</div>
+
+            <!-- No session warning -->
+            <div th:if="${currentSession == null}" class="no-session-alert entrance entrance-1" style="max-width:700px;margin-bottom:20px;">
+                <div class="card-accent" style="background:linear-gradient(135deg,#f59e0b,#d97706);width:36px;height:36px;font-size:1.05rem;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <div class="no-session-alert-title">No session found</div>
+                    <div class="no-session-alert-body">Please <a href="/dashboard">create a session</a> from the dashboard before adding notes.</div>
+                </div>
             </div>
-        </div>
 
-        <!-- Session Info -->
-        <div th:if="${currentSession != null}" class="text-muted small mb-2">
-            <i class="bi bi-info-circle me-1"></i>
-            Notes for session: <strong th:text="${currentSession.name}">Session Name</strong>
-        </div>
-
-        <!-- Button: active only when no note exists for this session -->
-        <div th:if="${currentSession != null and (currentSession.notes == null or #strings.isEmpty(currentSession.notes))}">
-            <button type="button" class="btn btn-primary px-4"
-                    onclick="openNotesModalForNew()"
-                    th:attr="data-session-id=${currentSession.id}">
-                <i class="bi bi-plus-lg me-2"></i>Add your notes
-            </button>
-        </div>
-
-        <!-- Blocked button + inline preview: shown when a note already exists -->
-        <div th:if="${currentSession != null and currentSession.notes != null and !#strings.isEmpty(currentSession.notes)}">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <button type="button" class="btn btn-primary px-4" disabled>
-                    <i class="bi bi-plus-lg me-2"></i>Add your notes
-                </button>
-                
-                <!-- Inline clickable preview next to button -->
-                <div class="note-inline-preview" 
-                     onclick="openNotesModalForEdit(this)"
-                     th:attr="data-note-content=${currentSession.notes},data-session-id=${currentSession.id}"
-                     style="cursor: pointer; max-width: 400px;">
-                    <span class="text-muted small d-block mb-1">
-                        <i class="bi bi-journal-text me-1 text-primary"></i>
-                        <strong>Your note:</strong> <span class="text-decoration-underline">click to edit</span>
+            <!-- Notes card -->
+            <div th:if="${currentSession != null}" class="glass-card entrance entrance-1 p-4 mb-4 lg-reactive">
+                <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                    <div class="card-accent" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div class="flex-fill">
+                        <div class="card-title2">Session Notes</div>
+                        <div class="card-desc">Notes are stored per session and shown in the history export.</div>
+                    </div>
+                    <span class="session-chip">
+                        <i class="bi bi-folder2-open"></i>
+                        <th:block th:text="|${currentSession.name} - ${currentSession.committee}|">Session</th:block>
                     </span>
-                    <div class="note-preview-text" 
-                         th:text="${currentSession.notes}"
-                         style="color: #475569; font-size: 0.9rem; line-height: 1.5; 
-                                overflow: hidden; text-overflow: ellipsis; 
-                                display: -webkit-box; -webkit-line-clamp: 2; 
-                                -webkit-box-orient: vertical;">
+                </div>
+
+                <!-- No note yet -->
+                <div th:if="${currentSession.notes == null or #strings.isEmpty(currentSession.notes)}" class="d-flex align-items-center gap-3 flex-wrap">
+                    <button type="button" class="btn-imp" onclick="openNotesEditor()">
+                        <i class="bi bi-plus-lg"></i> Add Notes
+                    </button>
+                    <span class="note-char">No notes saved yet</span>
+                </div>
+
+                <!-- Existing note -->
+                <div th:unless="${currentSession.notes == null or #strings.isEmpty(currentSession.notes)}">
+                    <div class="note-preview">
+                        <div class="note-preview-content" th:text="${currentSession.notes}">Notes…</div>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+                            <span class="note-char" th:text="${#strings.length(currentSession.notes) + ' characters'}">0 characters</span>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn-imp" onclick="openNotesEditor()">
+                                    <i class="bi bi-pencil"></i> Edit Notes
+                                </button>
+                                <button type="button" class="btn-imp danger" onclick="deleteNote()">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="text-muted small mt-2">
-                <i class="bi bi-lock-fill me-1" style="color:#ef4444;"></i>
-                One note per session. <a href="#" onclick="event.preventDefault(); document.querySelector('[data-bs-target=&quot;#noteDetailModal&quot;]').click();" class="text-decoration-none">View full note</a> to delete or edit.
+
+            <!-- Evaluation section -->
+            <div class="d-flex align-items-center justify-content-between flex-wrap mb-3 gap-3 entrance entrance-2">
+                <h2 class="page-heading mb-0" style="display:flex;align-items:center;gap:8px;">
+                    <i class="bi bi-clipboard-data me-1"></i>Evaluation
+                </h2>
+                <div th:unless="${#lists.isEmpty(delegates)}" class="btn-group view-toggle" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" id="cardViewBtn" onclick="switchView('card')">
+                        <i class="bi bi-person-vcard me-1"></i>Panel View
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="gridViewBtn" onclick="switchView('grid')">
+                        <i class="bi bi-table me-1"></i>Grid View
+                    </button>
+                </div>
             </div>
-            
-            <!-- Hidden full-note trigger for "View full note" link -->
-            <button type="button" style="display:none;" data-bs-toggle="modal" data-bs-target="#noteDetailModal" id="hiddenDetailTrigger"></button>
-        </div>
 
-        <hr class="section-divider">
-
-        <!-- EVALUATION Section -->
-        <div class="d-flex align-items-center justify-content-between flex-wrap mb-3 gap-3">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <h1 class="section-heading mb-0">Evaluation</h1>
-                <div class="eval-search-wrapper" th:unless="${#lists.isEmpty(delegates)}">
+            <!-- Search bar -->
+            <div th:unless="${#lists.isEmpty(delegates)}" class="mb-4 entrance entrance-2" style="max-width:860px;margin:0 auto;">
+                <div class="eval-search-wrapper">
                     <i class="bi bi-search eval-search-icon"></i>
                     <input type="text" id="evalSearch" class="eval-search-input"
                            placeholder="Search delegate..." autocomplete="off"
@@ -377,601 +1145,328 @@
                     <div class="search-dropdown" id="searchDropdown"></div>
                 </div>
             </div>
-            
-            <!-- View Toggle Buttons -->
-            <div class="btn-group" role="group" th:unless="${#lists.isEmpty(delegates)}">
-                <button type="button" class="btn btn-sm btn-outline-primary active" id="cardViewBtn" onclick="switchView('card')"
-                        style="border-radius: 50px 0 0 50px; padding: 6px 20px;">
-                    <i class="bi bi-person-vcard me-1"></i>Panel View
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="gridViewBtn" onclick="switchView('grid')"
-                        style="border-radius: 0 50px 50px 0; padding: 6px 20px;">
-                    <i class="bi bi-table me-1"></i>Grid View
-                </button>
-            </div>
-        </div>
 
-        <!-- No delegates fallback -->
-        <div th:if="${#lists.isEmpty(delegates)}" class="text-muted">
-            No delegates found. Add delegates first.
-        </div>
-
-        <!-- Evaluation views container (only if delegates exist) -->
-        <div th:unless="${#lists.isEmpty(delegates)}">
-
-            <!-- Hidden delegate data for JS -->
-            <div id="delegateData" style="display:none;">
-                <div th:each="d : ${delegates}"
-                     class="delegate-entry"
-                     th:data-id="${d.id}"
-                     th:data-name="${d.name}"
-                     th:data-sci="${d.sciKnowledge}"
-                     th:data-rep="${d.representationAccuracy}"
-                     th:data-pub="${d.publicSpeaking}"
-                     th:data-par="${d.participation}"
-                     th:data-res="${d.resolutionDrafting}"
-                     th:data-col="${d.collaboration}"
-                     th:data-lea="${d.leadershipMatrix}"
-                     th:data-score="${d.matrixScore}">
+            <!-- No delegates fallback -->
+            <div th:if="${#lists.isEmpty(delegates)}" class="glass-card entrance entrance-2 p-5 text-center lg-reactive">
+                <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:inline-flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff;box-shadow:0 10px 24px rgba(6,182,212,0.35);margin-bottom:16px;">
+                    <i class="bi bi-people"></i>
                 </div>
+                <div class="card-title2 mb-1">No delegates yet</div>
+                <div class="card-desc mb-3">Add delegates to the current session before evaluating them.</div>
+                <a href="/add" class="btn-imp green">
+                    <i class="bi bi-plus-circle-fill"></i> Add Delegate
+                </a>
             </div>
 
-            <!-- Card View -->
-            <div id="cardView" style="max-width: 860px;">
-            <!-- Card -->
-            <div class="eval-card">
-                <!-- Top row: nav + name + score -->
-                <div class="d-flex align-items-start gap-3 mb-4">
-                    <button class="eval-nav-btn mt-1" id="prevBtn" onclick="navigate(-1)">
-                        <i class="bi bi-chevron-left" style="font-size:0.8rem;"></i>
-                    </button>
+            <!-- Evaluation views container -->
+            <div th:unless="${#lists.isEmpty(delegates)}">
 
-                    <div class="flex-fill">
-                        <div class="eval-delegate-name" id="delegateName">—</div>
-                        <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">Delegate</div>
-                    </div>
-
-                    <div class="eval-score-box">
-                        <div class="eval-score-label">Current Matrix Score</div>
-                        <div class="eval-score-value" id="scoreDisplay">0 <span>/ 100</span></div>
-                    </div>
-
-                    <button class="eval-nav-btn mt-1" id="nextBtn" onclick="navigate(1)">
-                        <i class="bi bi-chevron-right" style="font-size:0.8rem;"></i>
-                    </button>
-                </div>
-
-                <!-- Metric grid row 1 -->
-                <div class="row g-3 mb-3">
-                    <div class="col-6 col-md-3">
-                        <div class="metric-label">Sci Knowledge (max 25)</div>
-                        <input type="number" class="metric-input" id="f_sci" min="0" max="25" oninput="clamp(this,25); recalc()">
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="metric-label">Representation Accuracy (max 15)</div>
-                        <input type="number" class="metric-input" id="f_rep" min="0" max="15" oninput="clamp(this,15); recalc()">
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="metric-label">Public Speaking (max 15)</div>
-                        <input type="number" class="metric-input" id="f_pub" min="0" max="15" oninput="clamp(this,15); recalc()">
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="metric-label">Participation (max 15)</div>
-                        <input type="number" class="metric-input" id="f_par" min="0" max="15" oninput="clamp(this,15); recalc()">
+                <!-- Hidden delegate data for JS -->
+                <div id="delegateData" style="display:none;">
+                    <div th:each="d : ${delegates}"
+                         class="delegate-entry"
+                         th:data-id="${d.id}"
+                         th:data-name="${d.name}"
+                         th:data-sci="${d.sciKnowledge}"
+                         th:data-rep="${d.representationAccuracy}"
+                         th:data-pub="${d.publicSpeaking}"
+                         th:data-par="${d.participation}"
+                         th:data-res="${d.resolutionDrafting}"
+                         th:data-col="${d.collaboration}"
+                         th:data-lea="${d.leadershipMatrix}"
+                         th:data-notes="${d.delegateNotes}"
+                         th:data-score="${d.matrixScore}">
                     </div>
                 </div>
 
-                <!-- Metric grid row 2 -->
-                <div class="row g-3 align-items-end">
-                    <div class="col-6 col-md-3">
-                        <div class="metric-label">Resolution Drafting (max 15)</div>
-                        <input type="number" class="metric-input" id="f_res" min="0" max="15" oninput="clamp(this,15); recalc()">
+                <!-- Card View -->
+                <div id="cardView" class="entrance entrance-3" style="max-width:860px;margin:0 auto;">
+                    <div class="eval-card p-4 lg-reactive">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <button class="eval-nav-btn" id="prevBtn" onclick="navigate(-1)" aria-label="Previous delegate">
+                                <i class="bi bi-chevron-left" style="font-size:0.8rem;"></i>
+                            </button>
+
+                            <div class="flex-fill">
+                                <div class="eval-delegate-name" id="delegateName">-</div>
+                                <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">Delegate</div>
+                            </div>
+
+                            <div class="eval-score-block text-end">
+                                <div class="eval-score-label">Current Matrix Score</div>
+                                <div class="eval-score-value" id="scoreDisplay" aria-live="polite">0 <span>/ 100</span></div>
+                                <div class="score-bar"><div class="score-bar-fill" id="scoreBar"></div></div>
+                            </div>
+
+                            <button class="eval-nav-btn" id="nextBtn" onclick="navigate(1)" aria-label="Next delegate">
+                                <i class="bi bi-chevron-right" style="font-size:0.8rem;"></i>
+                            </button>
+                        </div>
+
+                        <div class="eval-section-title mb-3">
+                            <i class="bi bi-sliders2"></i> Performance Metrics
+                        </div>
+
+                        <div class="row g-3 g-md-4 mb-3">
+                            <div class="col-6 col-md-3">
+                                <label for="f_sci" class="metric-label">Sci Knowledge (max 25)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_sci" min="0" max="25" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_sci">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label for="f_rep" class="metric-label">Representation Accuracy (max 15)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_rep" min="0" max="15" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_rep">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label for="f_pub" class="metric-label">Public Speaking (max 15)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_pub" min="0" max="15" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_pub">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label for="f_par" class="metric-label">Participation (max 15)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_par" min="0" max="15" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_par">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 g-md-4 mb-3">
+                            <div class="col-6 col-md-4">
+                                <label for="f_res" class="metric-label">Resolution Drafting (max 15)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_res" min="0" max="15" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_res">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label for="f_col" class="metric-label">Collaboration (max 10)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_col" min="0" max="10" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_col">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label for="f_lea" class="metric-label">Leadership Matrix (max 5)</label>
+                                <div class="metric-slider-row">
+                                    <input type="range" class="metric-range" id="f_lea" min="0" max="5" value="0" oninput="updateMetricLabel(this); recalc()">
+                                    <span class="metric-value" id="v_lea">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 pt-1">
+                            <div class="score-total-chip">
+                                <span class="note-char">Total</span>
+                                <span class="score-total-value" id="totalChip">0<span>/100</span></span>
+                            </div>
+                            <button type="button" class="btn-update-metrics" onclick="saveMetrics()">
+                                <i class="bi bi-check2-circle"></i> Save All
+                            </button>
+                        </div>
+
+                        <!-- Delegate Notes (shown to the delegate on their Stats page) -->
+                        <div class="eval-divider mt-4 pt-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                <div class="metric-label mb-0" style="min-height:auto;">
+                                    <i class="bi bi-person-hearts me-1" style="color:#7c3aed;"></i>
+                                    Delegate Notes
+                                </div>
+                                <span class="note-char" id="delegateNoteCharCount">0 characters</span>
+                            </div>
+                            <div class="form-text" style="margin-top:-4px;margin-bottom:10px;">
+                                Private notes from the chair about this delegate - visible to the delegate on their Stats page.
+                            </div>
+                            <textarea id="f_notes" class="form-control notes-editor-textarea" rows="4"
+                                      placeholder="e.g. Strong opening speech - encourage more involvement in unmoderated caucus..."
+                                      oninput="updateDelegateNotesCount()"></textarea>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md-2">
-                        <div class="metric-label">Collaboration (max 10)</div>
-                        <input type="number" class="metric-input" id="f_col" min="0" max="10" oninput="clamp(this,10); recalc()">
-                    </div>
-                    <div class="col-6 col-md-2">
-                        <div class="metric-label">Leadership Matrix (max 5)</div>
-                        <input type="number" class="metric-input" id="f_lea" min="0" max="5" oninput="clamp(this,5); recalc()">
-                    </div>
-                    <div class="col-6 col-md-3 col-lg-3 ms-auto">
-                        <button class="btn-update-metrics" onclick="saveMetrics()">
-                            Update Metrics
+
+                    <div class="text-muted small mt-2 text-end" id="delegateCounter" style="color:#94a3b8;"></div>
+                </div>
+
+                <!-- Grid View -->
+                <div id="gridView" style="display:none;">
+                    <div class="mb-3 d-flex justify-content-end entrance entrance-3">
+                        <button type="button" onclick="exportToCSV()" class="btn-export">
+                            <i class="bi bi-download"></i> Export to CSV
                         </button>
                     </div>
+                    <div class="glass-card entrance entrance-3 lg-reactive">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="evaluationTable">
+                                <thead>
+                                    <tr>
+                                        <th>Delegate Name</th>
+                                        <th>Sci Knowledge<br><span>(max 25)</span></th>
+                                        <th>Representation<br><span>(max 15)</span></th>
+                                        <th>Public Speaking<br><span>(max 15)</span></th>
+                                        <th>Participation<br><span>(max 15)</span></th>
+                                        <th>Resolution<br><span>(max 15)</span></th>
+                                        <th>Collaboration<br><span>(max 10)</span></th>
+                                        <th>Leadership<br><span>(max 5)</span></th>
+                                        <th>Total Score<br><span>(max 100)</span></th>
+                                        <th>Delegate Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gridTableBody">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-            </div><!-- /.eval-card -->
+            </div>
 
-            <!-- Delegate counter -->
-            <div class="text-muted small mt-2 text-end" id="delegateCounter"></div>
-            </div><!-- End Card View -->
-
-            <!-- Grid View -->
-            <div id="gridView" style="display: none;">
-                <!-- Export Button -->
-                <div class="mb-3 d-flex justify-content-end">
-                    <button type="button" onclick="exportToCSV()" class="btn btn-success btn-sm">
-                        <i class="bi bi-download me-2"></i>Export to CSV
-                    </button>
-                </div>
-
-                <!-- Grid Table -->
-                <div class="table-responsive" style="background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);">
-                    <table class="table table-hover mb-0" id="evaluationTable">
-                        <thead style="background: #f8f9fa; border-bottom: 2px solid #e2e8f0;">
-                            <tr>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; min-width: 150px;">Delegate Name</th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 100px;">Sci Knowledge<br><span style="font-weight: 400; color: #64748b;">(max 25)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 120px;">Representation<br><span style="font-weight: 400; color: #64748b;">(max 15)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 110px;">Public Speaking<br><span style="font-weight: 400; color: #64748b;">(max 15)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 100px;">Participation<br><span style="font-weight: 400; color: #64748b;">(max 15)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 120px;">Resolution<br><span style="font-weight: 400; color: #64748b;">(max 15)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 110px;">Collaboration<br><span style="font-weight: 400; color: #64748b;">(max 10)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 100px;">Leadership<br><span style="font-weight: 400; color: #64748b;">(max 5)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #2563eb; font-size: 0.85rem; text-align: center; min-width: 100px;">Total Score<br><span style="font-weight: 400; color: #64748b;">(max 100)</span></th>
-                                <th style="padding: 16px; font-weight: 700; color: #1e293b; font-size: 0.85rem; text-align: center; min-width: 80px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gridTableBody">
-                            <!-- Populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div><!-- End Grid View -->
-
-        </div><!-- End Evaluation views container -->
-
-    </div><!-- /.content -->
+        </div>
+    </div>
 
     <!-- Toast -->
-    <div class="save-toast" id="saveToast">✓ Metrics saved</div>
+    <div class="save-toast" id="saveToast">✓ Saved</div>
 
-    <!-- Add Notes Modal -->
-    <div class="modal fade" id="addNotesModal" tabindex="-1" aria-labelledby="addNotesModalLabel" aria-hidden="true"
-         th:attr="data-session-id=${currentSession != null ? currentSession.id : 0},
-                  data-existing-notes=${currentSession != null and currentSession.notes != null ? currentSession.notes : ''}">
+    <!-- Notes Editor Modal (single) -->
+    <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0" style="
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(28px) saturate(160%);
-                -webkit-backdrop-filter: blur(28px) saturate(160%);
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-top-color: rgba(255, 255, 255, 0.32) !important;
-                border-radius: 20px;
-                box-shadow: 0 32px 72px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            ">
-                <div class="modal-header border-0 px-4 pt-4 pb-2">
-                    <div>
-                        <h5 class="modal-title fw-bold mb-1" id="addNotesModalLabel"
-                            style="color: rgba(255,255,255,0.95); font-size: 1.15rem;">
-                            <i class="bi bi-journal-text me-2" style="opacity: 0.75;"></i>Session Notes
-                        </h5>
-                        <p class="mb-0" style="color: rgba(255,255,255,0.5); font-size: 0.82rem;">
-                            Jot it down before it slips away. 📝
-                        </p>
+            <div class="modal-content border-0">
+                <div class="modal-header px-4 pt-4 pb-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="card-accent notes-modal-icon" style="width:40px;height:40px;font-size:1.05rem;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-1" id="notesModalLabel" style="font-size:1.1rem;">Session Notes</h5>
+                            <p class="mb-0 notes-modal-subtitle">Write down anything worth remembering about this session.</p>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white ms-auto mt-1"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close ms-auto mt-1" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body px-4 py-3">
                     <label for="notesTextarea" class="form-label mb-2"
-                           style="font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
-                                  font-weight: 600; color: rgba(255,255,255,0.45);">Your notes</label>
-                    <textarea id="notesTextarea" rows="12" class="form-control"
+                           style="font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#64748b;">Your notes</label>
+                    <textarea id="notesTextarea" rows="12" class="form-control notes-editor-textarea"
                               placeholder="Type your notes here..."
-                              oninput="window.currentNotesValue = this.value; console.log('Notes updated, length:', this.value.length);"
-                              style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);
-                                     border-radius:12px;color:rgba(255,255,255,0.9) !important;font-size:1rem;
-                                     line-height:1.65;resize:vertical;padding:14px 16px;"></textarea>
-                    <style>
-                        #notesTextarea::placeholder { color: rgba(255,255,255,0.3); }
-                        #notesTextarea:focus { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.35);
-                            box-shadow:0 0 0 3px rgba(255,255,255,0.08); color:rgba(255,255,255,0.95) !important; outline:none; }
-                    </style>
+                              oninput="updateCharCount()"></textarea>
                 </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-2 d-flex gap-2 justify-content-end">
-                    <button type="button" onclick="clearNotes()"
-                            class="btn btn-sm px-4"
-                            style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);
-                                   color:rgba(255,255,255,0.7);border-radius:50px;font-size:0.85rem;">
-                        <i class="bi bi-eraser me-1"></i>Clear
+                <div class="modal-footer px-4 pb-4 pt-2 d-flex gap-2 align-items-center">
+                    <span class="note-char me-auto" id="noteCharCount">0 characters</span>
+                    <button type="button" id="deleteNoteBtn" onclick="deleteNote()" class="btn-imp danger" style="display:none;">
+                        <i class="bi bi-trash"></i> Delete
                     </button>
-                    <button type="button" onclick="saveNotes()"
-                            class="btn btn-sm px-4"
-                            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
-                                   color:rgba(255,255,255,0.92);border-radius:50px;font-size:0.85rem;font-weight:600;">
-                        <i class="bi bi-save me-1"></i>Save
+                    <button type="button" onclick="clearNotes()" class="btn-imp ghost">
+                        <i class="bi bi-eraser"></i> Clear
+                    </button>
+                    <button type="button" data-bs-dismiss="modal" class="btn-imp ghost">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                    <button type="button" onclick="saveNote()" class="btn-imp green">
+                        <i class="bi bi-save"></i> Save Notes
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- View Note Detail Modal -->
-    <div class="modal fade" id="noteDetailModal" tabindex="-1" aria-labelledby="noteDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0" style="
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(28px) saturate(160%);
-                -webkit-backdrop-filter: blur(28px) saturate(160%);
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-top-color: rgba(255, 255, 255, 0.32) !important;
-                border-radius: 20px;
-                box-shadow: 0 32px 72px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            ">
-                <div class="modal-header border-0 px-4 pt-4 pb-2">
-                    <div>
-                        <h5 class="modal-title fw-bold mb-1" id="noteDetailModalLabel"
-                            style="color: rgba(255,255,255,0.95); font-size: 1.15rem;">
-                            <i class="bi bi-journal-text me-2" style="opacity: 0.75;"></i>Session Note
-                        </h5>
-                        <p class="mb-0" style="color: rgba(255,255,255,0.5); font-size: 0.82rem;">
-                            Click <strong style="color:rgba(255,255,255,0.75);">Edit</strong> to modify
-                            &nbsp;&middot;&nbsp;
-                            <strong style="color:rgba(255,255,255,0.75);">Delete</strong> to remove permanently.
-                        </p>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white ms-auto mt-1"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body px-4 py-3" style="max-height: 400px; overflow-y: auto;">
-                    <p th:text="${currentSession != null ? currentSession.notes : ''}"
-                       style="color: rgba(255,255,255,0.88); font-size: 0.97rem; line-height: 1.8;
-                              white-space: pre-wrap; word-wrap: break-word; word-break: break-word; 
-                              overflow-wrap: break-word; margin: 0; min-height: 80px;">
-                    </p>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-3 d-flex justify-content-between">
-                    <button type="button" onclick="deleteNote()"
-                            class="btn btn-sm px-4"
-                            style="background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);
-                                   color:#fca5a5;border-radius:50px;font-size:0.85rem;font-weight:600;">
-                        <i class="bi bi-trash me-1"></i>Delete
-                    </button>
-                    <button type="button" onclick="openEditModal()"
-                            class="btn btn-sm px-4"
-                            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
-                                   color:rgba(255,255,255,0.92);border-radius:50px;font-size:0.85rem;font-weight:600;">
-                        <i class="bi bi-pencil me-1"></i>Edit
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Notes Modal (Separate from Add Modal) -->
-    <div class="modal fade" id="editNotesModal" tabindex="-1" aria-labelledby="editNotesModalLabel" aria-hidden="true"
-         th:attr="data-session-id=${currentSession != null ? currentSession.id : 0}">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0" style="
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(28px) saturate(160%);
-                -webkit-backdrop-filter: blur(28px) saturate(160%);
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-top-color: rgba(255, 255, 255, 0.32) !important;
-                border-radius: 20px;
-                box-shadow: 0 32px 72px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            ">
-                <div class="modal-header border-0 px-4 pt-4 pb-2">
-                    <div>
-                        <h5 class="modal-title fw-bold mb-1" id="editNotesModalLabel"
-                            style="color: rgba(255,255,255,0.95); font-size: 1.15rem;">
-                            <i class="bi bi-pencil me-2" style="opacity: 0.75;"></i>Edit Session Notes
-                        </h5>
-                        <p class="mb-0" style="color: rgba(255,255,255,0.5); font-size: 0.82rem;">
-                            Update your notes below. 📝
-                        </p>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white ms-auto mt-1"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body px-4 py-3">
-                    <label for="editNotesTextarea" class="form-label mb-2"
-                           style="font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
-                                  font-weight: 600; color: rgba(255,255,255,0.45);">Your notes</label>
-                    <textarea id="editNotesTextarea" rows="12" class="form-control"
-                              placeholder="Type your notes here..."
-                              oninput="window.editNotesValue = this.value;"
-                              style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);
-                                     border-radius:12px;color:rgba(255,255,255,0.9) !important;font-size:1rem;
-                                     line-height:1.65;resize:vertical;padding:14px 16px;"></textarea>
-                    <style>
-                        #editNotesTextarea::placeholder { color: rgba(255,255,255,0.3); }
-                        #editNotesTextarea:focus { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.35);
-                            box-shadow:0 0 0 3px rgba(255,255,255,0.08); color:rgba(255,255,255,0.95) !important; outline:none; }
-                    </style>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-2 d-flex gap-2 justify-content-end">
-                    <button type="button" data-bs-dismiss="modal"
-                            class="btn btn-sm px-4"
-                            style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);
-                                   color:rgba(255,255,255,0.7);border-radius:50px;font-size:0.85rem;">
-                        <i class="bi bi-x-lg me-1"></i>Cancel
-                    </button>
-                    <button type="button" onclick="saveEditedNotes()"
-                            class="btn btn-sm px-4"
-                            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
-                                   color:rgba(255,255,255,0.92);border-radius:50px;font-size:0.85rem;font-weight:600;">
-                        <i class="bi bi-save me-1"></i>Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
 
     <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        var CURRENT_SESSION_ID = [[${currentSession != null ? currentSession.id : 0}]];
+        var EXISTING_NOTE = [[${currentSession != null && currentSession.notes != null ? currentSession.notes : ''}]];
+    </script>
+
     <script>
         // ========================================
-        // NOTES FUNCTIONALITY - REBUILT FROM SCRATCH
+        // NOTES FUNCTIONALITY
         // ========================================
-        
-        // Global variables
-        window.currentNotesValue = '';
-        window.editNotesValue = '';
-        let SESSION_ID = null;
-        let EDIT_SESSION_ID = null;
-        let pendingNoteContent = null; // Used to pass content to modal
-        
-        const notesModal = document.getElementById('addNotesModal');
-        const notesTextarea = document.getElementById('notesTextarea');
-        const editModal = document.getElementById('editNotesModal');
-        const editTextarea = document.getElementById('editNotesTextarea');
-        
-        // Function to open modal for new note
-        function openNotesModalForNew() {
-            const button = event.currentTarget;
-            SESSION_ID = button.getAttribute('data-session-id');
-            pendingNoteContent = ''; // Empty for new note
-            
-            const modal = new bootstrap.Modal(notesModal);
-            modal.show();
+        var notesModalEl = document.getElementById('notesModal');
+        var notesTextarea = document.getElementById('notesTextarea');
+        var deleteNoteBtn = document.getElementById('deleteNoteBtn');
+        var HAS_NOTE = typeof EXISTING_NOTE === 'string' && EXISTING_NOTE.trim().length > 0;
+
+        function updateCharCount() {
+            var el = document.getElementById('noteCharCount');
+            if (el) el.textContent = notesTextarea.value.length + ' characters';
         }
-        
-        // Function to open modal for editing existing note (from inline preview)
-        function openNotesModalForEdit(previewElement) {
-            const noteContent = previewElement.getAttribute('data-note-content') || '';
-            EDIT_SESSION_ID = previewElement.getAttribute('data-session-id');
-            
-            console.log('Opening edit from inline preview');
-            console.log('Note content:', noteContent);
-            console.log('Session ID:', EDIT_SESSION_ID);
-            
-            // Set textarea value
-            editTextarea.value = noteContent;
-            window.editNotesValue = noteContent;
-            
-            // Open edit modal
-            const modal = new bootstrap.Modal(editModal);
-            modal.show();
+
+        function openNotesEditor() {
+            notesTextarea.value = EXISTING_NOTE;
+            updateCharCount();
+            deleteNoteBtn.style.display = HAS_NOTE ? 'inline-flex' : 'none';
+            new bootstrap.Modal(notesModalEl).show();
         }
-        
-        // Function to open edit modal from detail view - FETCH FROM DATABASE
-        function openEditModal() {
-            console.log('=== openEditModal called - fetching from database ===');
-            
-            // Get SESSION_ID from modal's data attribute (set by Thymeleaf)
-            EDIT_SESSION_ID = editModal.getAttribute('data-session-id');
-            console.log('SESSION_ID:', EDIT_SESSION_ID);
-            
-            if (!EDIT_SESSION_ID || EDIT_SESSION_ID === '0') {
-                alert('No session found');
-                return;
-            }
-            
-            // Close detail modal first
-            const detailModal = document.getElementById('noteDetailModal');
-            const dm = bootstrap.Modal.getInstance(detailModal);
-            if (dm) {
-                dm.hide();
-            }
-            
-            // Fetch notes from database
-            fetch('/api/session/notes/get?sessionId=' + EDIT_SESSION_ID)
-                .then(response => response.text())
-                .then(noteText => {
-                    console.log('Fetched note from database:', noteText);
-                    console.log('Note length:', noteText.length);
-                    
-                    // Set textarea value directly
-                    editTextarea.value = noteText;
-                    window.editNotesValue = noteText;
-                    
-                    console.log('Set editTextarea.value to:', editTextarea.value);
-                    console.log('Set editTextarea.value length:', editTextarea.value.length);
-                    
-                    // Wait for detail modal to close, then open edit modal
-                    setTimeout(() => {
-                        const modal = new bootstrap.Modal(editModal);
-                        modal.show();
-                    }, 350);
-                })
-                .catch(error => {
-                    console.error('Error fetching notes:', error);
-                    alert('Failed to load notes');
-                });
-        }
-        
-        // When edit modal is shown, ensure textarea has focus
-        editModal.addEventListener('shown.bs.modal', function() {
-            console.log('=== Edit Modal SHOWN ===');
-            console.log('editTextarea.value:', editTextarea.value);
-            console.log('editTextarea.value length:', editTextarea.value.length);
-            
-            editTextarea.focus();
-            const len = editTextarea.value.length;
-            editTextarea.setSelectionRange(len, len);
-        });
-        
-        // Handle modal opening - use pendingNoteContent
-        notesModal.addEventListener('show.bs.modal', function() {
-            console.log('=== Modal show.bs.modal event fired ===');
-            console.log('pendingNoteContent:', pendingNoteContent);
-            console.log('pendingNoteContent type:', typeof pendingNoteContent);
-            console.log('pendingNoteContent === null?', pendingNoteContent === null);
-            console.log('SESSION_ID:', SESSION_ID);
-            
-            // Use pendingNoteContent if available, otherwise use data attribute
-            let content;
-            if (pendingNoteContent !== null) {
-                console.log('Using pendingNoteContent');
-                content = pendingNoteContent;
-            } else {
-                console.log('Using data attribute');
-                content = notesModal.getAttribute('data-existing-notes') || '';
-            }
-            
-            console.log('Final content to load:', content);
-            console.log('Final content length:', content.length);
-            console.log('Final content type:', typeof content);
-            
-            // Set textarea and tracking variable
-            notesTextarea.value = content;
-            window.currentNotesValue = content;
-            
-            console.log('After setting - textarea.value:', notesTextarea.value);
-            console.log('After setting - textarea.value length:', notesTextarea.value.length);
-            console.log('After setting - currentNotesValue:', window.currentNotesValue);
-            
-            console.log('=== Textarea element check ===');
-            console.log('Textarea element:', notesTextarea);
-            console.log('Textarea id:', notesTextarea.id);
-            console.log('Textarea in DOM?', document.body.contains(notesTextarea));
-        });
-        
-        // Handle modal shown (fully visible) - just focus since value already set from database
-        notesModal.addEventListener('shown.bs.modal', function() {
-            console.log('=== Modal SHOWN (fully visible) ===');
-            console.log('Current textarea.value:', notesTextarea.value);
-            console.log('Current textarea.value length:', notesTextarea.value.length);
-            
-            // Focus and position cursor at end
+
+        notesModalEl.addEventListener('shown.bs.modal', function() {
             notesTextarea.focus();
-            const len = notesTextarea.value.length;
+            var len = notesTextarea.value.length;
             notesTextarea.setSelectionRange(len, len);
-            console.log('Focused and positioned cursor at end');
         });
-        
-        // Handle modal closing - reset pending content
-        notesModal.addEventListener('hidden.bs.modal', function() {
-            pendingNoteContent = null;
-            console.log('Modal closed, reset pendingNoteContent');
-        });
-        
-        // Clear notes function
+
         function clearNotes() {
             notesTextarea.value = '';
-            window.currentNotesValue = '';
+            updateCharCount();
             notesTextarea.focus();
         }
-        
-        // Save notes function (for NEW notes)
-        function saveNotes() {
-            const content = window.currentNotesValue.trim();
-            
-            if (content.length === 0) {
+
+        function saveNote() {
+            var content = notesTextarea.value;
+            if (!content.trim()) {
                 alert('Please enter some notes before saving.');
                 return;
             }
-            
-            if (!SESSION_ID || SESSION_ID === '0') {
+            if (!CURRENT_SESSION_ID || CURRENT_SESSION_ID === '0') {
                 alert('No session found. Please create a session first.');
                 return;
             }
-            
-            // Create form and submit
-            const form = document.createElement('form');
+            var form = document.createElement('form');
             form.method = 'POST';
             form.action = '/session/notes';
-            
-            const sessionInput = document.createElement('input');
+            var sessionInput = document.createElement('input');
             sessionInput.type = 'hidden';
             sessionInput.name = 'sessionId';
-            sessionInput.value = SESSION_ID;
-            
-            const notesInput = document.createElement('input');
+            sessionInput.value = CURRENT_SESSION_ID;
+            var notesInput = document.createElement('input');
             notesInput.type = 'hidden';
             notesInput.name = 'notes';
-            notesInput.value = window.currentNotesValue;
-            
+            notesInput.value = content;
             form.appendChild(sessionInput);
             form.appendChild(notesInput);
             document.body.appendChild(form);
             form.submit();
         }
-        
-        // Save edited notes function (for EDITING notes)
-        function saveEditedNotes() {
-            const content = window.editNotesValue.trim();
-            
-            if (content.length === 0) {
-                alert('Please enter some notes before saving.');
-                return;
-            }
-            
-            if (!EDIT_SESSION_ID || EDIT_SESSION_ID === '0') {
-                alert('No session found. Please create a session first.');
-                return;
-            }
-            
-            console.log('Saving edited notes...');
-            console.log('Session ID:', EDIT_SESSION_ID);
-            console.log('Content:', content);
-            console.log('Content length:', content.length);
-            
-            // Create form and submit
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/session/notes';
-            
-            const sessionInput = document.createElement('input');
-            sessionInput.type = 'hidden';
-            sessionInput.name = 'sessionId';
-            sessionInput.value = EDIT_SESSION_ID;
-            
-            const notesInput = document.createElement('input');
-            notesInput.type = 'hidden';
-            notesInput.name = 'notes';
-            notesInput.value = window.editNotesValue;
-            
-            form.appendChild(sessionInput);
-            form.appendChild(notesInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
-        
-        // Delete note function
+
         function deleteNote() {
             if (!confirm('Delete this note? This action cannot be undone.')) return;
-            
-            const sessionId = editModal.getAttribute('data-session-id');
-            
             fetch('/api/session/notes/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'sessionId=' + sessionId
-            }).then(r => { 
-                if (r.ok) {
-                    window.location.reload();
-                }
+                body: 'sessionId=' + CURRENT_SESSION_ID
+            }).then(function(r) {
+                if (r.ok) window.location.reload();
             });
         }
-        
-        // ========================================
-        // EVALUATION FUNCTIONALITY
-        // ========================================
 
         // ========================================
         // EVALUATION FUNCTIONALITY
         // ========================================
-        
-        const entries = Array.from(document.querySelectorAll('.delegate-entry'));
-        let current = 0;
+        var entries = Array.from(document.querySelectorAll('.delegate-entry'));
+        var current = 0;
 
         function load(index) {
             if (!entries.length) return;
-            const d = entries[index].dataset;
+            var d = entries[index].dataset;
             document.getElementById('delegateName').textContent = d.name;
             document.getElementById('f_sci').value = d.sci;
             document.getElementById('f_rep').value = d.rep;
@@ -980,60 +1475,76 @@
             document.getElementById('f_res').value = d.res;
             document.getElementById('f_col').value = d.col;
             document.getElementById('f_lea').value = d.lea;
-            document.getElementById('scoreDisplay').innerHTML = d.score + ' <span>/ 100</span>';
+            document.getElementById('f_notes').value = d.notes || '';
+            updateDelegateNotesCount();
+            updateScore(parseInt(d.score) || 0);
+            ['f_sci','f_rep','f_pub','f_par','f_res','f_col','f_lea'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) updateMetricLabel(el);
+            });
             document.getElementById('prevBtn').disabled = index === 0;
             document.getElementById('nextBtn').disabled = index === entries.length - 1;
-            document.getElementById('delegateCounter').textContent =
-                (index + 1) + ' / ' + entries.length;
+            document.getElementById('delegateCounter').textContent = (index + 1) + ' / ' + entries.length;
         }
 
         function navigate(dir) {
-            const next = current + dir;
+            var next = current + dir;
             if (next < 0 || next >= entries.length) return;
             current = next;
             load(current);
         }
 
-        function clamp(input, max) {
-            let v = parseInt(input.value);
-            if (isNaN(v) || v < 0) input.value = 0;
-            else if (v > max) input.value = max;
+        function updateMetricLabel(input) {
+            var badge = document.getElementById(input.id.replace('f_', 'v_'));
+            if (badge) badge.textContent = input.value;
+            var max = parseFloat(input.max) || 100;
+            var pct = max > 0 ? (parseFloat(input.value) / max) * 100 : 0;
+            input.style.setProperty('--fill', pct + '%');
+        }
+
+        function updateScore(total) {
+            total = parseInt(total) || 0;
+            document.getElementById('scoreDisplay').innerHTML = total + ' <span>/ 100</span>';
+            var bar = document.getElementById('scoreBar');
+            if (bar) bar.style.width = Math.max(0, Math.min(100, total)) + '%';
+            var chip = document.getElementById('totalChip');
+            if (chip) chip.innerHTML = total + '<span>/100</span>';
         }
 
         function recalc() {
-            const fields = ['f_sci','f_rep','f_pub','f_par','f_res','f_col','f_lea'];
-            const total = fields.reduce((sum, id) => sum + (parseInt(document.getElementById(id).value) || 0), 0);
-            document.getElementById('scoreDisplay').innerHTML = total + ' <span>/ 100</span>';
+            var fields = ['f_sci','f_rep','f_pub','f_par','f_res','f_col','f_lea'];
+            var total = fields.reduce(function(sum, id) { return sum + (parseInt(document.getElementById(id).value) || 0); }, 0);
+            updateScore(total);
         }
 
         function saveMetrics() {
             if (!entries.length) return;
-            const d = entries[current].dataset;
-            
-            // Get current values from inputs
-            const sciVal = document.getElementById('f_sci').value || 0;
-            const repVal = document.getElementById('f_rep').value || 0;
-            const pubVal = document.getElementById('f_pub').value || 0;
-            const parVal = document.getElementById('f_par').value || 0;
-            const resVal = document.getElementById('f_res').value || 0;
-            const colVal = document.getElementById('f_col').value || 0;
-            const leaVal = document.getElementById('f_lea').value || 0;
-            
-            const params = new URLSearchParams({
-                id:                    d.id,
-                sciKnowledge:          sciVal,
-                representationAccuracy:repVal,
-                publicSpeaking:        pubVal,
-                participation:         parVal,
-                resolutionDrafting:    resVal,
-                collaboration:         colVal,
-                leadershipMatrix:      leaVal
+            var d = entries[current].dataset;
+            var sciVal = document.getElementById('f_sci').value || 0;
+            var repVal = document.getElementById('f_rep').value || 0;
+            var pubVal = document.getElementById('f_pub').value || 0;
+            var parVal = document.getElementById('f_par').value || 0;
+            var resVal = document.getElementById('f_res').value || 0;
+            var colVal = document.getElementById('f_col').value || 0;
+            var leaVal = document.getElementById('f_lea').value || 0;
+            var notesVal = document.getElementById('f_notes').value || '';
+
+            var params = new URLSearchParams({
+                id: d.id,
+                sciKnowledge: sciVal,
+                representationAccuracy: repVal,
+                publicSpeaking: pubVal,
+                participation: parVal,
+                resolutionDrafting: resVal,
+                collaboration: colVal,
+                leadershipMatrix: leaVal,
+                delegateNotes: notesVal
             });
-            
+
             fetch('/api/evaluation/update', { method: 'POST', body: params,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
-            .then(r => r.text()).then(() => {
-                // Update ALL cached values in dataset
+            .then(function(r) { return r.text(); })
+            .then(function() {
                 entries[current].dataset.sci = sciVal;
                 entries[current].dataset.rep = repVal;
                 entries[current].dataset.pub = pubVal;
@@ -1041,38 +1552,29 @@
                 entries[current].dataset.res = resVal;
                 entries[current].dataset.col = colVal;
                 entries[current].dataset.lea = leaVal;
-                
-                // Calculate and update total score
-                const total = parseInt(sciVal) + parseInt(repVal) + parseInt(pubVal) + 
-                             parseInt(parVal) + parseInt(resVal) + parseInt(colVal) + parseInt(leaVal);
+                entries[current].dataset.notes = notesVal;
+                var total = parseInt(sciVal) + parseInt(repVal) + parseInt(pubVal) +
+                            parseInt(parVal) + parseInt(resVal) + parseInt(colVal) + parseInt(leaVal);
                 entries[current].dataset.score = total;
-                
-                // Update the score display
-                document.getElementById('scoreDisplay').innerHTML = total + ' <span>/ 100</span>';
-                
-                // If grid view is visible, refresh it
-                const gridView = document.getElementById('gridView');
-                if (gridView && gridView.style.display !== 'none') {
-                    populateGridView();
-                }
-                
-                // Show toast
-                const t = document.getElementById('saveToast');
+                updateScore(total);
+                var gridView = document.getElementById('gridView');
+                if (gridView && gridView.style.display !== 'none') populateGridView();
+                var t = document.getElementById('saveToast');
                 t.classList.add('show');
-                setTimeout(() => t.classList.remove('show'), 2200);
+                setTimeout(function() { t.classList.remove('show'); }, 2200);
             });
         }
 
         // Search
-        let hlIdx = -1;
+        var hlIdx = -1;
         function filterSearch(query) {
-            const dd = document.getElementById('searchDropdown');
-            const q = query.trim().toLowerCase();
+            var dd = document.getElementById('searchDropdown');
+            var q = query.trim().toLowerCase();
             if (!q) { dd.classList.remove('open'); return; }
-            const matches = entries.filter(e => e.dataset.name.toLowerCase().includes(q));
+            var matches = entries.filter(function(e) { return e.dataset.name.toLowerCase().includes(q); });
             if (!matches.length) { dd.classList.remove('open'); return; }
-            dd.innerHTML = matches.map(e => {
-                const i = entries.indexOf(e);
+            dd.innerHTML = matches.map(function(e) {
+                var i = entries.indexOf(e);
                 return '<div class="search-option" onclick="selectDelegate(' + i + ')">' + e.dataset.name + '</div>';
             }).join('');
             hlIdx = -1;
@@ -1084,30 +1586,30 @@
             document.getElementById('searchDropdown').classList.remove('open');
         }
         function handleSearchKey(e) {
-            const dd = document.getElementById('searchDropdown');
-            const opts = dd.querySelectorAll('.search-option');
+            var dd = document.getElementById('searchDropdown');
+            var opts = dd.querySelectorAll('.search-option');
             if (!dd.classList.contains('open') || !opts.length) return;
             if (e.key === 'ArrowDown') { e.preventDefault(); hlIdx = Math.min(hlIdx + 1, opts.length - 1); }
             else if (e.key === 'ArrowUp') { e.preventDefault(); hlIdx = Math.max(hlIdx - 1, 0); }
             else if (e.key === 'Enter' && hlIdx >= 0) { e.preventDefault(); opts[hlIdx].click(); return; }
             else if (e.key === 'Escape') { dd.classList.remove('open'); return; }
-            opts.forEach((o, i) => o.classList.toggle('highlighted', i === hlIdx));
+            opts.forEach(function(o, i) { o.classList.toggle('highlighted', i === hlIdx); });
         }
-        document.addEventListener('click', e => {
-            if (!e.target.closest('.eval-search-wrapper'))
-                document.getElementById('searchDropdown')?.classList.remove('open');
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.eval-search-wrapper')) {
+                var dd = document.getElementById('searchDropdown');
+                if (dd) dd.classList.remove('open');
+            }
         });
 
         // ========================================
-        // VIEW SWITCHING & GRID VIEW FUNCTIONALITY
+        // VIEW SWITCHING & GRID VIEW
         // ========================================
-        
         function switchView(view) {
-            const cardView = document.getElementById('cardView');
-            const gridView = document.getElementById('gridView');
-            const cardViewBtn = document.getElementById('cardViewBtn');
-            const gridViewBtn = document.getElementById('gridViewBtn');
-            
+            var cardView = document.getElementById('cardView');
+            var gridView = document.getElementById('gridView');
+            var cardViewBtn = document.getElementById('cardViewBtn');
+            var gridViewBtn = document.getElementById('gridViewBtn');
             if (view === 'card') {
                 cardView.style.display = 'block';
                 gridView.style.display = 'none';
@@ -1121,72 +1623,68 @@
                 populateGridView();
             }
         }
-        
+
         function populateGridView() {
-            const tbody = document.getElementById('gridTableBody');
+            var tbody = document.getElementById('gridTableBody');
             tbody.innerHTML = '';
-            
-            entries.forEach((entry, index) => {
-                const d = entry.dataset;
-                const totalScore = parseInt(d.score) || 0;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="padding: 14px; font-weight: 600; color: #1e293b;">${d.name}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.sci}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.rep}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.pub}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.par}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.res}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.col}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 500;">${d.lea}</td>
-                    <td style="padding: 14px; text-align: center; font-weight: 700; color: #2563eb; font-size: 1.1rem;">${totalScore}</td>
-                    <td style="padding: 14px; text-align: center;">
-                        <button onclick="editFromGrid(${index})" class="btn btn-sm btn-outline-primary" style="border-radius: 6px; padding: 4px 12px;">
-                            <i class="bi bi-pencil"></i> Edit
-                        </button>
-                    </td>
-                `;
+            entries.forEach(function(entry, index) {
+                var d = entry.dataset;
+                var totalScore = parseInt(d.score) || 0;
+                var notesPreview = (d.notes || '').trim();
+                var escNotes = function(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+                var shortNotes = notesPreview.length > 42 ? notesPreview.slice(0, 42) + '…' : notesPreview;
+                var notesCell = notesPreview.length > 0
+                    ? '<td class="grid-notes" title="' + escNotes(notesPreview) + '">' + escNotes(shortNotes) + '</td>'
+                    : '<td class="grid-notes empty-notes">-</td>';
+                var row = document.createElement('tr');
+                row.innerHTML =
+                    '<td class="grid-name">' + d.name + '</td>' +
+                    '<td>' + d.sci + '</td>' +
+                    '<td>' + d.rep + '</td>' +
+                    '<td>' + d.pub + '</td>' +
+                    '<td>' + d.par + '</td>' +
+                    '<td>' + d.res + '</td>' +
+                    '<td>' + d.col + '</td>' +
+                    '<td>' + d.lea + '</td>' +
+                    '<td class="grid-total">' + totalScore + '</td>' +
+                    notesCell +
+                    '<td><button onclick="editFromGrid(' + index + ')" class="btn btn-sm btn-outline-primary" style="border-radius:6px;padding:4px 12px;"><i class="bi bi-pencil"></i> Edit</button></td>';
                 tbody.appendChild(row);
             });
         }
-        
+
         function editFromGrid(index) {
-            // Switch to card view and navigate to the specific delegate
             switchView('card');
             current = index;
             load(current);
-            // Scroll to evaluation section
             document.querySelector('.eval-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        
+
         function exportToCSV() {
-            // Build CSV content
-            let csv = 'Delegate Name,Sci Knowledge (25),Representation Accuracy (15),Public Speaking (15),Participation (15),Resolution Drafting (15),Collaboration (10),Leadership Matrix (5),Total Score (100)\n';
-            
-            entries.forEach(entry => {
-                const d = entry.dataset;
-                const totalScore = parseInt(d.score) || 0;
-                csv += `"${d.name}",${d.sci},${d.rep},${d.pub},${d.par},${d.res},${d.col},${d.lea},${totalScore}\n`;
+            var csv = 'Delegate Name,Sci Knowledge (25),Representation Accuracy (15),Public Speaking (15),Participation (15),Resolution Drafting (15),Collaboration (10),Leadership Matrix (5),Total Score (100),Delegate Notes\n';
+            entries.forEach(function(entry) {
+                var d = entry.dataset;
+                var totalScore = parseInt(d.score) || 0;
+                var notes = (d.notes || '').replace(/"/g, '""');
+                csv += '"' + d.name + '",' + d.sci + ',' + d.rep + ',' + d.pub + ',' + d.par + ',' + d.res + ',' + d.col + ',' + d.lea + ',' + totalScore + ',"' + notes + '"\n';
             });
-            
-            // Create download link
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
             link.setAttribute('download', 'evaluation_scores.csv');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            console.log('CSV exported successfully');
         }
 
         // Init
-        if (entries.length) load(0);
+        document.addEventListener('DOMContentLoaded', function() {
+            if (entries.length) load(0);
+            updateCharCount();
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('notes');
+        });
     </script>
 </body>
 </html>

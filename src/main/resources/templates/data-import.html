@@ -1,0 +1,808 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Import Data - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Theme initialization script - prevents flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+        .sidebar {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            height: calc(100% - 80px);
+            width: var(--sidebar-width);
+            padding-top: 0.5rem;
+            background-color: #f8f9fa;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .content {
+            margin-left: var(--sidebar-width);
+            padding: 95px 24px 28px 24px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+            min-height: 100vh;
+        }
+        /* Standalone page: no sidebar/navbar fragments */
+        .content {
+            margin-left: 0 !important;
+            padding-top: 28px !important;
+        }
+        .standalone-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            max-width: 1100px;
+            margin: 0 auto 20px auto;
+            padding: 12px 20px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border: 1px solid rgba(255,255,255,0.55);
+            box-shadow: 0 20px 52px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+        body.dark-mode .standalone-bar {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42));
+            border-color: rgba(255,255,255,0.14);
+            box-shadow: 0 20px 52px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+        .standalone-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: 0.02em;
+            color: #1e293b;
+            text-decoration: none;
+        }
+        body.dark-mode .standalone-brand { color: #f1f5f9; }
+        .standalone-brand img { height: 34px; width: auto; }
+
+        body {
+            background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+            background-attachment: fixed;
+        }
+        body.dark-mode {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%) !important;
+        }
+
+        .page-heading {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            margin-bottom: 0;
+        }
+        body.dark-mode .page-heading { color: #f1f5f9; }
+
+        .page-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        body.dark-mode .page-subtitle { color: #94a3b8; }
+
+        /* Back button */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .btn-back:hover {
+            background: #fff;
+            color: #0891b2;
+            transform: translateX(-2px);
+            border-color: #bfdbfe;
+        }
+        body.dark-mode .btn-back {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+        }
+        body.dark-mode .btn-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: #93c5fd;
+            border-color: rgba(6,182,212,0.4);
+        }
+
+        /* Glass cards */
+        .imp-card {
+            background: linear-gradient(150deg, rgba(255,255,255,0.92), rgba(248,250,252,0.8));
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid rgba(226,232,240,0.9);
+            border-top-color: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow:
+                0 20px 45px rgba(15,23,42,0.08),
+                0 4px 14px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            padding: 22px 24px;
+        }
+        body.dark-mode .imp-card {
+            background: linear-gradient(150deg, rgba(30,41,59,0.85), rgba(15,23,42,0.8));
+            border: 1px solid rgba(148,163,184,0.14);
+            border-top-color: rgba(255,255,255,0.08);
+            box-shadow:
+                0 20px 45px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .imp-accent {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+        }
+
+        .imp-card-title {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        body.dark-mode .imp-card-title { color: #f1f5f9; }
+
+        .imp-card-desc {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        body.dark-mode .imp-card-desc { color: #94a3b8; }
+
+        .imp-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        body.dark-mode .imp-label { color: #94a3b8; }
+
+        /* File input */
+        .imp-file-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-direction: column;
+            text-align: center;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 20px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.5);
+        }
+        .imp-file-label:hover {
+            border-color: #06b6d4;
+            background: rgba(6,182,212,0.06);
+        }
+        body.dark-mode .imp-file-label {
+            border-color: rgba(148,163,184,0.3);
+            background: rgba(255,255,255,0.04);
+        }
+        body.dark-mode .imp-file-label:hover {
+            border-color: #22d3ee;
+            background: rgba(6,182,212,0.12);
+        }
+        .imp-file-name {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        body.dark-mode .imp-file-name { color: #94a3b8; }
+
+        /* Primary action buttons */
+        .btn-imp-primary {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            border: none;
+            border-radius: 11px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.3);
+            text-decoration: none;
+        }
+        .btn-imp-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.4);
+            color: #fff;
+        }
+        .btn-imp-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-imp-primary.imp-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-imp-primary.imp-green:hover:not(:disabled) {
+            box-shadow: 0 6px 18px rgba(16,185,129,0.4);
+        }
+        .btn-imp-primary.imp-outline {
+            background: transparent;
+            color: #475569;
+            border: 1.5px solid #cbd5e1;
+            box-shadow: none;
+        }
+        .btn-imp-primary.imp-outline:hover:not(:disabled) {
+            background: rgba(255,255,255,0.6);
+            color: #1e293b;
+            box-shadow: none;
+        }
+        body.dark-mode .btn-imp-primary.imp-outline {
+            color: #cbd5e1;
+            border-color: rgba(148,163,184,0.35);
+        }
+        body.dark-mode .btn-imp-primary.imp-outline:hover:not(:disabled) {
+            background: rgba(255,255,255,0.08);
+            color: #f1f5f9;
+        }
+
+        .imp-note {
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+        body.dark-mode .imp-note { color: #94a3b8; }
+
+        /* User selection cards */
+        .imp-user-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.5);
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .imp-user-card:hover { border-color: #93c5fd; background: rgba(6,182,212,0.05); }
+        .imp-user-card.selected {
+            border-color: #06b6d4;
+            background: rgba(6,182,212,0.08);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+        }
+        body.dark-mode .imp-user-card {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(148,163,184,0.18);
+        }
+        body.dark-mode .imp-user-card:hover { border-color: rgba(34,211,238,0.5); background: rgba(6,182,212,0.12); }
+        body.dark-mode .imp-user-card.selected {
+            border-color: #22d3ee;
+            background: rgba(6,182,212,0.18);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.2);
+        }
+        .imp-user-card.disabled-card { opacity: 0.55; cursor: not-allowed; }
+
+        .imp-checkbox {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            accent-color: #06b6d4;
+            cursor: pointer;
+        }
+
+        .imp-user-avatar {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 12px rgba(6,182,212,0.3);
+        }
+
+        .imp-user-name { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        body.dark-mode .imp-user-name { color: #f1f5f9; }
+
+        .imp-user-meta { font-size: 0.78rem; color: #64748b; }
+        body.dark-mode .imp-user-meta { color: #94a3b8; }
+
+        .imp-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(30,41,59,0.06);
+            border: 1px solid rgba(30,41,59,0.08);
+            border-radius: 50px;
+            padding: 3px 11px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        body.dark-mode .imp-stat {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+        }
+        .imp-stat.exists {
+            background: rgba(239,68,68,0.1);
+            border-color: rgba(239,68,68,0.25);
+            color: #dc2626;
+        }
+        body.dark-mode .imp-stat.exists { color: #f87171; }
+
+        /* Summary box */
+        .imp-summary {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(124,58,237,0.06));
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 14px;
+            padding: 16px 18px;
+        }
+
+        .imp-summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .imp-summary-num { font-size: 1.25rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
+        body.dark-mode .imp-summary-num { color: #f1f5f9; }
+        .imp-summary-lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; font-weight: 600; }
+        body.dark-mode .imp-summary-lbl { color: #94a3b8; }
+
+        /* Result box */
+        .imp-result {
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            display: none;
+        }
+        .imp-result.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #047857; display: block; }
+        .imp-result.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #b91c1c; display: block; }
+        body.dark-mode .imp-result.success { color: #6ee7b7; }
+        body.dark-mode .imp-result.error { color: #fca5a5; }
+
+        .imp-result-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(148,163,184,0.2);
+        }
+        .imp-result-row:last-child { border-bottom: none; }
+
+        .svm-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(6,182,212,0.25);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 991.98px) {
+            .content { padding: 88px 16px 16px 16px; }
+        }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - data-import */
+        body.liquid-glass .imp-card {
+            background: linear-gradient(150deg, rgba(255,255,255,0.62), rgba(248,250,252,0.40));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border: 1px solid rgba(255,255,255,0.65);
+            border-top-color: rgba(255,255,255,0.95);
+            box-shadow: 0 24px 60px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+        body.liquid-glass.dark-mode .imp-card {
+            background: linear-gradient(150deg, rgba(30,41,59,0.55), rgba(15,23,42,0.38));
+            border: 1px solid rgba(255,255,255,0.14);
+            border-top-color: rgba(255,255,255,0.26);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+        body.liquid-glass .imp-card > * { position: relative; z-index: 1; }
+    </style>
+
+    <!-- Standalone top bar (no navbar/sidebar fragments on this utility page) -->
+    <div class="content">
+        <div class="standalone-bar">
+            <a class="standalone-brand" href="/dashboard">
+                <img src="/images/sciverse_summit_logo_final.png" alt="SciVerse Summit logo">
+                <span>SciVerse Summit</span>
+            </a>
+            <a href="/dashboard" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+        <div class="container-fluid" style="max-width:1100px;margin:0 auto;">
+
+            <!-- Page header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-heading entrance" style="display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-database-fill-up me-1"></i>Import Data
+                    </h2>
+                    <div class="page-subtitle mt-1">Restore users, sessions and delegates from a backup file</div>
+                </div>
+                <a href="/settings/export" class="btn-imp-primary imp-outline" style="text-decoration:none;">
+                    <i class="bi bi-download"></i> Download Current Backup
+                </a>
+            </div>
+
+            <!-- Upload card -->
+            <div class="imp-card entrance entrance-1 mb-4 lg-reactive">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="imp-accent" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">
+                        <i class="bi bi-file-earmark-arrow-up-fill"></i>
+                    </div>
+                    <div>
+                        <div class="imp-card-title">Upload a Backup File</div>
+                        <div class="imp-card-desc">Select the <strong>.json</strong> file you exported from Settings → Data &amp; Privacy → Export Everything.</div>
+                    </div>
+                </div>
+
+                <label for="backupFile" class="imp-file-label mb-3">
+                    <input type="file" id="backupFile" accept=".json,application/json" style="display:none;" onchange="showFileName()">
+                    <span style="font-size:1.5rem;color:#06b6d4;"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+                    <span style="font-weight:600;color:#334155;" class="imp-file-prompt">Choose the backup .json file</span>
+                    <span class="imp-file-name" id="backupFileName">No file selected</span>
+                </label>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn-imp-primary w-100 justify-content-center" id="previewBtn" onclick="previewBackup()" disabled>
+                        <i class="bi bi-search"></i> Preview Backup
+                    </button>
+                </div>
+                <div class="imp-note mt-3">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    Only users you explicitly select will be written to the database. Users whose username or email already exist are skipped.
+                </div>
+            </div>
+
+            <!-- Preview section -->
+            <div id="previewSection" style="display:none;">
+                <div class="imp-card entrance entrance-2 mb-4 lg-reactive" id="summaryCard" style="display:none;">
+                    <div class="imp-label mb-2"><i class="bi bi-clipboard-data-fill me-1"></i>What's in this backup</div>
+                    <div class="imp-summary">
+                        <div class="row text-center g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="imp-summary-item">
+                                    <span class="imp-summary-num" id="sumUsers">0</span>
+                                    <span class="imp-summary-lbl">Users</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="imp-summary-item">
+                                    <span class="imp-summary-num" id="sumSessions">0</span>
+                                    <span class="imp-summary-lbl">Sessions</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="imp-summary-item">
+                                    <span class="imp-summary-num" id="sumDelegates">0</span>
+                                    <span class="imp-summary-lbl">Delegates</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="imp-summary-item">
+                                    <span class="imp-summary-num" id="sumSelected">0</span>
+                                    <span class="imp-summary-lbl">Selected</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="imp-note mt-3" id="backupMeta" style="font-size:0.76rem;"></div>
+                    </div>
+                </div>
+
+                <div class="imp-card entrance entrance-3 mb-4 lg-reactive">
+                    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="imp-accent" style="background:linear-gradient(135deg,#10b981,#059669);">
+                                <i class="bi bi-person-check-fill"></i>
+                            </div>
+                            <div>
+                                <div class="imp-card-title">Choose Users to Import</div>
+                                <div class="imp-card-desc">Select the user(s) you want restored into the database.</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-imp-primary imp-outline" style="font-size:0.82rem;padding:7px 14px;" onclick="toggleSelectAll()">
+                            <i class="bi bi-check2-square"></i> <span id="selectAllLabel">Select All</span>
+                        </button>
+                    </div>
+
+                    <div id="userList" class="d-flex flex-column gap-2"></div>
+
+                    <div class="imp-divider" style="height:1px;background:rgba(226,232,240,0.9);margin:18px 0;"></div>
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="imp-note" id="selectionNote">0 user(s) selected</div>
+                        <button type="button" class="btn-imp-primary imp-green" id="importBtn" onclick="importSelected()" disabled>
+                            <i class="bi bi-database-fill-down"></i> Import Selected Users
+                        </button>
+                    </div>
+
+                    <div class="imp-result mt-3" id="importResult"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Import page logic -->
+    <script>
+        var _previewData = null;
+        var _allSelected = true;
+
+        function showFileName() {
+            var f = document.getElementById('backupFile');
+            var n = document.getElementById('backupFileName');
+            var b = document.getElementById('previewBtn');
+            var has = f && f.files && f.files.length > 0;
+            if (n) n.textContent = has ? f.files[0].name : 'No file selected';
+            if (b) b.disabled = !has;
+        }
+
+        function previewBackup() {
+            var f = document.getElementById('backupFile');
+            if (!f || !f.files || f.files.length === 0) { alert('Please choose a backup file first.'); return; }
+            var btn = document.getElementById('previewBtn');
+            var oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Reading backup…';
+            var previewSpinner = btn.querySelector('.spinner');
+            if (previewSpinner && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                window.sciVerseAnime.spinElement(previewSpinner);
+            }
+
+            var fd = new FormData();
+            fd.append('file', f.files[0]);
+
+            fetch('/api/import/preview', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (previewSpinner && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                        window.sciVerseAnime.stopSpinElement(previewSpinner);
+                    }
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    renderPreview(data);
+                })
+                .catch(function() {
+                    if (previewSpinner && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                        window.sciVerseAnime.stopSpinElement(previewSpinner);
+                    }
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    showResult('error', 'Could not reach the server. Please try again.');
+                });
+        }
+
+        function renderPreview(data) {
+            var section = document.getElementById('previewSection');
+            var summary = document.getElementById('summaryCard');
+            if (!data.valid) {
+                showResult('error', data.error || 'The selected file is not a valid backup.');
+                return;
+            }
+            _previewData = data;
+            section.style.display = 'block';
+            summary.style.display = 'block';
+
+            document.getElementById('sumUsers').textContent = data.userCount || 0;
+            document.getElementById('sumSessions').textContent = data.sessionCount || 0;
+            document.getElementById('sumDelegates').textContent = data.delegateCount || 0;
+            document.getElementById('sumSelected').textContent = data.users.length || 0;
+
+            var meta = 'App: ' + (data.app || 'Sciverse Summit') +
+                       ' · Version: ' + (data.exportVersion || '1') +
+                       ' · Exported: ' + (data.exportedAt || 'unknown') +
+                       ' · File: ' + (data.fileName || '');
+            document.getElementById('backupMeta').textContent = meta;
+
+            var list = document.getElementById('userList');
+            list.innerHTML = '';
+            (data.users || []).forEach(function(u, idx) {
+                var card = document.createElement('div');
+                card.className = 'imp-user-card' + (u.exists ? ' disabled-card' : '');
+                card.id = 'userCard-' + idx;
+                card.onclick = function() {
+                    if (u.exists) return;
+                    var cb = document.getElementById('userCb-' + idx);
+                    cb.checked = !cb.checked;
+                    updateSelection();
+                };
+
+                var initials = (u.fullName || u.username || '?').trim().charAt(0).toUpperCase();
+                card.innerHTML =
+                    '<input type="checkbox" class="imp-checkbox" id="userCb-' + idx + '"' +
+                        (u.exists ? ' disabled' : '') +
+                        ' onchange="event.stopPropagation();updateSelection();">' +
+                    '<div class="imp-user-avatar"><i class="bi bi-person-fill"></i></div>' +
+                    '<div style="flex:1;min-width:0;">' +
+                        '<div class="imp-user-name">' + escHtml(u.fullName || 'Unnamed User') + '</div>' +
+                        '<div class="imp-user-meta">@' + escHtml(u.username || '?') + ' · ' + escHtml(u.email || 'no email') + '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
+                        '<span class="imp-stat"><i class="bi bi-folder2-open"></i> ' + u.sessionCount + ' session' + (u.sessionCount === 1 ? '' : 's') + '</span>' +
+                        '<span class="imp-stat"><i class="bi bi-people-fill"></i> ' + u.delegateCount + ' delegate' + (u.delegateCount === 1 ? '' : 's') + '</span>' +
+                        (u.exists
+                            ? '<span class="imp-stat exists"><i class="bi bi-exclamation-triangle-fill"></i> Already exists (' + escHtml(u.existsReason) + ')</span>'
+                            : '<span class="imp-stat" style="color:#059669;border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.08);"><i class="bi bi-check-circle-fill"></i> Available</span>') +
+                    '</div>';
+                list.appendChild(card);
+            });
+
+            _allSelected = true;
+            updateSelectAllLabel();
+            updateSelection();
+            var res = document.getElementById('importResult');
+            res.className = 'imp-result';
+            res.style.display = 'none';
+            res.innerHTML = '';
+            document.getElementById('importResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function updateSelection() {
+            if (!_previewData) return;
+            var count = 0;
+            (_previewData.users || []).forEach(function(u, idx) {
+                if (u.exists) return;
+                var cb = document.getElementById('userCb-' + idx);
+                var card = document.getElementById('userCard-' + idx);
+                if (cb && cb.checked) {
+                    count++;
+                    if (card) card.classList.add('selected');
+                } else {
+                    if (card) card.classList.remove('selected');
+                }
+            });
+            document.getElementById('selectionNote').textContent = count + ' user(s) selected';
+            document.getElementById('sumSelected').textContent = count;
+            document.getElementById('importBtn').disabled = count === 0;
+        }
+
+        function toggleSelectAll() {
+            if (!_previewData) return;
+            var checked = !_allSelected;
+            _allSelected = checked;
+            (_previewData.users || []).forEach(function(u, idx) {
+                if (u.exists) return;
+                var cb = document.getElementById('userCb-' + idx);
+                if (cb) cb.checked = checked;
+            });
+            updateSelectAllLabel();
+            updateSelection();
+        }
+
+        function updateSelectAllLabel() {
+            var el = document.getElementById('selectAllLabel');
+            if (el) el.textContent = _allSelected ? 'Deselect All' : 'Select All';
+        }
+
+        function importSelected() {
+            if (!_previewData) return;
+            var f = document.getElementById('backupFile');
+            if (!f || !f.files || f.files.length === 0) { alert('Please re-select the backup file.'); return; }
+
+            var selected = [];
+            (_previewData.users || []).forEach(function(u, idx) {
+                if (u.exists) return;
+                var cb = document.getElementById('userCb-' + idx);
+                if (cb && cb.checked) selected.push(u.username);
+            });
+            if (selected.length === 0) { alert('Select at least one user to import.'); return; }
+
+            var btn = document.getElementById('importBtn');
+            var oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Importing…';
+            var importSpinner = btn.querySelector('.spinner');
+            if (importSpinner && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                window.sciVerseAnime.spinElement(importSpinner);
+            }
+
+            var fd = new FormData();
+            fd.append('file', f.files[0]);
+            selected.forEach(function(u) { fd.append('username', u); });
+
+            fetch('/api/import', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (importSpinner && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                        window.sciVerseAnime.stopSpinElement(importSpinner);
+                    }
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    if (data.error) {
+                        showResult('error', data.error);
+                    } else {
+                        renderImportResult(data);
+                    }
+                })
+                .catch(function() {
+                    if (importSpinner && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                        window.sciVerseAnime.stopSpinElement(importSpinner);
+                    }
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    showResult('error', 'Could not reach the server. Please try again.');
+                });
+        }
+
+        function renderImportResult(data) {
+            var html = '<div class="fw-bold mb-2"><i class="bi bi-check-circle-fill me-1"></i>Import complete - ' +
+                       data.imported + ' user(s) imported, ' + data.skipped + ' skipped.</div>';
+            (data.results || []).forEach(function(r) {
+                var icon = r.status === 'imported'
+                    ? '<i class="bi bi-check-lg" style="color:#059669;"></i>'
+                    : '<i class="bi bi-x-lg" style="color:#dc2626;"></i>';
+                html += '<div class="imp-result-row"><span style="flex-shrink:0;">' + icon + '</span>' +
+                        '<div><strong>@' + escHtml(r.username || '?') + '</strong> - ' + escHtml(r.message || '') + '</div></div>';
+            });
+            showResult('success', html);
+            document.getElementById('importResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function showResult(type, html) {
+            var res = document.getElementById('importResult');
+            res.className = 'imp-result ' + type;
+            res.innerHTML = html;
+            res.style.display = 'block';
+        }
+
+        function escHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+    </script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('data-import');
+        });
+    </script>
+</body>
+</html>

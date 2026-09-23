@@ -14,6 +14,38 @@ public class GlobalControllerAdvice {
     @Autowired
     private SessionService sessionService;
 
+    @Autowired
+    private com.ishan.sciverse.summit.service.DelegateService delegateService;
+
+    @Autowired
+    private com.ishan.sciverse.summit.repository.UserRepository userRepository;
+
+    /** True when the logged-in user is a Chair or Admin (drives sidebar contents). */
+    @ModelAttribute("isChair")
+    public boolean isChair() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+            return userRepository.findByUsername(authentication.getName())
+                    .map(u -> com.ishan.sciverse.summit.service.UserService.isChairRole(u.getRole()))
+                    .orElse(false);
+        }
+        return false;
+    }
+
+    /** The session a delegate has joined (null for chairs and users who haven't joined). */
+    @ModelAttribute("joinedSession")
+    public Object getJoinedSession() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+            try {
+                return delegateService.getJoinedSession(authentication.getName()).orElse(null);
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     @ModelAttribute("currentSession")
     public Object getCurrentSession() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -44,9 +76,6 @@ public class GlobalControllerAdvice {
         } catch (Exception ignored) {}
         return 0;
     }
-    
-    @Autowired
-    private com.ishan.sciverse.summit.repository.UserRepository userRepository;
 
     @ModelAttribute("currentUserEmail")
     public String getCurrentUserEmail() {

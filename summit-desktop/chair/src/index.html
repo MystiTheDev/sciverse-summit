@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SciVerse Summit Chair</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="updateOverlay" aria-hidden="true">
+  <div class="update-floaters" aria-hidden="true">
+    <span class="floater">◈</span><span class="floater">⬢</span><span class="floater">✦</span><span class="floater">⬣</span><span class="floater">◆</span><span class="floater">✧</span>
+  </div>
+  <div class="update-card">
+    <div class="update-badge">⟡ SciVerse Summit Update</div>
+    <h2 class="update-title" id="updateTitle">Checking for updates…</h2>
+    <p class="update-sub" id="updateSub">This will only take a moment.</p>
+    <div class="update-bar"><span id="updateBar"></span></div>
+    <div class="update-meta"><span id="updatePct">—</span><span id="updateSpeed"></span></div>
+    <div class="update-tip" id="updateTip"></div>
+    <div class="update-actions" id="updateActions" style="display:none">
+      <button id="updateRestartBtn" class="primary">Restart to Update</button>
+      <button id="updateLaterBtn" class="ghost">Later</button>
+    </div>
+  </div>
+</div>
+<div id="splash">
+  <h1 class="splash-title">SciVerse Summit</h1>
+  <p class="splash-sub">Chair</p>
+  <!-- From Uiverse.io by dexter-st -->
+  <div class="loader-wrapper">
+    <span class="loader-letter">L</span>
+    <span class="loader-letter">o</span>
+    <span class="loader-letter">a</span>
+    <span class="loader-letter">d</span>
+    <span class="loader-letter">i</span>
+    <span class="loader-letter">n</span>
+    <span class="loader-letter">g</span>
+
+    <div class="loader"></div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">S</div>
+    <h1>SciVerse Summit</h1>
+    <p class="sub">Chair console &mdash; start the session server on this PC.</p>
+
+    <div class="status" id="status"><span class="dot idle"></span><span id="statusText">Server stopped</span></div>
+
+    <div class="row">
+      <button id="startBtn" class="primary">Start Session Server</button>
+      <button id="stopBtn" class="ghost" disabled>Stop</button>
+    </div>
+    <div class="row">
+      <button id="openBtn" class="ghost" disabled>Open Chair View</button>
+      <button id="copyBtn" class="ghost" disabled>Copy Delegate Join URL</button>
+    </div>
+
+    <pre class="log" id="log"></pre>
+  </div>
+</div>
+<script src="update-tips.js"></script>
+<script>
+// Update overlay — interesting download + ready states, floating icons, tip rotator.
+(function () {
+  const api0 = window.summitAPI;
+  if (!api0) return;
+  const overlay = document.getElementById('updateOverlay');
+  const title = document.getElementById('updateTitle');
+  const sub = document.getElementById('updateSub');
+  const bar = document.getElementById('updateBar');
+  const pct = document.getElementById('updatePct');
+  const speed = document.getElementById('updateSpeed');
+  const tipEl = document.getElementById('updateTip');
+  const actions = document.getElementById('updateActions');
+  const restartBtn = document.getElementById('updateRestartBtn');
+  const laterBtn = document.getElementById('updateLaterBtn');
+  let tipTimer = null;
+  let tipIdx = 0;
+  function tips() { return (typeof UPDATE_TIPS !== 'undefined' && Array.isArray(UPDATE_TIPS) && UPDATE_TIPS.length) ? UPDATE_TIPS : ["Tip: Updates install on restart."]; }
+  function showTip() {
+    const arr = tips();
+    tipEl.style.opacity = '0';
+    setTimeout(() => {
+      tipEl.textContent = arr[tipIdx % arr.length];
+      tipEl.style.opacity = '1';
+      tipIdx++;
+    }, 320);
+  }
+  function startTips() {
+    tipIdx = Math.floor(Math.random() * tips().length);
+    showTip();
+    tipTimer = setInterval(showTip, 3200);
+  }
+  function stopTips() { if (tipTimer) clearInterval(tipTimer); tipTimer = null; }
+  function open() { overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false'); }
+  function fmtSpeed(bps) {
+    if (!bps || bps <= 0) return '';
+    const kb = bps / 1024;
+    return kb > 1024 ? (kb / 1024).toFixed(1) + ' MB/s' : Math.round(kb) + ' KB/s';
+  }
+  if (api0.onUpdateAvailable) api0.onUpdateAvailable((info) => {
+    open(); stopTips();
+    const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
+    title.textContent = 'Update available' + ver;
+    sub.textContent = 'A new version is ready to download. Want to update now?';
+    bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
+    tipEl.textContent = 'Tip: You can continue working — download starts only if you click Download.';
+    actions.innerHTML = '<button id="updDownloadBtn" class="primary">Download Update</button><button id="updLaterBtn" class="ghost">Later</button>';
+    actions.style.display = 'flex';
+    const dl = document.getElementById('updDownloadBtn');
+    const later = document.getElementById('updLaterBtn');
+    if (dl) dl.addEventListener('click', () => {
+      title.textContent = 'Downloading update…';
+      sub.textContent = 'Hang tight — almost there.';
+      bar.style.width = '6%'; pct.textContent = '6%';
+      actions.style.display = 'none';
+      startTips();
+      if (api0.downloadUpdate) api0.downloadUpdate();
+    });
+    if (later) later.addEventListener('click', () => { overlay.classList.remove('open'); stopTips(); });
+  });
+  if (api0.onUpdateProgress) api0.onUpdateProgress((p) => {
+    open();
+    const n = Math.max(0, Math.min(100, Math.round(p.percent || 0)));
+    bar.style.width = n + '%'; pct.textContent = n + '%';
+    speed.textContent = fmtSpeed(p.bytesPerSecond);
+    title.textContent = 'Downloading update…';
+    sub.textContent = 'Hang tight — almost there.';
+    actions.style.display = 'none';
+    if (!tipTimer) startTips();
+  });
+  if (api0.onUpdateDownloaded) api0.onUpdateDownloaded((info) => {
+    open(); stopTips();
+    const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
+    bar.style.width = '100%'; pct.textContent = '100%'; speed.textContent = '';
+    title.textContent = 'Update ready' + ver;
+    sub.textContent = 'SciVerse Summit ' + ver.trim() + ' is ready — restart to apply it.';
+    actions.innerHTML = '<button id="updateRestartBtn" class="primary">Restart to Update</button><button id="updateLaterBtn2" class="ghost">Later</button>';
+    actions.style.display = 'flex';
+    tipEl.textContent = 'Tip: Click Restart to Update when you are ready.';
+    const rb = document.getElementById('updateRestartBtn');
+    const lb = document.getElementById('updateLaterBtn2');
+    if (rb) rb.addEventListener('click', () => { if (api0.restartToUpdate) api0.restartToUpdate(); });
+    if (lb) lb.addEventListener('click', () => { overlay.classList.remove('open'); });
+  });
+  if (api0.onUpdateError) api0.onUpdateError((msg) => {
+    bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
+    title.textContent = 'Update check failed';
+    sub.textContent = String(msg || 'Will retry next launch. Your current version keeps working.');
+    stopTips(); tipEl.textContent = '';
+    actions.style.display = 'none';
+    setTimeout(() => overlay.classList.remove('open'), 4200);
+  });
+  // Keep initial Later/Restart wiring for the ready state (fallback if actions were pre-rendered)
+  if (restartBtn) restartBtn.addEventListener('click', () => { if (api0.restartToUpdate) api0.restartToUpdate(); });
+  if (laterBtn) laterBtn.addEventListener('click', () => { overlay.classList.remove('open'); });
+})();
+</script>
+<script>
+// In-app splash: plays on first open only. Returns via the Console button
+// carry ?skipSplash=1 and land straight on the console, no loader.
+(function () {
+  let skip = false;
+  try { skip = new URLSearchParams(window.location.search).has('skipSplash'); } catch (e) { /* file URL without query */ }
+  if (skip) {
+    const el = document.getElementById('splash');
+    if (el) el.remove();
+    return;
+  }
+  // Otherwise: follows the native splash window, holds ~20s so the handoff
+  // reads as one continuous loading sequence (minimum 20s once the page loads).
+  const started = Date.now();
+  function hide() {
+    const wait = Math.max(0, 20000 - (Date.now() - started));
+    setTimeout(() => {
+      const el = document.getElementById('splash');
+      if (!el) return;
+      el.classList.add('hidden');
+      setTimeout(() => el.remove(), 500);
+    }, wait);
+  }
+  if (document.readyState === 'complete') hide();
+  else window.addEventListener('load', hide);
+  setTimeout(hide, 25000); // failsafe: never trap the user behind the splash
+})();
+const api = window.summitAPI;
+const BASE = 'http://127.0.0.1:8080';
+const logEl = document.getElementById('log');
+const statusText = document.getElementById('statusText');
+const dot = document.querySelector('.dot');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const openBtn = document.getElementById('openBtn');
+const copyBtn = document.getElementById('copyBtn');
+
+function log(msg) {
+  logEl.textContent += new Date().toLocaleTimeString() + '  ' + msg + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+// Server stdout/stderr streamed from the main process (spawned java -jar).
+if (api && api.onLog) api.onLog((line) => log('[server] ' + line));
+function setStatus(state, text) {
+  dot.className = 'dot ' + state;
+  statusText.textContent = text;
+}
+// Returning via Back to Console while the server runs: reflect live state
+// instead of a fresh "stopped" screen, so Stop stays available.
+(async () => {
+  try {
+    if (api && api.serverStatus && await api.serverStatus() === 'running') {
+      setStatus('live', 'Server live');
+      log('Reconnected to the running server. Open Chair View to re-enter, or Stop it here.');
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      openBtn.disabled = false;
+      copyBtn.disabled = false;
+    }
+  } catch { /* launcher works standalone regardless */ }
+})();
+// Opaque (no-cors) fetch: resolves when *something* listens, rejects on refused.
+async function serverUp() {
+  try { await fetch(BASE + '/login', { mode: 'no-cors' }); return true; }
+  catch { return false; }
+}
+async function waitForServer() {
+  for (let i = 0; i < 90; i++) {
+    if (await serverUp()) return true;
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  return false;
+}
+
+startBtn.addEventListener('click', async () => {
+  startBtn.disabled = true;
+  setStatus('starting', 'Starting server…');
+  log('Spawning bundled java -jar summit.jar …');
+  try {
+    const res = await api.startServer();
+    log('start_server -> ' + res);
+    log('Waiting for http://127.0.0.1:8080 … (Spring Boot takes ~10-30s)');
+    if (await waitForServer()) {
+      setStatus('live', 'Server live');
+      log('Server is up. Click Open Chair View to enter — this console stays put.');
+      stopBtn.disabled = false;
+      openBtn.disabled = false;
+      copyBtn.disabled = false;
+    } else {
+      setStatus('error', 'Server did not respond in time');
+      log('Timed out waiting. Check the app logs / port 8080.');
+      startBtn.disabled = false;
+    }
+  } catch (e) {
+    setStatus('error', 'Failed to start');
+    log('ERROR: ' + e);
+    startBtn.disabled = false;
+  }
+});
+
+stopBtn.addEventListener('click', async () => {
+  await api.stopServer();
+  setStatus('idle', 'Server stopped');
+  log('Server stopped.');
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  openBtn.disabled = true;
+  copyBtn.disabled = true;
+});
+openBtn.addEventListener('click', () => { window.location.href = BASE + '/'; });
+copyBtn.addEventListener('click', async () => {
+  try {
+    const ip = await api.lanAddress();
+    await navigator.clipboard.writeText('http://' + ip + ':8080');
+    log('Copied delegate join URL: http://' + ip + ':8080');
+  } catch (e) { log('Could not determine LAN address: ' + e); }
+});
+</script>
+</body>
+</html>

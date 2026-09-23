@@ -1,0 +1,567 @@
+/* Sciverse Summit — lg-14 liquid-glass notification skin (scoped: notification modal/banner only).
+   Adapted from the pasted lg-14 toast source. No page layout, no external images,
+   no global resets — only #notifPanel, .notif-msg-card and #notifBanner are touched. */
+/* ============ NOTIFICATION DROPDOWN REWORK (panel only — banners untouched) ============ */
+#notifPanel {
+  --lg-ok: #34d399;
+  --lg-info: #38bdf8;
+  --lg-err: #fb7185;
+  --nt-accent: #3b82f6;
+  --nt-accent-soft: rgba(59, 130, 246, 0.12);
+}
+
+/* Panel shell: wider, solid-readable glass */
+#notifPanel.notif-dropdown {
+  width: 348px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 24px 56px -12px rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-radius: 18px;
+  overflow: hidden;
+}
+body.dark-mode #notifPanel.notif-dropdown {
+  background: rgba(10, 16, 32, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Header: bolder title, pill-style Clear all */
+#notifPanel .notif-dd-hdr {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+#notifPanel .notif-dd-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+#notifPanel .notif-dd-title i {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.85rem;
+  margin-right: 0;
+  background: rgba(59, 130, 246, 0.14);
+  color: #2563eb;
+}
+#notifPanel .notif-dd-clear {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+#notifPanel .notif-dd-clear:hover {
+  color: #fff;
+  background: #ef4444;
+  border-color: #ef4444;
+}
+body.dark-mode #notifPanel .notif-dd-title { color: #f1f5f9 !important; }
+body.dark-mode #notifPanel .notif-dd-title i {
+  background: rgba(59, 130, 246, 0.22) !important;
+  color: #93c5fd !important;
+}
+
+/* List spacing */
+#notifPanel .notif-dd-list {
+  padding: 10px;
+  gap: 8px;
+}
+
+/* Cards: tinted icon chip + title/message hierarchy + unread accent bar */
+#notifPanel .notif-msg-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 38px 12px 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  animation: lg-notif-in 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+#notifPanel .notif-msg-card:hover {
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+#notifPanel .notif-msg-card.lg-out {
+  animation: lg-notif-out 0.3s ease forwards;
+}
+/* Unread: type-colored left bar + soft tint wash */
+#notifPanel .notif-msg-card:not(.notif-read) {
+  background: var(--nt-accent-soft);
+  border-color: color-mix(in srgb, var(--nt-accent) 30%, transparent);
+}
+#notifPanel .notif-msg-card:not(.notif-read)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--nt-accent);
+}
+#notifPanel .notif-msg-card:not(.notif-read)::after {
+  content: none;
+}
+#notifPanel .notif-msg-card.notif-read { opacity: 1; }
+#notifPanel .notif-msg-card.notif-read .notif-msg-text strong { color: #64748b; }
+
+/* Icon chip: 34px tinted tile, glyph in full type color */
+#notifPanel .notif-msg-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1rem;
+  color: var(--nt-accent);
+  /* !important: beats the generic dark-mode icon wash in fragments */
+  background: var(--nt-accent-soft) !important;
+}
+/* Per-type accents (cards + mirrored toast kinds) */
+#notifPanel .notif-msg-card[data-notif-type="VOTING"] { --nt-accent: #7c3aed; --nt-accent-soft: rgba(124, 58, 237, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="MOTION"] { --nt-accent: #d97706; --nt-accent-soft: rgba(217, 119, 6, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="RESOLUTION"] { --nt-accent: #0891b2; --nt-accent-soft: rgba(8, 145, 178, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="SPEAKER"] { --nt-accent: #0284c7; --nt-accent-soft: rgba(2, 132, 199, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="SESSION_ENDED"] { --nt-accent: #dc2626; --nt-accent-soft: rgba(220, 38, 38, 0.08); }
+#notifPanel .notif-msg-card[data-notif-type="DELEGATE_JOINED"] { --nt-accent: #059669; --nt-accent-soft: rgba(5, 150, 105, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="DELEGATE_LEFT"] { --nt-accent: #64748b; --nt-accent-soft: rgba(100, 116, 139, 0.12); }
+#notifPanel .notif-msg-card[data-notif-type="SUCCESS"] { --nt-accent: #059669; --nt-accent-soft: rgba(5, 150, 105, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="WARNING"] { --nt-accent: #d97706; --nt-accent-soft: rgba(217, 119, 6, 0.1); }
+#notifPanel .notif-msg-card[data-notif-type="ERROR"] { --nt-accent: #dc2626; --nt-accent-soft: rgba(220, 38, 38, 0.08); }
+#notifPanel .notif-msg-card[data-notif-type="INFO"] { --nt-accent: #0284c7; --nt-accent-soft: rgba(2, 132, 199, 0.1); }
+
+/* Text: title 800/dark, message regular/muted, time small caps */
+#notifPanel .notif-msg-body { flex: 1; min-width: 0; padding-top: 1px; }
+#notifPanel .notif-msg-text {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: #334155;
+}
+#notifPanel .notif-msg-text strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+#notifPanel .notif-msg-text span { display: block; }
+#notifPanel .notif-msg-time {
+  margin-top: 6px;
+  color: #94a3b8 !important;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+body.dark-mode #notifPanel .notif-msg-card {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+body.dark-mode #notifPanel .notif-msg-card:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+}
+body.dark-mode #notifPanel .notif-msg-card:not(.notif-read) {
+  background: color-mix(in srgb, var(--nt-accent) 16%, transparent) !important;
+}
+body.dark-mode #notifPanel .notif-msg-text { color: rgba(226, 232, 240, 0.85) !important; }
+body.dark-mode #notifPanel .notif-msg-text strong { color: #ffffff !important; }
+body.dark-mode #notifPanel .notif-msg-card.notif-read .notif-msg-text strong { color: rgba(255, 255, 255, 0.55) !important; }
+body.dark-mode #notifPanel .notif-msg-time { color: rgba(255, 255, 255, 0.45) !important; }
+
+/* Close: clearly visible, red on hover */
+#notifPanel .notif-msg-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  color: #64748b;
+  background: rgba(15, 23, 42, 0.05);
+  font-size: 0.72rem;
+  display: inline-grid;
+  place-items: center;
+}
+#notifPanel .notif-msg-close:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+#notifPanel .notif-msg-close:focus-visible { outline: 2px solid #06b6d4; outline-offset: 1px; }
+body.dark-mode #notifPanel .notif-msg-close {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+body.dark-mode #notifPanel .notif-msg-close:hover {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #fff !important;
+}
+
+/* Empty state: soft chip + clear copy */
+#notifPanel .notif-empty {
+  color: #64748b;
+  padding: 36px 16px;
+  gap: 10px;
+}
+#notifPanel .notif-empty i {
+  font-size: 1.6rem;
+  opacity: 1;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+#notifPanel .notif-empty span { font-size: 0.85rem; font-weight: 700; color: #334155; }
+#notifPanel .notif-empty small { font-size: 0.76rem; color: #94a3b8; }
+body.dark-mode #notifPanel .notif-empty { color: rgba(255, 255, 255, 0.6) !important; }
+body.dark-mode #notifPanel .notif-empty span { color: rgba(255, 255, 255, 0.85) !important; }
+
+/* Banner ("New Motion" popup): full lg-14 liquid-glass toast restyle.
+   Beats the per-page inline positioning (top-center bar) so it renders as a
+   glass toast sliding in from the right, exactly like the pasted lg-14 demo. */
+#notifBanner {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  left: auto !important;
+  transform: none !important;
+  width: min(360px, 90vw) !important;
+  max-width: 90vw !important;
+  z-index: 6000 !important;
+}
+#notifBannerInner {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  display: flex !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+  padding: 14px 40px 14px 14px !important;
+  border-radius: 16px !important;
+  /* Light mode: keep the light glass look, dark text for contrast. */
+  color: #0f172a !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  background: color-mix(in oklab, white 14%, transparent) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 20px 40px -20px rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  animation: lg-notif-in 0.4s cubic-bezier(0.2, 0.9, 0.2, 1) !important;
+}
+#notifBannerTitle {
+  display: block !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  color: #0f172a !important;
+  margin-bottom: 2px !important;
+}
+body.dark-mode #notifBannerInner {
+  color: #fff !important;
+  background: rgba(13, 20, 38, 0.82) !important;
+}
+body.dark-mode #notifBannerTitle { color: #fff !important; }
+#notifBannerTitle > i {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+  background: #38bdf8 !important;
+  margin-right: 8px !important;
+  vertical-align: -7px !important;
+}
+#notifBannerInner[data-notif-type="MOTION"] #notifBannerTitle > i,
+#notifBannerInner[data-notif-type="DELEGATE_JOINED"] #notifBannerTitle > i { background: #34d399 !important; }
+#notifBannerInner[data-notif-type="VOTING"] #notifBannerTitle > i,
+#notifBannerInner[data-notif-type="RESOLUTION"] #notifBannerTitle > i,
+#notifBannerInner[data-notif-type="SPEAKER"] #notifBannerTitle > i { background: #38bdf8 !important; }
+#notifBannerInner[data-notif-type="SESSION_ENDED"] #notifBannerTitle > i,
+#notifBannerInner[data-notif-type="DELEGATE_LEFT"] #notifBannerTitle > i { background: #fb7185 !important; }
+#notifBannerMsg {
+  color: #334155 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+body.dark-mode #notifBannerMsg {
+  color: #ffffff !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45) !important;
+}
+body.dark-mode #notifBannerTitle {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45) !important;
+}
+#notifBannerDismiss {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+  font-size: 13px !important;
+  padding: 0 !important;
+}
+#notifBannerDismiss:hover { background: rgba(15, 23, 42, 0.15) !important; }
+body.dark-mode #notifBannerDismiss {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+body.dark-mode #notifBannerDismiss:hover { background: rgba(255, 255, 255, 0.3) !important; }
+#notifBannerLink {
+  background: #fff !important;
+  color: #0f172a !important;
+  border-radius: 12px !important;
+  padding: 9px 16px !important;
+  font-weight: 800 !important;
+  font-size: 0.82rem !important;
+  margin-top: 8px !important;
+}
+/* 8s bottom progress rim (matches the banner auto-dismiss timeout) */
+#notifBannerInner::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  height: 3px !important;
+  width: 100% !important;
+  transform-origin: left !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  animation: lg-notif-rim 8000ms linear forwards !important;
+}
+body.dark-mode #notifBannerInner::after {
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Standalone lg toast region (used by LgNotifToast helper only) */
+.lg-notif-region {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 6000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(320px, 86vw);
+  pointer-events: none;
+}
+.lg-notif-toast {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 40px 14px 14px;
+  border-radius: 16px;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 20px 40px -20px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  animation: lg-notif-in 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.lg-notif-toast.lg-out { animation: lg-notif-out 0.3s ease forwards; }
+.lg-notif-ico {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  background: #38bdf8;
+}
+.lg-notif-toast--success .lg-notif-ico { background: #34d399; }
+.lg-notif-toast--error .lg-notif-ico { background: #fb7185; }
+.lg-notif-msg { font-size: 14px; line-height: 1.4; }
+.lg-notif-msg strong { display: block; font-weight: 800; margin-bottom: 2px; }
+.lg-notif-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 13px;
+}
+.lg-notif-close:hover { background: rgba(255, 255, 255, 0.3); }
+.lg-notif-toast::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  background: rgba(255, 255, 255, 0.7);
+  animation: lg-notif-rim 4000ms linear forwards;
+}
+
+@keyframes lg-notif-in {
+  from { opacity: 0; transform: translateX(110%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes lg-notif-out {
+  to { opacity: 0; transform: translateX(110%); }
+}
+@keyframes lg-notif-rim {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #notifPanel .notif-msg-card,
+  .lg-notif-toast { animation: none; }
+  #notifPanel .notif-msg-card.lg-out,
+  .lg-notif-toast.lg-out { animation: none; opacity: 0; }
+}
+
+/* Stacked banner toasts (rendered by notif-banner.js; entry uses lg-notif-in) */
+#svToastRegion {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 6000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(360px, 90vw);
+  pointer-events: none;
+}
+.sv-toast {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 40px 14px 14px;
+  border-radius: 16px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 20px 40px -20px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  animation: lg-notif-in 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+body.dark-mode .sv-toast {
+  color: #fff;
+  background: rgba(13, 20, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.sv-toast-ico {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: #fff;
+  background: #38bdf8;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.sv-toast[data-notif-type="MOTION"] .sv-toast-ico,
+.sv-toast[data-notif-type="DELEGATE_JOINED"] .sv-toast-ico { background: #34d399; }
+.sv-toast[data-notif-type="SESSION_ENDED"] .sv-toast-ico,
+.sv-toast[data-notif-type="DELEGATE_LEFT"] .sv-toast-ico { background: #fb7185; }
+.sv-toast-body { flex: 1; min-width: 0; font-size: 14px; line-height: 1.4; }
+.sv-toast-body strong { display: block; font-weight: 800; margin-bottom: 2px; }
+.sv-toast-msg { color: #334155; }
+body.dark-mode .sv-toast-msg { color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45); }
+.sv-toast-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  background: #fff;
+  color: #06b6d4 !important;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
+}
+.sv-toast-act:hover { color: #0891b2 !important; background: #ecfeff; }
+body.dark-mode .sv-toast-act { background: #fff; color: #06b6d4 !important; }
+.sv-toast-x {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  cursor: pointer;
+  color: #334155;
+  background: rgba(15, 23, 42, 0.07);
+  font-size: 13px;
+  padding: 0;
+}
+.sv-toast-x:hover { background: rgba(15, 23, 42, 0.15); }
+body.dark-mode .sv-toast-x {
+  border: none;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+body.dark-mode .sv-toast-x:hover { background: rgba(255, 255, 255, 0.3); }
+.sv-toast::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  background: rgba(15, 23, 42, 0.35);
+  animation: lg-notif-rim 8000ms linear forwards;
+}
+body.dark-mode .sv-toast::after { background: rgba(255, 255, 255, 0.7); }
+@media (prefers-reduced-motion: reduce) {
+  .sv-toast { animation: none; }
+  .sv-toast::after { animation: none; transform: scaleX(0); }
+}

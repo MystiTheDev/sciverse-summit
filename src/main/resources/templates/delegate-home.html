@@ -1,0 +1,390 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Delegate Portal - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-secondary: #f1f5f9;
+            --bg-elevated: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --accent-primary: #06b6d4;
+            --accent-secondary: #7c3aed;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55);
+            --glass-border: rgba(255,255,255,0.5);
+        }
+        body.dark-mode {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-secondary: #334155;
+            --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65);
+            --glass-border: rgba(255,255,255,0.12);
+        }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .content { margin-left: 0; padding: 95px 20px 40px 20px; position: relative; z-index: 1; transition: all 0.3s; }
+
+        .page-heading { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0; display: flex; align-items: center; gap: 12px; }
+        .page-heading i { color: var(--accent-primary); font-size: 1.7rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; letter-spacing: 0.02em; margin: 6px 0 0 40px; }
+        .heading-block { margin-bottom: 1.5rem; }
+
+        .panel-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 16px 44px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+            overflow: hidden;
+        }
+        body.dark-mode .panel-card {
+            box-shadow: 0 20px 52px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03) !important;
+        }
+
+        .join-hero { padding: 56px 32px; text-align: center; }
+        .join-hero-icon {
+            width: 84px; height: 84px; margin: 0 auto 22px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff; font-size: 2.4rem;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 14px 40px rgba(6,182,212,0.45);
+        }
+        .join-hero h3 { font-weight: 800; color: var(--text-primary); font-size: 1.35rem; margin-bottom: 8px; }
+        .join-hero p { color: var(--text-muted); font-size: 0.92rem; max-width: 440px; margin: 0 auto 28px; line-height: 1.6; }
+
+        .btn-join {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            border: none; color: #fff; font-weight: 700;
+            padding: 14px 42px; border-radius: 50px; font-size: 1.05rem;
+            letter-spacing: 0.04em;
+            box-shadow: 0 10px 28px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: all 0.25s ease;
+        }
+        .btn-join:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 14px 36px rgba(124,58,237,0.55), inset 0 1px 0 rgba(255,255,255,0.4); }
+
+        .joined-card { padding: 34px 32px; }
+        .joined-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(16,185,129,0.14); color: var(--accent-success); border: 1px solid rgba(16,185,129,0.3); padding: 7px 16px; border-radius: 50px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; }
+        .joined-card h4 { font-weight: 800; color: var(--text-primary); margin: 14px 0 4px; }
+        .joined-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+        .joined-links { display: flex; flex-wrap: wrap; gap: 12px; }
+        .link-btn {
+            flex: 1; min-width: 160px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--bg-elevated); border: 1px solid var(--border-color);
+            color: var(--text-primary); text-decoration: none;
+            padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 0.95rem;
+            transition: all 0.18s ease;
+        }
+        .link-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .link-btn i { font-size: 1.2rem; }
+        .btn-join-secondary {
+            background: transparent; border: 1px solid var(--border-strong);
+            color: var(--text-secondary); border-radius: 50px; padding: 10px 24px;
+            font-weight: 600; transition: all 0.2s ease; margin-top: 22px;
+        }
+        .btn-join-secondary:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        .modal-content { border-radius: 18px; overflow: hidden; }
+        body.dark-mode .modal-content { background: #1e293b; border-color: #334155; }
+        .code-input {
+            letter-spacing: 0.35em; text-transform: uppercase; font-weight: 700;
+            text-align: center; font-size: 1.4rem; height: 60px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+        .join-error { display: none; }
+        .join-error.show { display: block; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    </style>
+    <style>
+        /* Phase 1: anime.js owns hover/press motion — CSS keeps color/shadow only
+           (a CSS transform transition would fight anime's per-frame transforms). */
+        html body .btn-join:hover, html body .link-btn:hover { transform: none; }
+        html body .btn-join, html body .link-btn, html body .btn-join-secondary {
+            transition: background .15s ease-out, box-shadow .15s ease-out, border-color .15s ease-out, color .15s ease-out !important;
+        }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - delegate-home */
+        body.liquid-glass .panel-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .panel-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.14) !important;
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
+
+    <div th:replace="fragments :: header"></div>
+    <!-- <div th:replace="fragments :: sidebar"></div> -->
+
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <div class="content" style="margin-left:0;">
+        <div class="container-fluid">
+            <div class="heading-block entrance">
+                <h2 class="page-heading">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>Delegate Portal</span>
+                </h2>
+                <div class="page-subtitle">
+                    <i class="bi bi-person-circle me-1"></i>
+                    Welcome, <strong th:text="${delegateFullName != null ? delegateFullName : currentUserFullName}">Delegate</strong>.
+                    Join a session to start participating.
+                </div>
+            </div>
+
+            <div class="row justify-content-center entrance entrance-1">
+                <div class="col-lg-6 col-md-8">
+
+                    <!-- Not joined yet: single JOIN SESSION button -->
+                    <div class="panel-card lg-reactive" th:if="${joinedSession == null}">
+                        <div class="join-hero">
+                            <div class="join-hero-icon"><i class="bi bi-signpost-2-fill"></i></div>
+                            <h3>You are not in a session yet</h3>
+                            <p>Use the session code given to you by your chair to join the committee room. You can only join if your name is on the session's delegate list.</p>
+                            <button type="button" class="btn btn-join" data-bs-toggle="modal" data-bs-target="#joinModal">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Join Session
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Joined state -->
+                    <div class="panel-card lg-reactive" th:if="${joinedSession != null}">
+                        <div class="joined-card">
+                            <span class="joined-badge"><i class="bi bi-check-circle-fill"></i> Session Joined</span>
+                            <h4 th:text="${joinedSession.name}">Session Name</h4>
+                            <div class="joined-meta">
+                                <i class="bi bi-mortarboard-fill me-1"></i><span th:text="${joinedSession.committee}">Committee</span>
+                                &nbsp;&nbsp;·&nbsp;&nbsp;
+                                <i class="bi bi-chat-square-text me-1"></i><span th:text="${joinedSession.topic}">Topic</span>
+                            </div>
+                            <div class="d-flex flex-column gap-3">
+                                <a href="/delegate/motions" class="btn btn-join" style="text-align:center;text-decoration:none;">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Continue Session
+                                </a>
+                                <a href="/delegate/stats" class="link-btn" style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.25);color:var(--text-primary);text-align:center;text-decoration:none;">
+                                    <i class="bi bi-bar-chart-line-fill"></i>My Stats
+                                </a>
+                                <div class="text-center">
+                                    <button type="button" class="btn btn-join-secondary" style="border-color:rgba(239,68,68,0.4);color:#ef4444;" data-bs-toggle="modal" data-bs-target="#leaveModal">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Leave Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Session Modal -->
+    <div class="modal fade" id="joinModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-key-fill me-2"></i>Join Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <label class="form-label fw-semibold text-muted">Session Code</label>
+                    <input type="text" class="form-control code-input" id="joinCodeInput"
+                           placeholder="ABC123" maxlength="6" autocomplete="off">
+                    <div class="form-text mt-2">Enter the 6-character alphanumeric code provided by your chair.</div>
+                    <div class="alert alert-danger mt-3 join-error" id="joinError"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4" id="joinSubmitBtn" style="background:linear-gradient(135deg,#06b6d4,#7c3aed);border:none;">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Join
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Session Confirmation Modal -->
+    <div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom-color:rgba(239,68,68,0.15);">
+                    <h5 class="modal-title fw-bold" style="color:#ef4444;"><i class="bi bi-exclamation-triangle-fill me-2"></i>Leave Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p style="font-size:0.95rem;color:var(--text-secondary);margin:0;">
+                        Are you sure you want to leave this session? You will lose access to Motions, Resolutions, and Voting until you rejoin.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn px-4" id="leaveSubmitBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;font-weight:700;">
+                        <i class="bi bi-box-arrow-right me-1"></i>Leave
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const joinCodeInput = document.getElementById('joinCodeInput');
+        const joinError = document.getElementById('joinError');
+        const joinSubmitBtn = document.getElementById('joinSubmitBtn');
+
+        joinCodeInput.addEventListener('input', () => {
+            joinCodeInput.value = joinCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            joinError.classList.remove('show');
+        });
+        joinCodeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinSubmitBtn.click(); });
+
+        joinSubmitBtn.addEventListener('click', async () => {
+            const code = joinCodeInput.value.trim();
+            joinError.classList.remove('show');
+            if (code.length !== 6) {
+                joinError.textContent = 'The session code must be exactly 6 characters.';
+                joinError.classList.add('show');
+                return;
+            }
+            joinSubmitBtn.disabled = true;
+            joinSubmitBtn.innerHTML = '<span class="svm-spinner me-1"></span>Joining...';
+            var joinSpinEl = joinSubmitBtn.querySelector('.svm-spinner');
+            if (joinSpinEl && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                window.sciVerseAnime.spinElement(joinSpinEl);
+            }
+            try {
+                const resp = await fetch('/api/delegate/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'code=' + encodeURIComponent(code)
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    window.location.href = '/delegate?joined=1';
+                } else {
+                    joinError.textContent = data.message || 'Could not join the session.';
+                    joinError.classList.add('show');
+                }
+            } catch (err) {
+                joinError.textContent = 'Network error - please try again.';
+                joinError.classList.add('show');
+            } finally {
+                joinSubmitBtn.disabled = false;
+                joinSubmitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Join';
+                if (joinSpinEl && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                    window.sciVerseAnime.stopSpinElement(joinSpinEl);
+                }
+            }
+        });
+
+        const leaveSubmitBtn = document.getElementById('leaveSubmitBtn');
+        if (leaveSubmitBtn) {
+            leaveSubmitBtn.addEventListener('click', async () => {
+                leaveSubmitBtn.disabled = true;
+                leaveSubmitBtn.innerHTML = '<span class="svm-spinner me-1"></span>Leaving...';
+                var leaveSpinEl = leaveSubmitBtn.querySelector('.svm-spinner');
+                if (leaveSpinEl && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                    window.sciVerseAnime.spinElement(leaveSpinEl);
+                }
+                try {
+                    const resp = await fetch('/api/delegate/leave', { method: 'POST' });
+                    const data = await resp.json();
+                    if (data.success) {
+                        window.location.href = '/delegate';
+                    } else {
+                        alert(data.message || 'Could not leave the session.');
+                    }
+                } catch (err) {
+                    alert('Network error - please try again.');
+                } finally {
+                    leaveSubmitBtn.disabled = false;
+                    leaveSubmitBtn.innerHTML = '<i class="bi bi-box-arrow-right me-1"></i>Leave';
+                    if (leaveSpinEl && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                        window.sciVerseAnime.stopSpinElement(leaveSpinEl);
+                    }
+                }
+            });
+        }
+    </script>
+
+    <script>
+    window.NotifBannerConfig = {
+         showLink: false,
+        onSessionEnded: function() { window.location.href = '/delegate'; }
+    };
+    </script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('delegate-home');
+        });
+    </script>
+</body>
+</html>

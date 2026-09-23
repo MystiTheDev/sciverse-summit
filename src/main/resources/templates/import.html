@@ -1,0 +1,825 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Import Students - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Theme initialization script - prevents flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+        .sidebar {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            height: calc(100% - 80px);
+            width: var(--sidebar-width);
+            padding-top: 0.5rem;
+            background-color: #f8f9fa;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .content {
+            margin-left: var(--sidebar-width);
+            padding: 95px 24px 28px 24px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
+            margin-left: calc(-1 * var(--sidebar-width));
+        }
+
+        body {
+            background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+            background-attachment: fixed;
+        }
+        body.dark-mode {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%) !important;
+        }
+
+        .page-heading {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            margin-bottom: 0;
+        }
+        body.dark-mode .page-heading { color: #f1f5f9; }
+
+        .page-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        body.dark-mode .page-subtitle { color: #94a3b8; }
+
+        /* Back button */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .btn-back:hover {
+            background: #fff;
+            color: #0891b2;
+            transform: translateX(-2px);
+            border-color: #bfdbfe;
+        }
+        body.dark-mode .btn-back {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+        }
+        body.dark-mode .btn-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: #93c5fd;
+            border-color: rgba(6,182,212,0.4);
+        }
+
+        /* Glass cards */
+        .imp-card {
+            background: linear-gradient(150deg, rgba(255,255,255,0.92), rgba(248,250,252,0.8));
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid rgba(226,232,240,0.9);
+            border-top-color: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow:
+                0 20px 45px rgba(15,23,42,0.08),
+                0 4px 14px rgba(15,23,42,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            padding: 22px 24px;
+            height: 100%;
+        }
+        body.dark-mode .imp-card {
+            background: linear-gradient(150deg, rgba(30,41,59,0.85), rgba(15,23,42,0.8));
+            border: 1px solid rgba(148,163,184,0.14);
+            border-top-color: rgba(255,255,255,0.08);
+            box-shadow:
+                0 20px 45px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .imp-accent {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+        }
+
+        .imp-card-title {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        body.dark-mode .imp-card-title { color: #f1f5f9; }
+
+        .imp-card-desc {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        body.dark-mode .imp-card-desc { color: #94a3b8; }
+
+        /* Labels */
+        .imp-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        body.dark-mode .imp-label { color: #94a3b8; }
+
+        /* Read-only current session display */
+        .imp-current-session {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 14px;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.28);
+            border-radius: 11px;
+            font-weight: 600;
+            color: #047857;
+            font-size: 0.95rem;
+        }
+        body.dark-mode .imp-current-session { color: #6ee7b7; }
+        .imp-badge-active {
+            background: rgba(16,185,129,0.18);
+            color: #059669;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 999px;
+            margin-left: 2px;
+        }
+        body.dark-mode .imp-badge-active { color: #34d399; }
+
+        /* Selects & textarea */
+        .imp-select, .imp-textarea {
+            background: rgba(255,255,255,0.75);
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            color: #1e293b;
+            font-size: 0.9rem;
+            padding: 9px 12px;
+            width: 100%;
+        }
+        .imp-select:focus, .imp-textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18);
+            background: #fff;
+        }
+        body.dark-mode .imp-select, body.dark-mode .imp-textarea {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.16);
+            color: #e2e8f0;
+        }
+        body.dark-mode .imp-select:focus, body.dark-mode .imp-textarea:focus {
+            background: rgba(255,255,255,0.11);
+            border-color: rgba(6,182,212,0.7);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+        }
+        body.dark-mode .imp-select option {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        /* File input */
+        .imp-file-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-direction: column;
+            text-align: center;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 20px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.5);
+        }
+        .imp-file-label:hover {
+            border-color: #06b6d4;
+            background: rgba(6,182,212,0.06);
+        }
+        body.dark-mode .imp-file-label {
+            border-color: rgba(148,163,184,0.3);
+            background: rgba(255,255,255,0.04);
+        }
+        body.dark-mode .imp-file-label:hover {
+            border-color: #22d3ee;
+            background: rgba(6,182,212,0.12);
+        }
+        .imp-file-name {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        body.dark-mode .imp-file-name { color: #94a3b8; }
+
+        /* Format spec box */
+        .imp-format {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-family: "Consolas", "SFMono-Regular", monospace;
+            font-size: 0.78rem;
+            color: #a5f3fc;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        body.dark-mode .imp-format {
+            background: #020617;
+            border: 1px solid rgba(148,163,184,0.15);
+        }
+        .imp-format-comment { color: #64748b; }
+
+        /* Chips */
+        .imp-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+            border: 1px solid #c7d2fe;
+            color: #3730a3;
+            border-radius: 50px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .imp-chip i { font-size: 0.75rem; color: #7c3aed; }
+        body.dark-mode .imp-chip {
+            background: rgba(124,58,237,0.15);
+            border-color: rgba(167,139,250,0.35);
+            color: #c7d2fe;
+        }
+
+        .imp-chip-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 190px;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        /* Primary action buttons */
+        .btn-imp-primary {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            border: none;
+            border-radius: 11px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.3);
+        }
+        .btn-imp-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.4);
+            color: #fff;
+        }
+        .btn-imp-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-imp-primary.imp-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-imp-primary.imp-green:hover:not(:disabled) {
+            box-shadow: 0 6px 18px rgba(16,185,129,0.4);
+        }
+
+        .imp-note {
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+        body.dark-mode .imp-note { color: #94a3b8; }
+
+        .imp-divider {
+            height: 1px;
+            background: rgba(226,232,240,0.9);
+            margin: 16px 0;
+        }
+        body.dark-mode .imp-divider { background: rgba(148,163,184,0.15); }
+
+        /* Empty / welcome state */
+        .imp-empty {
+            text-align: center;
+            padding: 40px 24px;
+        }
+        .imp-empty-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(6,182,212,0.35);
+            margin-bottom: 16px;
+        }
+
+        /* Responsive: two cards stack on smaller screens */
+        @media (max-width: 991.98px) {
+            .content { padding: 88px 16px 16px 16px; }
+        }
+
+        /* File import confirmation modal */
+        #fileConfirmModal .modal-content {
+            padding: 0;
+            border-radius: 20px;
+        }
+        #fileConfirmModal .modal-header {
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 20px 20px 0 0;
+        }
+        #fileConfirmModal .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0 0 20px 20px;
+        }
+        #fileConfirmModal .modal-title { color: #1e293b; }
+        body.dark-mode #fileConfirmModal .modal-header {
+            border-bottom: 1px solid rgba(148,163,184,0.15);
+        }
+        body.dark-mode #fileConfirmModal .modal-footer {
+            border-top: 1px solid rgba(148,163,184,0.15);
+        }
+        body.dark-mode #fileConfirmModal .modal-title { color: #f1f5f9; }
+        body.dark-mode #fileConfirmModal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - import (trial) */
+        body.liquid-glass .imp-card {
+            background: linear-gradient(150deg, rgba(255,255,255,0.62), rgba(248,250,252,0.40));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border: 1px solid rgba(255,255,255,0.65);
+            border-top-color: rgba(255,255,255,0.95);
+            box-shadow: 0 24px 60px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+        body.liquid-glass.dark-mode .imp-card {
+            background: linear-gradient(150deg, rgba(30,41,59,0.55), rgba(15,23,42,0.38));
+            border: 1px solid rgba(255,255,255,0.14);
+            border-top-color: rgba(255,255,255,0.26);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+        body.liquid-glass .imp-card > * { position: relative; z-index: 1; }
+    </style>
+
+    <!-- 1. HEADER FRAGMENT -->
+    <div th:replace="fragments :: header"></div>
+
+    <!-- 2. SIDEBAR FRAGMENT -->
+    <div th:replace="fragments :: sidebar"></div>
+
+    <!-- Notification banner (toast popups for server notifications) -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <!-- 3. MAIN CONTENT AREA -->
+    <div class="content">
+        <div class="container-fluid">
+
+            <!-- Page header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-heading entrance" style="display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-upload me-1"></i>Import Students
+                    </h2>
+                    <div class="page-subtitle mt-1">Bring delegates into a session from an earlier one or from a file</div>
+                </div>
+                <a href="/" class="btn-back entrance entrance-1">
+                    <i class="bi bi-arrow-left"></i> Back to Delegates
+                </a>
+            </div>
+
+            <!-- No sessions yet -->
+            <div th:if="${#lists.isEmpty(sessions)}" class="imp-card entrance entrance-1 lg-reactive">
+                <div class="imp-empty">
+                    <div class="imp-empty-icon"><i class="bi bi-database-add"></i></div>
+                    <h5 class="fw-bold mb-2">No sessions available</h5>
+                    <p class="imp-note mb-4">You need at least one session before you can import students. Create a session to get started.</p>
+                    <a href="/dashboard" class="btn-imp-primary imp-green">
+                        <i class="bi bi-plus-circle-fill"></i> Create a Session
+                    </a>
+                </div>
+            </div>
+
+            <th:block th:unless="${#lists.isEmpty(sessions)}">
+
+                <!-- Current session (imports always go here) -->
+                <div class="imp-card entrance entrance-1 mb-4 lg-reactive">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="imp-accent" style="background:linear-gradient(135deg,#10b981,#059669);">
+                            <i class="bi bi-crosshair"></i>
+                        </div>
+                        <div>
+                            <div class="imp-card-title">Import into Current Session</div>
+                            <div class="imp-card-desc">All imported students will be added to the session you are viewing.</div>
+                        </div>
+                    </div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-8">
+                            <div class="imp-label"><i class="bi bi-folder-fill me-1"></i>Session</div>
+                            <div th:if="${currentSession != null}" class="imp-current-session">
+                                <i class="bi bi-folder2-open"></i>
+                                <th:block th:text="|${currentSession.name} - ${currentSession.committee}|">Session</th:block>
+                                <span th:if="${currentSession.active}" class="imp-badge-active">Active</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="imp-label"><i class="bi bi-people-fill me-1"></i>Capacity</div>
+                            <div id="destCapacity" class="imp-card-desc" style="padding:10px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:11px;color:#059669;font-weight:600;">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+
+                    <!-- Option 1: import from a previous session -->
+                    <div class="col-lg-6">
+                        <div class="imp-card entrance entrance-2">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="imp-accent" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">
+                                    <i class="bi bi-collection-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="imp-card-title">From a Previous Session</div>
+                                    <div class="imp-card-desc">Copy delegate names from an earlier session. Presenting, voting and stats are not carried over.</div>
+                                </div>
+                            </div>
+
+                            <form id="sessionImportForm" th:action="@{/import/from-session}" method="post"
+                                  onsubmit="return submitSessionImport(this)">
+
+                                <div class="imp-label mb-1"><i class="bi bi-clock-history me-1"></i>Source Session</div>
+                                <select id="srcSession" name="sourceSessionId" class="form-select imp-select mb-3" onchange="renderPreview()">
+                                    <option value="">Select a previous session…</option>
+                                </select>
+
+                                <div id="srcPreview" class="imp-chip-wrap mb-2">
+                                    <div class="imp-note">Choose a source session to preview its delegates.</div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+                                    <div class="imp-note" id="srcCount">0 delegates available</div>
+                                    <div class="imp-note" id="srcWillImport">0 will be imported</div>
+                                </div>
+
+                                <div class="imp-divider"></div>
+
+                                <button type="submit" class="btn-imp-primary w-100 justify-content-center" id="importSessionBtn" disabled>
+                                    <i class="bi bi-arrow-repeat"></i> Import Students
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Option 2: import from a .txt file -->
+                    <div class="col-lg-6">
+                        <div class="imp-card entrance entrance-3">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="imp-accent" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">
+                                    <i class="bi bi-file-earmark-text-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="imp-card-title">From a .txt File</div>
+                                    <div class="imp-card-desc">Upload a plain text file (or paste the names) with one student name per line.</div>
+                                </div>
+                            </div>
+
+                            <form id="fileImportForm" th:action="@{/import/from-file}" method="post"
+                                  enctype="multipart/form-data" onsubmit="return submitFileImport(this)">
+
+                                <label for="txtFile" class="imp-file-label mb-3">
+                                    <input type="file" id="txtFile" name="file" accept=".txt,text/plain" style="display:none;" onchange="showFileName()">
+                                    <span style="font-size:1.5rem;color:#06b6d4;"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+                                    <span style="font-weight:600;color:#334155;" class="imp-file-prompt">Choose a .txt file</span>
+                                    <span class="imp-file-name" id="txtFileName">No file selected</span>
+                                </label>
+
+                                <div class="imp-label mb-1"><i class="bi bi-clipboard-check me-1"></i>Format</div>
+                                <div class="imp-format mb-3">
+                                    <span class="imp-format-comment"># one name per line - blank lines ignored,</span><br>
+                                    <span class="imp-format-comment"># anything after a comma is dropped</span><br>
+                                    Alice Johnson<br>
+                                    Bob Smith<br>
+                                    Carlos Mendez<br>
+                                </div>
+
+                                <div class="imp-label mb-1"><i class="bi bi-keyboard me-1"></i>Or paste names below</div>
+                                <textarea id="pastedNames" name="names" rows="4" class="imp-textarea mb-3"
+                                          placeholder="One name per line…"></textarea>
+
+                                <div class="imp-divider"></div>
+
+                                <button type="submit" class="btn-imp-primary imp-green w-100 justify-content-center">
+                                    <i class="bi bi-upload"></i> Import from File
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 imp-note entrance entrance-4">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    Imports are name-only. Duplicate names already in the current session are skipped, and the session's strength limit is respected.
+                </div>
+
+            </th:block>
+
+        </div>
+    </div>
+
+    <!-- File import confirmation modal -->
+    <div class="modal fade" id="fileConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content imp-card">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="imp-accent" style="background:linear-gradient(135deg,#06b6d4,#0891b2);width:38px;height:38px;font-size:1rem;">
+                            <i class="bi bi-clipboard-check-fill"></i>
+                        </div>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size:1.02rem;">Confirm File Import</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="imp-note mb-2"><i class="bi bi-people-fill me-1"></i>The following students will be imported into the current session:</div>
+                    <div id="fileConfirmList" class="imp-chip-wrap mb-3" style="max-height:240px;"></div>
+                    <div class="imp-note fw-bold" id="fileConfirmCount" style="color:#059669;">0 students</div>
+                </div>
+                <div class="modal-footer d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius:11px;font-size:0.9rem;">Cancel</button>
+                    <button type="button" class="btn-imp-primary imp-green px-4 py-2" onclick="confirmFileImport()">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import page logic -->
+    <script th:inline="javascript">
+        var SESSION_DELEGATES = [[${sessionDelegates}]];
+        var SESSION_META = [[${sessionMeta}]];
+        var CURRENT_SESSION_ID = [[${currentSession != null ? currentSession.id : null}]];
+    </script>
+    <script>
+        function destData() {
+            var cur = null;
+            SESSION_META.forEach(function(s) {
+                if (String(s.id) === String(CURRENT_SESSION_ID)) cur = s;
+            });
+            if (!cur) cur = SESSION_META[0] || { id: null, strength: 0 };
+            var names = cur.id != null ? (SESSION_DELEGATES[String(cur.id)] || []) : [];
+            return { id: cur.id, count: names.length, strength: cur.strength || 0 };
+        }
+
+        function remainingSlots(d) {
+            return d.strength > 0 ? Math.max(0, d.strength - d.count) : Infinity;
+        }
+
+        function updateCapacity() {
+            var d = destData();
+            var remaining = remainingSlots(d);
+            var el = document.getElementById('destCapacity');
+            if (!el) return;
+            var txt = d.count + ' student' + (d.count === 1 ? '' : 's');
+            if (d.strength > 0) {
+                txt += ' of ' + d.strength;
+                if (d.count >= d.strength) txt += ' · full';
+                else txt += ' · ' + remaining + ' slot' + (remaining === 1 ? '' : 's') + ' left';
+            } else {
+                txt += ' · no limit';
+            }
+            el.textContent = txt;
+        }
+
+        function buildSourceOptions() {
+            var src = document.getElementById('srcSession');
+            if (!src) return;
+            var dest = destData().id;
+            var prev = src.value;
+            src.innerHTML = '';
+            SESSION_META.forEach(function(s) {
+                if (String(s.id) === String(dest)) return;
+                var o = document.createElement('option');
+                o.value = s.id;
+                o.textContent = s.name + ' - ' + s.committee + (s.active ? '  (Active)' : '  (Ended)');
+                src.appendChild(o);
+            });
+            var keep = null;
+            for (var i = 0; i < src.options.length; i++) {
+                if (src.options[i].value === prev) { keep = prev; break; }
+            }
+            src.value = keep || '';
+        }
+
+        function renderPreview() {
+            var src = document.getElementById('srcSession');
+            var wrap = document.getElementById('srcPreview');
+            var countEl = document.getElementById('srcCount');
+            var willEl = document.getElementById('srcWillImport');
+            var btn = document.getElementById('importSessionBtn');
+            if (!src || !wrap) return;
+
+            var names = src.value ? (SESSION_DELEGATES[src.value] || []) : [];
+            wrap.innerHTML = '';
+            names.forEach(function(n) {
+                var c = document.createElement('span');
+                c.className = 'imp-chip';
+                c.innerHTML = '<i class="bi bi-person-fill"></i>';
+                c.appendChild(document.createTextNode(n));
+                wrap.appendChild(c);
+            });
+
+            var d = destData();
+            var remaining = remainingSlots(d);
+            var importable = Math.min(names.length, remaining);
+
+            if (countEl) countEl.textContent = names.length + ' delegate' + (names.length === 1 ? '' : 's') + ' available';
+            if (willEl) willEl.textContent = src.value
+                ? (importable + ' will be imported' + (importable < names.length ? ' (capacity)' : ''))
+                : '0 will be imported';
+            if (btn) btn.disabled = importable <= 0;
+        }
+
+        function submitSessionImport(form) {
+            var d = destData();
+            var src = document.getElementById('srcSession');
+            if (!src || !src.value) { alert('Please choose a source session.'); return false; }
+            var names = SESSION_DELEGATES[src.value] || [];
+            if (names.length === 0) { alert('The source session has no delegates to import.'); return false; }
+            if (remainingSlots(d) <= 0) { alert('The current session is full - no more students can be added.'); return false; }
+            return true;
+        }
+
+        function parseNames(content) {
+            var names = [];
+            if (content == null) return names;
+            if (content.charCodeAt(0) === 0xFEFF) content = content.substring(1);
+            content.split(/\r?\n/).forEach(function(line) {
+                var name = line.trim();
+                if (!name) return;
+                var comma = name.indexOf(',');
+                if (comma > 0) name = name.substring(0, comma).trim();
+                if (name) names.push(name);
+            });
+            return names;
+        }
+
+        function importableNames(names) {
+            var d = destData();
+            var existing = {};
+            (SESSION_DELEGATES[String(d.id)] || []).forEach(function(n) { existing[n.toLowerCase()] = true; });
+            var remaining = remainingSlots(d);
+            var out = [];
+            names.forEach(function(n) {
+                if (existing[n.toLowerCase()]) return;
+                if (out.length >= remaining) return;
+                existing[n.toLowerCase()] = true;
+                out.push(n);
+            });
+            return out;
+        }
+
+        function readFileText(file, callback) {
+            var reader = new FileReader();
+            reader.onload = function(e) { callback(e.target.result); };
+            reader.onerror = function() { callback(null); };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function showFileConfirm(names) {
+            var willImport = importableNames(names);
+            var listEl = document.getElementById('fileConfirmList');
+            listEl.innerHTML = '';
+            if (willImport.length === 0) {
+                listEl.innerHTML = '<div class="imp-note">No new students - all names are already in the session or there is no free capacity.</div>';
+            } else {
+                willImport.forEach(function(n) {
+                    var chip = document.createElement('span');
+                    chip.className = 'imp-chip';
+                    chip.innerHTML = '<i class="bi bi-person-fill"></i>';
+                    chip.appendChild(document.createTextNode(n));
+                    listEl.appendChild(chip);
+                });
+            }
+            var countEl = document.getElementById('fileConfirmCount');
+            countEl.textContent = willImport.length + ' of ' + names.length + ' student(s) will be imported';
+            window._fileImportNames = willImport;
+            new bootstrap.Modal(document.getElementById('fileConfirmModal')).show();
+        }
+
+        function confirmFileImport() {
+            var willImport = window._fileImportNames || [];
+            if (willImport.length === 0) return;
+            document.getElementById('fileImportForm').submit();
+        }
+
+        function submitFileImport(form) {
+            var d = destData();
+            var f = document.getElementById('txtFile');
+            var t = document.getElementById('pastedNames');
+            var hasFile = f && f.files && f.files.length > 0;
+            if (!hasFile && (!t || !t.value.trim())) {
+                alert('Please choose a .txt file or paste names below.'); return false;
+            }
+            if (remainingSlots(d) <= 0) { alert('The current session is full - no more students can be added.'); return false; }
+
+            if (hasFile) {
+                readFileText(f.files[0], function(content) {
+                    if (content == null) { alert('Could not read the selected file.'); return; }
+                    showFileConfirm(parseNames(content));
+                });
+            } else {
+                showFileConfirm(parseNames(t.value));
+            }
+            return false;
+        }
+
+        function showFileName() {
+            var f = document.getElementById('txtFile');
+            var n = document.getElementById('txtFileName');
+            if (f && f.files && f.files.length > 0) n.textContent = f.files[0].name;
+            else n.textContent = 'No file selected';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCapacity();
+            buildSourceOptions();
+            renderPreview();
+        });
+    </script>
+
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('import');
+        });
+    </script>
+</body>
+</html>

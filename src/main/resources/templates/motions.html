@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Motion Setup - SciVerse Summit</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Segment - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Theme initialization script - prevents flash of wrong theme -->
     <script>
@@ -32,13 +35,16 @@
             --text-muted: #94a3b8;
             --border-color: #e2e8f0;
             --border-strong: #cbd5e1;
-            --accent-primary: #3b82f6;
+            --accent-primary: #06b6d4;
+            --accent-secondary: #7c3aed;
             --accent-success: #10b981;
             --accent-warning: #f59e0b;
             --accent-danger: #ef4444;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
             --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
             --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55);
+            --glass-border: rgba(255,255,255,0.5);
         }
 
         body.dark-mode {
@@ -54,6 +60,8 @@
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
             --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
             --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65);
+            --glass-border: rgba(255,255,255,0.12);
         }
 
         body {
@@ -74,7 +82,7 @@
         }
         .content {
             margin-left: var(--sidebar-width);
-            padding: 95px 20px 20px 20px;
+            padding: 95px 20px 40px 20px;
             position: relative; z-index: 1;
             transition: all 0.3s;
         }
@@ -96,582 +104,1207 @@
             color: var(--text-primary);
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0;
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .page-heading i { color: var(--accent-primary); }
-
-        /* ================================
-           MAIN FORM CARD
-           ================================ */
-        .form-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            padding: 32px;
-            transition: box-shadow 0.2s;
+        .page-heading i {
+            color: var(--accent-primary);
+            font-size: 1.7rem;
         }
-        .form-card:hover { box-shadow: var(--shadow-lg); }
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin: 6px 0 0 40px;
+        }
+        .heading-block {
+            margin-bottom: 1.5rem;
+        }
 
         /* ================================
-           FORM LABELS & INPUTS
+           ADMIN PANEL CARDS (Glass)
            ================================ */
-        .form-label {
-            font-size: 0.85rem;
+        .panel-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 20px !important;
+            box-shadow:
+                0 16px 44px rgba(15,23,42,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.65),
+                inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+        body.dark-mode .panel-card {
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                inset 0 -1px 0 rgba(255,255,255,0.03) !important;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border-color);
             font-weight: 700;
-            color: var(--text-secondary);
+            font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: var(--text-primary);
         }
-        .form-label i {
+        .panel-header > i {
             color: var(--accent-primary);
-            font-size: 1rem;
+            font-size: 1.05rem;
         }
-
-        .form-control, .form-select {
-            border: 1px solid var(--border-strong);
-            border-radius: 10px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            padding: 12px 16px;
-            font-weight: 500;
-            transition: all 0.15s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-        .form-control::placeholder { color: var(--text-muted); }
-
-        /* Match heights of large form controls */
-        .input-group .form-control-lg,
-        .input-group .form-select-lg {
-            height: calc(3.25rem + 2px);
-            font-size: 1rem;
-        }
-        .input-group .btn-lg {
-            min-width: 56px;
-            border-top-right-radius: 10px !important;
-            border-bottom-right-radius: 10px !important;
-        }
-        .input-group > .form-control:not(:last-child),
-        .input-group > .form-select:not(:last-child) {
-            border-top-right-radius: 0 !important;
-            border-bottom-right-radius: 0 !important;
-        }
-
-        /* Search/inline-action button next to inputs */
-        .input-group .btn-outline-secondary {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-strong);
-            color: var(--text-secondary);
-            transition: all 0.15s;
-        }
-        .input-group .btn-outline-secondary:hover {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
-
-        /* Proposer input - subtle accent (was harsh red before) */
-        .proposer-input .form-control {
-            border-color: var(--border-strong);
-            box-shadow: none;
-        }
-        .proposer-input .form-control:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-        /* Highlight when empty + after attempt to add */
-        .proposer-input.is-invalid .form-control {
-            border-color: var(--accent-danger);
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+        .panel-header .count-badge {
+            margin-left: auto;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.02em;
         }
 
         /* ================================
-           PLUS / ADD BUTTON
+           LEFT PANEL - MOTIONS LIST
            ================================ */
-        .plus-button-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 18px;
-            margin: 24px 0 8px 0;
-            cursor: pointer;
+        .motions-list-wrap {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            padding: 14px;
+        }
+        .motions-list-wrap::-webkit-scrollbar { width: 6px; }
+        .motions-list-wrap::-webkit-scrollbar-track { background: transparent; }
+        .motions-list-wrap::-webkit-scrollbar-thumb {
+            background: rgba(100,116,139,0.25);
+            border-radius: 10px;
+        }
+
+        .motion-group-label {
+            font-size: 0.68rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: all 0.2s;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 12px 12px 6px;
         }
-        .plus-button-container:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
-        }
-        .plus-button-container:active {
-            transform: translateY(0);
-        }
-        .plus-button-container i {
-            font-size: 1.4rem;
-            color: white;
-        }
+        .motion-group-label:first-child { padding-top: 4px; }
 
-        /* ================================
-           TOGGLE SWITCHES (containers)
-           ================================ */
-        .toggles-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-        }
-        .toggle-card {
-            flex: 1 1 220px;
-            padding: 14px 18px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            transition: all 0.15s;
-        }
-        .toggle-card:hover {
-            background: var(--bg-card);
-            border-color: var(--border-strong);
-        }
-        .toggle-card .form-check {
-            margin: 0;
+        .motion-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            min-height: auto;
-            padding-left: 0;
-        }
-        .toggle-card .form-check-input {
-            width: 44px;
-            height: 24px;
-            margin: 0;
+            gap: 12px;
+            padding: 11px 13px;
+            border-radius: 12px;
             cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.16s ease;
+            margin-bottom: 4px;
+        }
+        .motion-item:hover {
+            background: var(--bg-elevated);
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(2px);
+        }
+        .motion-item.active {
+            background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(124,58,237,0.10));
+            border-color: rgba(6,182,212,0.4);
+            box-shadow: 0 4px 14px rgba(6,182,212,0.14);
+        }
+        body.dark-mode .motion-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .motion-item-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(124,58,237,0.12));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--accent-primary);
+            font-size: 1.05rem;
+        }
+        .motion-item.active .motion-item-icon {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(6,182,212,0.35);
+        }
+
+        .motion-item-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .motion-item-name {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .motion-item-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+        }
+        .motion-item-meta .has-vote { color: var(--accent-warning); }
+        .motion-item-meta .no-vote  { color: var(--text-muted); }
+        .motion-item-arrow {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            transition: transform 0.16s ease;
+        }
+        .motion-item.active .motion-item-arrow { transform: translateX(3px); color: var(--accent-primary); }
+
+        /* ================================
+           RIGHT PANEL - MOTION DETAILS
+           ================================ */
+        .detail-body { padding: 22px; }
+
+        .detail-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 48px 20px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .detail-placeholder i { font-size: 2.6rem; opacity: 0.5; }
+        .detail-placeholder strong { color: var(--text-secondary); font-size: 0.95rem; }
+        .detail-placeholder span { font-size: 0.8rem; max-width: 300px; }
+
+        .detail-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .detail-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 5px 16px rgba(6,182,212,0.35);
             flex-shrink: 0;
         }
-        .toggle-card .form-check-input:checked {
-            background-color: var(--accent-success);
-            border-color: var(--accent-success);
+        .detail-title-wrap { flex: 1; min-width: 0; }
+        .detail-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 2px 0 2px;
+            letter-spacing: 0.01em;
         }
-        .toggle-card .form-check-label {
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--text-secondary);
-            display: flex;
+        .detail-group {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            margin: 0;
-        }
-        .toggle-card .form-check-label i {
-            color: var(--accent-primary);
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
-        /* ================================
-           FOOTER (info bar + clear link)
-           ================================ */
-        .motion-footer {
-            margin-top: 28px;
-            padding-top: 18px;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .motion-footer .info-text {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .motion-footer .info-text i {
-            color: var(--accent-primary);
-        }
-        .clear-link {
-            text-decoration: none;
-            color: var(--accent-danger);
-            font-weight: 600;
+        .detail-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 50px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            transition: all 0.15s;
+            align-self: flex-start;
         }
-        .clear-link:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--accent-danger);
-            text-decoration: none;
+        .detail-badge.badge-vote {
+            background: rgba(245,158,11,0.16);
+            color: var(--accent-warning);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .detail-badge.badge-novote {
+            background: rgba(16,185,129,0.12);
+            color: var(--accent-success);
+            border: 1px solid rgba(16,185,129,0.3);
         }
 
-        /* ================================
-           ADDED MOTION CARDS (JS-rendered)
-           ================================ */
-        #motions-container .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s;
-            overflow: hidden;
+        .detail-desc {
+            font-size: 0.92rem;
+            line-height: 1.65;
+            color: var(--text-secondary);
+            margin: 0 0 18px;
         }
-        #motions-container .card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
-        #motions-container .card-header {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.10), rgba(37, 99, 235, 0.04)) !important;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary) !important;
-            font-weight: 700 !important;
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
         }
-        #motions-container .card-header::before {
-            content: "\F4D5"; /* bi-megaphone */
-            font-family: "bootstrap-icons";
-            color: var(--accent-primary);
-            font-size: 1.1rem;
+        .detail-cell {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 14px;
         }
-        #motions-container .card-body {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            padding: 18px 20px;
+        .detail-cell:hover {
+            border-color: var(--border-strong);
         }
-        #motions-container .card-body .card-text {
-            color: var(--text-secondary);
+        .detail-cell-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
         }
-        #motions-container .card-body .card-text strong {
-            color: var(--text-primary);
-        }
-        #motions-container .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-            border: none !important;
-            border-radius: 8px !important;
+        .detail-cell-label i { color: var(--accent-primary); font-size: 0.8rem; }
+        .detail-cell-value {
+            font-size: 0.92rem;
             font-weight: 600;
-            padding: 8px 16px;
-            transition: all 0.15s;
-        }
-        #motions-container .btn-primary:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            color: var(--text-primary);
         }
 
         /* ================================
-           DARK MODE TWEAKS
+           RIGHT PANEL - LIVE MOTIONS
            ================================ */
-        body.dark-mode .form-control,
-        body.dark-mode .form-select {
-            background: var(--bg-secondary);
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            margin-left: auto;
+            flex-shrink: 0;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
         }
-        body.dark-mode .form-control:focus,
-        body.dark-mode .form-select:focus {
-            background: var(--bg-secondary);
+        .live-pulse.active {
+            background: var(--accent-success);
+            box-shadow: 0 0 0 0 rgba(16,185,129,0.5);
+            animation: live-pulse 1.6s ease-in-out infinite;
         }
-        body.dark-mode .input-group .btn-outline-secondary {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
+        @keyframes live-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.45); }
+            70%  { box-shadow: 0 0 0 9px rgba(16,185,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+        .live-count-badge {
+            margin-left: auto;
+            background: rgba(16,185,129,0.16);
+            color: var(--accent-success);
+            font-size: 0.72rem;
+            font-weight: 700;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .panel-header .live-pulse + .live-count-badge { margin-left: 0; }
+
+        .live-body { padding: 20px 22px; }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 34px 20px;
+            color: var(--text-muted);
+            text-align: center;
+            border: 1.5px dashed var(--border-strong);
+            border-radius: 14px;
+            background: var(--bg-elevated);
+        }
+        .empty-state i { font-size: 2rem; opacity: 0.5; }
+        .empty-state strong { color: var(--text-secondary); font-size: 0.92rem; }
+        .empty-state span { font-size: 0.8rem; max-width: 320px; }
+
+        .live-motion-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 13px 15px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.16s ease;
+            margin-bottom: 10px;
+            animation: live-in 0.3s cubic-bezier(.22,.61,.36,1) both;
+        }
+        .live-motion-card:hover {
             border-color: var(--border-strong);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
-        body.dark-mode .toggle-card {
-            background: var(--bg-secondary);
+        @keyframes live-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        body.dark-mode .toggle-card:hover {
-            background: var(--border-strong);
+        .live-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(16,185,129,0.16);
+            color: var(--accent-success);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
-        body.dark-mode #motions-container .card-header {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.06)) !important;
+        .live-card-body { flex: 1; min-width: 0; }
+        .live-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 5px;
         }
-        body.dark-mode .clear-link:hover {
-            background: rgba(239, 68, 68, 0.18);
+        .live-card-top strong {
+            font-size: 0.92rem;
+            color: var(--text-primary);
+        }
+        .live-status {
+            font-size: 0.66rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--accent-success);
+            background: rgba(16,185,129,0.12);
+            padding: 3px 9px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+        .live-card-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .live-card-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .live-card-meta i { font-size: 0.8rem; }
+
+        .history-card { opacity: 0.92; }
+        .live-status.history-accepted {
+            color: var(--accent-success);
+            background: rgba(16,185,129,0.14);
+        }
+        .live-status.history-declined {
+            color: var(--accent-danger);
+            background: rgba(239,68,68,0.12);
+        }
+        .live-status.history-withdrawn {
+            color: var(--text-muted);
+            background: rgba(100,116,139,0.14);
+        }
+        .chair-toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #0f172a; color: #fff;
+            padding: 12px 20px; border-radius: 12px;
+            font-size: 0.88rem; font-weight: 600;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 3000; max-width: 90vw; text-align: center;
+        }
+        .chair-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .chair-toast.error { background: #991b1b; }
+
+        /* Dark mode: motions search input */
+        body.dark-mode #motions-search {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.16);
+            color: #e2e8f0;
+        }
+        body.dark-mode #motions-search::placeholder { color: #64748b; }
+        body.dark-mode #motions-search:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.22);
+            color: #fff;
+        }
+
+        /* ================================
+           ACCEPT POPUP (chair only - this page is chair-only)
+           ================================ */
+        .accept-overlay {
+            position: fixed; inset: 0; z-index: 3500;
+            background: rgba(15,23,42,0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+        }
+        .accept-overlay.show {
+            opacity: 1; visibility: visible; pointer-events: auto;
+            transition: opacity 0.28s ease;
+        }
+        .accept-overlay .accept-card {
+            transform: translateY(16px) scale(0.96);
+            transition: transform 0.32s cubic-bezier(0.22, 0.9, 0.3, 1.2);
+        }
+        .accept-overlay.show .accept-card { transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .accept-overlay, .accept-overlay .accept-card { transition: none; }
+        }
+        .accept-card {
+            position: relative; overflow: hidden;
+            width: 100%; max-width: 440px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42));
+            backdrop-filter: blur(34px) saturate(220%);
+            -webkit-backdrop-filter: blur(34px) saturate(220%);
+            border: 1px solid rgba(255,255,255,0.55);
+            border-radius: 20px; padding: 28px; text-align: center;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15);
+            color: #1e293b;
+        }
+        .accept-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #06b6d4, #7c3aed);
+        }
+        body.dark-mode .accept-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42));
+            border-color: rgba(255,255,255,0.14);
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10);
+            color: #f1f5f9;
+        }
+        .accept-icon {
+            width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            box-shadow: 0 8px 20px rgba(6,182,212,0.4);
+        }
+        .accept-card h5 { font-weight: 800; margin-bottom: 8px; }
+        .accept-card p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 6px; }
+        .accept-card .accept-motion-name { font-weight: 700; color: var(--text-primary); }
+        .accept-actions { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+        /* ================================
+           RESPONSIVE
+           ================================ */
+        @media (max-width: 991.98px) {
+            .motions-list-wrap { max-height: 360px; }
+        }
+    </style>
+    <style>
+        /* Phase 1: anime.js owns hover/press motion on cards + action buttons —
+           CSS keeps color/shadow/border only (a CSS transform transition would
+           fight anime's per-frame transforms). List rows (.motion-item) stay CSS. */
+        html body .live-motion-card:hover { transform: none; }
+        html body .live-motion-card {
+            transition: background .15s ease-out, box-shadow .15s ease-out, border-color .15s ease-out !important;
         }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - motions (trial) */
+        body.liquid-glass .panel-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .panel-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.14) !important;
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
 
-    <!-- 1. HEADER (NAVBAR) FRAGMENT: Assumed to be included via Thymeleaf -->
-    <div th:replace="fragments :: header"></div>
+    <!-- 1. HEADER (NAVBAR) FRAGMENT -->
+    <div th:replace="~{fragments :: header}"></div>
 
-    <!-- 2. SIDEBAR FRAGMENT: Assumed to be included via Thymeleaf -->
-    <div th:replace="fragments :: sidebar"></div>
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <!-- 2. SIDEBAR FRAGMENT -->
+    <div th:replace="~{fragments :: sidebar}"></div>
 
     <!-- 3. MAIN CONTENT AREA -->
     <div class="content">
         <div class="container-fluid">
 
-            <div class="row justify-content-center">
-                <div class="col-lg-7 col-md-9">
+            <!-- PAGE HEADING -->
+            <div class="heading-block entrance">
+                <h2 class="page-heading">
+                    <i class="bi bi-megaphone-fill"></i>
+                    <span>Segment</span>
+                </h2>
+                <div class="page-subtitle">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Admin panel - review all motions and monitor motions raised live by delegates.
+                </div>
+            </div>
 
-                    <h2 class="page-heading">
-                        <i class="bi bi-card-checklist"></i>
-                        <span>Set Segment Details</span>
-                    </h2>
+            <div class="row g-4">
 
-                    <div class="form-card">
-
-                        <!-- MOTION TYPE DROPDOWN -->
-                        <div class="mb-3">
-                            <label for="motion-type-select" class="form-label">
-                                <i class="bi bi-tag-fill"></i>
-                                <span>Type</span>
-                            </label>
-                            <div class="input-group">
-                                <!-- Populated by JS -->
-                                <select id="motion-type-select" class="form-select form-select-lg" aria-label="Motion Type">
-                                    <option value="" selected disabled>Select a motion type</option>
-                                </select>
-                                <button class="btn btn-outline-secondary btn-lg" type="button" title="Search options">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
+                <!-- ============================
+                     LEFT PANEL - ALL MOTIONS
+                     ============================ -->
+                <div class="col-lg-5 col-xl-4 entrance entrance-1">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-card-checklist"></i>
+                            <span>All Motions</span>
+                            <span class="count-badge" id="motions-count">0</span>
                         </div>
-
-                        <!-- PROPOSER INPUT -->
-                        <div class="mb-3">
-                            <label for="proposer-input" class="form-label">
-                                <i class="bi bi-person-fill"></i>
-                                <span>Proposer</span>
-                            </label>
-                            <div class="input-group proposer-input">
-                                <input type="text" id="proposer-input" class="form-control form-control-lg" placeholder="Start typing delegate name..." aria-label="Proposer Name" required list="delegate-list">
-                                <datalist id="delegate-list">
-                                    <option th:each="delegate : ${delegateList}" th:value="${delegate}"></option>
-                                </datalist>
-                                <button class="btn btn-outline-secondary btn-lg" type="button" title="Search delegates">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
+                        <div style="padding: 12px 14px 0 14px;">
+                            <input type="text" id="motions-search" class="form-control" placeholder="Search motions..." autocomplete="off">
                         </div>
-
-                        <!-- DURATION INPUT -->
-                        <div class="mb-3">
-                            <label for="duration-input" class="form-label">
-                                <i class="bi bi-clock-fill"></i>
-                                <span>Duration</span>
-                            </label>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <input type="number" id="duration-input" class="form-control form-control-lg" value="10" min="1">
-                                </div>
-                                <div class="col-6">
-                                    <select id="duration-unit-select" class="form-select form-select-lg">
-                                        <option value="min" selected>min</option>
-                                        <option value="sec">sec</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <div class="motions-list-wrap" id="motions-list">
+                            <!-- Rendered by JS -->
                         </div>
+                    </div>
+                </div>
 
-                        <!-- ADD BUTTON (Stylized Plus) -->
-                        <div class="plus-button-container" id="add-motion-button" role="button" tabindex="0">
-                            <i class="bi bi-plus-circle-fill"></i>
-                            <span>Add Motion</span>
+                <!-- ============================
+                     RIGHT PANEL - DETAILS + LIVE
+                     ============================ -->
+                <div class="col-lg-7 col-xl-8 entrance entrance-2">
+
+                    <!-- MOTION DETAILS -->
+                    <div class="panel-card mb-4 lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span>Motion Details</span>
                         </div>
-
-                        <!-- TOGGLES -->
-                        <div class="toggles-row">
-                            <div class="toggle-card">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="can-propose" checked>
-                                    <label class="form-check-label" for="can-propose">
-                                        <i class="bi bi-chat-square-quote-fill"></i>
-                                        <span>Delegates can propose motions</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="toggle-card">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="can-vote" checked>
-                                    <label class="form-check-label" for="can-vote">
-                                        <i class="bi bi-check2-square"></i>
-                                        <span>Delegates can vote on motions</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FOOTER TEXT -->
-                        <div class="motion-footer">
-                            <div class="info-text">
-                                <i class="bi bi-info-circle-fill"></i>
-                                <span>Sorted from most to least disruptive. 14 votes required to pass a motion.</span>
-                            </div>
-                            <a href="#" class="clear-link" onclick="handleClear(event)">
-                                <i class="bi bi-x-circle-fill"></i>
-                                <span>Clear</span>
-                            </a>
+                        <div class="detail-body" id="motion-detail-body">
+                            <!-- Rendered by JS -->
                         </div>
                     </div>
 
-                    <!-- Container for Added Motions -->
-                    <div id="motions-container" class="mt-4">
-                        <!-- Cards will be appended here -->
+                    <!-- LIVE MOTIONS -->
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-broadcast"></i>
+                            <span>Live Motions</span>
+                            <span class="live-pulse" id="live-pulse-dot"></span>
+                            <span class="live-count-badge" id="live-motions-count">0</span>
+                        </div>
+                        <div class="live-body" id="live-motions-body">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- MOTION HISTORY -->
+                    <div class="panel-card mt-4 lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Motion History</span>
+                            <span class="live-count-badge" id="motion-history-count">0</span>
+                        </div>
+                        <div class="live-body" id="motion-history-body">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- ACCEPT POPUP (chair only) -->
+                    <div id="acceptOverlay" class="accept-overlay" role="dialog" aria-modal="true" aria-labelledby="acceptTitle">
+                        <div class="accept-card">
+                            <div class="accept-icon"><i class="bi bi-hourglass-split" id="acceptIcon"></i></div>
+                            <h5 id="acceptTitle">Candor motion accepted</h5>
+                            <p><span class="accept-motion-name" id="acceptMotionName"></span> <span id="acceptPrompt">— open the Candor timer to start the session?</span></p>
+                            <div class="accept-actions">
+                                <button class="btn btn-secondary" id="acceptStayBtn">Stay Here</button>
+                                <a class="btn btn-success" id="acceptGoBtn" href="/unmod"><i class="bi bi-hourglass-split me-1" id="acceptGoIcon"></i><span id="acceptGoLabel">Open Candor Timer</span></a>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- JavaScript for Functionality -->
     <script>
-        // List of motions as per the image
-        const parliamentaryMotions = [
-            "Open Candor Session",
-            "Open Kolloqium",
-            "Extend Candor Session",
-            "Extend Kolloqium",
-            "Close Kolloqium",
-            "Introduce Draft Verdict",
-            "Introduce amendment",
-            "Vote on resolution",
-            "Vote on amendment",
-            "Point of Parliamentary Procedure",
-            "Point of Personal Privilege",
-            "Point of Inquiry",
-            "Point of Information",
-            "Set Speakers Time"
+        // ------------------------------------------------------------------
+        // MOTION CATALOGUE (admin reference data)
+        // ------------------------------------------------------------------
+        const motions = [
+            {
+                name: "Open Candor Session",
+                group: "Sessions & Caucus",
+                icon: "bi-door-open-fill",
+                description: "Opens a candor (unmoderated) session. Delegates are free to leave their seats and discuss the topic informally while the segment timer runs.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - approved by the chair",
+                debatable: "No",
+                secondRequired: "No",
+                duration: "10 min default"
+            },
+            {
+                name: "Open Kolloqium",
+                group: "Sessions & Caucus",
+                icon: "bi-collection-fill",
+                description: "Opens a kolloqium (moderated caucus). The chair calls on delegates to speak on the topic in turn within a set speaking time.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - approved by the chair",
+                debatable: "No",
+                secondRequired: "No",
+                duration: "10 min default"
+            },
+            {
+                name: "Extend Candor Session",
+                group: "Sessions & Caucus",
+                icon: "bi-hourglass-split",
+                description: "Extends the current candor session by an additional amount of time so delegates can continue their informal discussion.",
+                raisedBy: "Any delegate",
+                voteRequired: "Yes",
+                voteNote: "Simple majority",
+                debatable: "Yes",
+                secondRequired: "Yes",
+                duration: "+5 min"
+            },
+            {
+                name: "Extend Kolloqium",
+                group: "Sessions & Caucus",
+                icon: "bi-hourglass-bottom",
+                description: "Extends the current kolloqium by an additional amount of time so more delegates can be heard on the topic.",
+                raisedBy: "Any delegate",
+                voteRequired: "Yes",
+                voteNote: "Simple majority",
+                debatable: "Yes",
+                secondRequired: "Yes",
+                duration: "+5 min"
+            },
+            {
+                name: "Close Kolloqium",
+                group: "Sessions & Caucus",
+                icon: "bi-x-octagon-fill",
+                description: "Ends the kolloqium segment before its set time elapses and returns the committee to the previous order of business.",
+                raisedBy: "Any delegate",
+                voteRequired: "Yes",
+                voteNote: "Simple majority",
+                debatable: "Yes",
+                secondRequired: "Yes",
+                duration: "n/a"
+            },
+            {
+                name: "Introduce Draft Verdict",
+                group: "Proposals & Voting",
+                icon: "bi-file-earmark-text-fill",
+                description: "Moves to formally introduce the draft verdict into the committee for discussion and amendment.",
+                raisedBy: "Sponsoring delegate",
+                voteRequired: "No",
+                voteNote: "None - procedural",
+                debatable: "No",
+                secondRequired: "Yes",
+                duration: "n/a"
+            },
+            {
+                name: "Introduce amendment",
+                group: "Proposals & Voting",
+                icon: "bi-file-earmark-diff-fill",
+                description: "Moves to introduce an amendment to the draft verdict. Once introduced, the amendment may be debated and voted on.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - requires a second",
+                debatable: "No",
+                secondRequired: "Yes",
+                duration: "n/a"
+            },
+            {
+                name: "Vote on resolution",
+                group: "Proposals & Voting",
+                icon: "bi-check-square-fill",
+                description: "Moves the committee directly into a vote on the resolution (draft verdict) currently on the floor.",
+                raisedBy: "Any delegate",
+                voteRequired: "Yes",
+                voteNote: "Two-thirds majority",
+                debatable: "No",
+                secondRequired: "Yes",
+                duration: "n/a"
+            },
+            {
+                name: "Vote on amendment",
+                group: "Proposals & Voting",
+                icon: "bi-check2-circle",
+                description: "Moves the committee directly into a vote on the amendment currently under consideration.",
+                raisedBy: "Any delegate",
+                voteRequired: "Yes",
+                voteNote: "Simple majority",
+                debatable: "No",
+                secondRequired: "Yes",
+                duration: "n/a"
+            },
+            {
+                name: "Point of Parliamentary Procedure",
+                group: "Points of Order",
+                icon: "bi-hammer",
+                description: "A delegate questions whether proper parliamentary procedure is being followed. The chair rules on the point immediately.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - ruled on by the chair",
+                debatable: "No",
+                secondRequired: "No",
+                duration: "n/a"
+            },
+            {
+                name: "Point of Personal Privilege",
+                group: "Points of Order",
+                icon: "bi-shield-fill",
+                description: "Concerns the personal comfort or wellbeing of a delegate, such as the inability to hear another speaker or an issue with the room.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - ruled on by the chair",
+                debatable: "No",
+                secondRequired: "No",
+                duration: "n/a"
+            },
+            {
+                name: "Point of Inquiry",
+                group: "Points of Order",
+                icon: "bi-question-circle-fill",
+                description: "A question directed to the chair about the rules of procedure or the flow of the segment.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - answered by the chair",
+                debatable: "No",
+                secondRequired: "No",
+                duration: "n/a"
+            },
+            {
+                name: "Point of Information",
+                group: "Points of Order",
+                icon: "bi-info-square-fill",
+                description: "A question posed to the delegate currently holding the floor, asked after they yield to points of information.",
+                raisedBy: "Any delegate",
+                voteRequired: "No",
+                voteNote: "None - answered by the speaker",
+                debatable: "No",
+                secondRequired: "No",
+                duration: "n/a"
+            },
+            {
+                name: "Set Speakers Time",
+                group: "Timing",
+                icon: "bi-stopwatch-fill",
+                description: "Sets the speaking time for each delegate on the speakers' list for the remainder of the segment.",
+                raisedBy: "Any delegate",
+                voteRequired: "Yes",
+                voteNote: "Simple majority",
+                debatable: "Yes",
+                secondRequired: "Yes",
+                duration: "1–2 min"
+            }
         ];
 
-        function populateMotionTypeDropdown() {
-            const select = document.getElementById('motion-type-select');
-            
-            // Clear existing options except the first placeholder
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
+        // ------------------------------------------------------------------
+        // LEFT PANEL - RENDER ALL MOTIONS
+        // ------------------------------------------------------------------
+        function renderMotionsList(filter) {
+            const container = document.getElementById('motions-list');
+            document.getElementById('motions-count').textContent = motions.length;
 
-            parliamentaryMotions.forEach(motion => {
-                const option = document.createElement('option');
-                option.value = motion;
-                option.textContent = motion;
-                select.appendChild(option);
+            const q = String(filter == null ? (document.getElementById('motions-search') || {}).value || '' : filter).trim().toLowerCase();
+            const visible = q ? motions.filter(m => (m.name + ' ' + m.group + ' ' + m.description).toLowerCase().includes(q)) : motions;
+
+            const groups = {};
+            visible.forEach(m => {
+                (groups[m.group] = groups[m.group] || []).push(m);
             });
-            
-            // Set the default selected option based on the screenshot
-            select.value = "Open unmoderated caucus"; 
+
+            let html = '';
+            Object.keys(groups).forEach(groupName => {
+                html += `<div class="motion-group-label">${groupName}</div>`;
+                groups[groupName].forEach(m => {
+                    const meta = m.voteRequired === 'Yes'
+                        ? `<i class="bi bi-check2-square has-vote"></i><span class="has-vote">Vote</span>`
+                        : `<i class="bi bi-slash-circle no-vote"></i><span class="no-vote">No vote</span>`;
+                    html += `
+                        <div class="motion-item" data-name="${m.name}" onclick="selectMotion('${m.name}')">
+                            <span class="motion-item-icon"><i class="bi ${m.icon}"></i></span>
+                            <span class="motion-item-text">
+                                <span class="motion-item-name">${m.name}</span>
+                                <span class="motion-item-meta">${meta}</span>
+                            </span>
+                            <i class="bi bi-chevron-right motion-item-arrow"></i>
+                        </div>`;
+                });
+            });
+            if (!visible.length) {
+                html = `<div class="empty-state"><i class="bi bi-search"></i><strong>No motions match</strong><span>Try a different search term.</span></div>`;
+            }
+            container.innerHTML = html;
         }
 
-        function handleClear(event) {
-            event.preventDefault(); // Prevent link default action
-            
-            // Clear Proposer
-            document.getElementById('proposer-input').value = '';
-            
-            // Reset Duration
-            document.getElementById('duration-input').value = 10;
-            document.getElementById('duration-unit-select').value = 'min';
+        // ------------------------------------------------------------------
+        // RIGHT PANEL - SELECTED MOTION DETAILS
+        // ------------------------------------------------------------------
+        function selectMotion(name) {
+            const motion = motions.find(m => m.name === name);
+            if (!motion) return;
 
-            // Reset Toggles (assuming default is checked)
-            document.getElementById('can-propose').checked = true;
-            document.getElementById('can-vote').checked = true;
-            
-            // Optionally reset motion type to default or first one
-            document.getElementById('motion-type-select').value = "Open unmoderated caucus";
-            
-            // Clear added motions
-            document.getElementById('motions-container').innerHTML = '';
+            document.querySelectorAll('.motion-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.name === name);
+            });
 
-            console.log('Form cleared successfully.');
+            const body = document.getElementById('motion-detail-body');
+            const badge = motion.voteRequired === 'Yes'
+                ? `<span class="detail-badge badge-vote"><i class="bi bi-check2-square"></i> Requires vote</span>`
+                : `<span class="detail-badge badge-novote"><i class="bi bi-slash-circle"></i> No vote</span>`;
+
+            body.innerHTML = `
+                <div class="detail-head">
+                    <span class="detail-icon"><i class="bi ${motion.icon}"></i></span>
+                    <div class="detail-title-wrap">
+                        <h3 class="detail-title">${motion.name}</h3>
+                        <span class="detail-group"><i class="bi bi-folder-fill"></i> ${motion.group}</span>
+                    </div>
+                    ${badge}
+                </div>
+                <p class="detail-desc">${motion.description}</p>
+                <div class="detail-grid">
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-person-badge"></i> Raised by</div>
+                        <div class="detail-cell-value">${motion.raisedBy}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-check2-square"></i> Vote</div>
+                        <div class="detail-cell-value">${motion.voteNote}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-chat-square-text"></i> Debatable</div>
+                        <div class="detail-cell-value">${motion.debatable}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-hand-thumbs-up"></i> Second required</div>
+                        <div class="detail-cell-value">${motion.secondRequired}</div>
+                    </div>
+                    <div class="detail-cell">
+                        <div class="detail-cell-label"><i class="bi bi-clock"></i> Default duration</div>
+                        <div class="detail-cell-value">${motion.duration}</div>
+                    </div>
+                </div>`;
         }
 
-        document.getElementById('add-motion-button').addEventListener('click', () => {
-            const motionType = document.getElementById('motion-type-select').value;
-            const proposer = document.getElementById('proposer-input').value.trim();
-            const duration = document.getElementById('duration-input').value;
-            const unit = document.getElementById('duration-unit-select').value;
-            const canPropose = document.getElementById('can-propose').checked;
-            const canVote = document.getElementById('can-vote').checked;
+        // ------------------------------------------------------------------
+        // RIGHT PANEL - LIVE MOTIONS
+        // Motions raised by delegates are persisted and streamed from the
+        // server via /api/motions/live. The chair can accept or decline them.
+        // ------------------------------------------------------------------
+        let liveMotions = [];
+        let lastLiveKey = null;
+        let prevLiveCount = 0;
 
-            if (!motionType) {
-                alert('Please select a motion type.');
-                return;
-            }
-            
-            if (!proposer) {
-                alert('Please enter a proposer name.');
-                return;
-            }
-
-            // Create Card Element
-            const card = document.createElement('div');
-            card.className = 'card mb-3';
-
-            card.innerHTML = `
-                <div class="card-header">
-                    ${motionType}
-                </div>
-                <div class="card-body">
-                    <p class="card-text mb-3"><i class="bi bi-person-badge me-1"></i>Proposed by: <strong>${proposer}</strong></p>
-                    <a href="/speakers" class="btn btn-primary btn-sm">
-                        <i class="bi bi-people-fill me-1"></i> Speaker's list
-                    </a>
-                </div>
-            `;
-            
-            // Append to container
-            document.getElementById('motions-container').appendChild(card);
-            
-            // Scroll to the new card
-            card.scrollIntoView({ behavior: 'smooth' });
-
-            // Sync caucus timer duration to the Speakers page (via localStorage).
-            // The speakers page reads this on load and also listens for live updates.
+        async function loadLiveMotions() {
             try {
-                const rawValue = parseInt(duration);
-                const totalSeconds = unit === 'min' ? rawValue * 60 : rawValue;
-                if (!isNaN(totalSeconds) && totalSeconds > 0) {
-                    localStorage.setItem('caucusTimerDuration', JSON.stringify({
-                        seconds: totalSeconds,
-                        rawValue: rawValue,
-                        unit: unit,
-                        timestamp: Date.now()
-                    }));
+                const resp = await fetch('/api/motions/live');
+                const data = await resp.json();
+                const key = JSON.stringify(data);
+                if (key === lastLiveKey) return; // nothing changed - avoid re-render flicker
+                lastLiveKey = key;
+                liveMotions = data;
+                renderLiveMotions();
+                // Phase 3: pop the live badge when fresh motions arrive.
+                if (window.sciVerseAnime && window.sciVerseAnime.shouldAnimate()
+                        && liveMotions.length > prevLiveCount) {
+                    window.sciVerseAnime.buttonPop(document.getElementById('live-motions-count'));
                 }
-            } catch (e) {
-                console.warn('Could not sync caucus duration to localStorage:', e);
+                prevLiveCount = liveMotions.length;
+            } catch (err) {
+                // keep last known state
+            }
+        }
+
+        function setMotionStatus(id, status) {
+            fetch('/api/motions/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + id + '&status=' + encodeURIComponent(status)
+            }).then(() => loadLiveMotions());
+        }
+
+        function renderLiveMotions() {
+            const body = document.getElementById('live-motions-body');
+            const countEl = document.getElementById('live-motions-count');
+            const pulseEl = document.getElementById('live-pulse-dot');
+
+            countEl.textContent = liveMotions.length;
+            pulseEl.classList.toggle('active', liveMotions.length > 0);
+
+            if (liveMotions.length === 0) {
+                body.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-broadcast"></i>
+                        <strong>No live motions raised</strong>
+                        <span>Motions raised by delegates will appear here in real time.</span>
+                    </div>`;
+                return;
             }
 
-            // Update Stats
-            fetch('/api/stats/update-motion', {
+            const esc = (s) => String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+
+            body.innerHTML = liveMotions.map(lm => `
+                <div class="live-motion-card">
+                    <span class="live-card-icon"><i class="bi bi-megaphone-fill"></i></span>
+                    <div class="live-card-body">
+                        <div class="live-card-top">
+                            <strong>${esc(lm.name)}</strong>
+                            <span class="live-status"><i class="bi bi-dot"></i> Live</span>
+                        </div>
+                        ${lm.detail ? `<div class="live-card-meta" style="margin-bottom:4px;"><span><i class="bi bi-chat-left-text"></i> ${esc(lm.detail)}</span></div>` : ''}
+                        <div class="live-card-meta">
+                            <span><i class="bi bi-person-fill"></i> ${esc(lm.proposer)}</span>
+                            <span><i class="bi bi-clock-fill"></i> ${esc(lm.time)}</span>
+                        </div>
+                        <div class="live-card-actions" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn btn-sm btn-success" onclick="decideMotion(${lm.id}, 'ACCEPTED')"><i class="bi bi-check-lg"></i> Accept</button>
+                            <button class="btn btn-sm btn-danger" onclick="decideMotion(${lm.id}, 'DECLINED')"><i class="bi bi-x-lg"></i> Reject</button>
+                        </div>
+                    </div>
+                </div>`).join('');
+
+            // Phase 2: lively entrance for freshly arrived live motions.
+            if (window.sciVerseAnime && window.sciVerseAnime.shouldAnimate()) {
+                window.sciVerseAnime.staggerCards('#live-motions-body .live-motion-card');
+            }
+        }
+
+        function decideMotion(motionId, decision) {
+            var acted = liveMotions.find(function (m) { return m.id === motionId; });
+            fetch('/api/motions/decide', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `name=${encodeURIComponent(proposer)}&type=${encodeURIComponent(motionType)}`
-            }).catch(err => console.error('Error updating motion stats:', err));
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'motionId=' + motionId + '&decision=' + encodeURIComponent(decision)
+            }).then(r => r.json()).then(data => {
+                if (data && data.success) {
+                    showChairToast('Motion ' + String(decision).toLowerCase() + '.');
+                    loadLiveMotions();
+                    loadMotionHistory();
+                    if (String(decision).toUpperCase() === 'ACCEPTED' && acted) {
+                        if (isCandorMotion(acted.name) || isKolloquiumMotion(acted.name)) {
+                            showAcceptPopup(acted);
+                        }
+                    }
+                } else {
+                    showChairToast((data && data.message) || 'Could not decide the motion.', true);
+                }
+            }).catch(() => showChairToast('Network error - please try again.', true));
+        }
+
+        function isCandorMotion(name) {
+            var n = String(name || '').toLowerCase();
+            return n.includes('candor') || n.includes('unmoderat');
+        }
+
+        function isKolloquiumMotion(name) {
+            var n = String(name || '').toLowerCase();
+            return n.includes('kolloq') || n.includes('moderat') || n.includes('speaker');
+        }
+
+        function showAcceptPopup(motion) {
+            var kolloquium = isKolloquiumMotion(motion.name) && !isCandorMotion(motion.name);
+            document.getElementById('acceptMotionName').textContent =
+                (motion.proposer ? motion.proposer + ' — ' : '') + motion.name;
+            if (kolloquium) {
+                document.getElementById('acceptTitle').textContent = 'Kolloquium motion accepted';
+                document.getElementById('acceptPrompt').textContent = '— open the Speakers page to start the kolloquium?';
+                document.getElementById('acceptGoBtn').setAttribute('href', '/speakers');
+                document.getElementById('acceptGoLabel').textContent = 'Open Speakers';
+                document.getElementById('acceptGoIcon').className = 'bi bi-collection-fill me-1';
+                document.getElementById('acceptIcon').className = 'bi bi-collection-fill';
+            } else {
+                document.getElementById('acceptTitle').textContent = 'Candor motion accepted';
+                document.getElementById('acceptPrompt').textContent = '— open the Candor timer to start the session?';
+                document.getElementById('acceptGoBtn').setAttribute('href', '/unmod');
+                document.getElementById('acceptGoLabel').textContent = 'Open Candor Timer';
+                document.getElementById('acceptGoIcon').className = 'bi bi-hourglass-split me-1';
+                document.getElementById('acceptIcon').className = 'bi bi-hourglass-split';
+            }
+            document.getElementById('acceptOverlay').classList.add('show');
+        }
+        document.getElementById('acceptStayBtn').addEventListener('click', function () {
+            document.getElementById('acceptOverlay').classList.remove('show');
+        });
+        document.getElementById('acceptOverlay').addEventListener('click', function (e) {
+            if (e.target.id === 'acceptOverlay') e.target.classList.remove('show');
         });
 
-        // Initialize the page on load
+        let chairToastTimer = null;
+        function showChairToast(msg, isError) {
+            let el = document.getElementById('chair-toast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'chair-toast';
+                el.className = 'chair-toast';
+                document.body.appendChild(el);
+            }
+            el.textContent = msg;
+            el.classList.toggle('error', !!isError);
+            el.classList.add('show');
+            if (chairToastTimer) clearTimeout(chairToastTimer);
+            chairToastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+        }
+
+        let motionHistory = [];
+        let lastHistoryKey = null;
+
+        async function loadMotionHistory() {
+            try {
+                const resp = await fetch('/api/motions/history');
+                const data = await resp.json();
+                const key = JSON.stringify(data);
+                if (key === lastHistoryKey) return; // nothing changed - avoid re-render flicker
+                lastHistoryKey = key;
+                motionHistory = data;
+                renderMotionHistory();
+            } catch (err) { /* keep last state */ }
+        }
+
+        function renderMotionHistory() {
+            const body = document.getElementById('motion-history-body');
+            const countEl = document.getElementById('motion-history-count');
+            if (countEl) countEl.textContent = motionHistory.length;
+            if (!body) return;
+            if (motionHistory.length === 0) {
+                body.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-clock-history"></i>
+                        <strong>No decided motions yet</strong>
+                        <span>Accepted and declined motions will be listed here.</span>
+                    </div>`;
+                return;
+            }
+            const escH = (s) => String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const goToFor = (name) => {
+                const n = String(name || '').toLowerCase();
+                if (n.includes('candor') || n.includes('unmoderat')) return { href: '/unmod', label: 'Open Candor Timer', icon: 'bi-hourglass-split' };
+                if (n.includes('kolloq') || n.includes('moderat') || n.includes('speaker')) return { href: '/speakers', label: 'Open Speakers', icon: 'bi-collection-fill' };
+                return null;
+            };
+            body.innerHTML = motionHistory.map(m => {
+                const goTo = m.status === 'ACCEPTED' ? goToFor(m.name) : null;
+                const statusCls = m.status === 'ACCEPTED' ? 'history-accepted' : (m.status === 'WITHDRAWN' ? 'history-withdrawn' : 'history-declined');
+                const statusIcon = m.status === 'ACCEPTED' ? 'bi-check-circle-fill' : (m.status === 'WITHDRAWN' ? 'bi-arrow-counterclockwise' : 'bi-x-circle-fill');
+                return `
+                <div class="live-motion-card history-card">
+                    <span class="live-card-icon"><i class="bi bi-patch-check-fill"></i></span>
+                    <div class="live-card-body">
+                        <div class="live-card-top">
+                            <strong>${escH(m.name)}</strong>
+                            <span class="live-status ${statusCls}">
+                                <i class="bi ${statusIcon}"></i> ${escH(m.status)}
+                            </span>
+                        </div>
+                        ${m.detail ? `<div class="live-card-meta" style="margin-bottom:4px;"><span><i class="bi bi-chat-left-text"></i> ${escH(m.detail)}</span></div>` : ''}
+                        <div class="live-card-meta">
+                            <span><i class="bi bi-person-fill"></i> ${escH(m.proposer)}</span>
+                            <span><i class="bi bi-clock-fill"></i> ${escH(m.time)}</span>
+                        </div>
+                        ${goTo ? `<div style="margin-top:10px;"><a class="btn btn-sm btn-success" href="${goTo.href}"><i class="bi ${goTo.icon}"></i> ${goTo.label}</a></div>` : ''}
+                    </div>
+                </div>`;}).join('');
+
+            // Phase 2: lively entrance for freshly decided history entries.
+            if (window.sciVerseAnime && window.sciVerseAnime.shouldAnimate()) {
+                window.sciVerseAnime.staggerCards('#motion-history-body .live-motion-card');
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // INITIALIZATION
+        // ------------------------------------------------------------------
         document.addEventListener('DOMContentLoaded', () => {
-            populateMotionTypeDropdown();
+            renderMotionsList();
+            selectMotion(motions[0].name);
+            const searchInput = document.getElementById('motions-search');
+            if (searchInput) searchInput.addEventListener('input', () => renderMotionsList(searchInput.value));
+            loadLiveMotions();
+            loadMotionHistory();
+            setInterval(() => { loadLiveMotions(); loadMotionHistory(); }, 5000);
+            if (window.SummitLive) window.SummitLive.on('motion.changed', () => { loadLiveMotions(); loadMotionHistory(); });
         });
-
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('motions');
+        });
+    </script>
 </body>
 </html>

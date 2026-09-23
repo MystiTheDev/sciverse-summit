@@ -42,6 +42,46 @@ public class Session {
     @Column(name = "eb_review", columnDefinition = "TEXT")
     private String ebReview;
 
+    /** 6-character alphanumeric code delegates use to join this session. */
+    @Column(unique = true)
+    private String joinCode;
+
+    /** True when the chair has opened a ballot for this session (delegate voting). */
+    @Column(name = "ballot_open")
+    private Boolean ballotOpen = false;
+
+    /** What the open ballot is about: "MOTION" or "RESOLUTION". */
+    @Column(name = "ballot_type")
+    private String ballotType;
+
+    /** Reference id of the motion or resolution the ballot is about. */
+    @Column(name = "ballot_ref_id")
+    private Long ballotRefId;
+
+    /** Live segment announced to delegates: "NONE", "CANDOR" or "KOLLOQUIUM". */
+    @Column(name = "segment_type")
+    private String segmentType = "NONE";
+
+    /** Display label for the live segment, e.g. "Candor Session". */
+    @Column(name = "segment_label")
+    private String segmentLabel;
+
+    /** Total segment length in seconds (for progress bars). */
+    @Column(name = "segment_total_secs")
+    private Integer segmentTotalSecs;
+
+    /** Wall-clock time the running segment ends (null while paused). */
+    @Column(name = "segment_ends_at")
+    private java.time.LocalDateTime segmentEndsAt;
+
+    /** True while the chair has paused the segment. */
+    @Column(name = "segment_paused")
+    private Boolean segmentPaused = false;
+
+    /** Seconds remaining (source of truth while paused; snapshot otherwise). */
+    @Column(name = "segment_remaining_secs")
+    private Integer segmentRemainingSecs;
+
     @PrePersist
     protected void onCreate() {
         createdAt = java.time.LocalDateTime.now();

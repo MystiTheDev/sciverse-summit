@@ -1,0 +1,77 @@
+{
+  "name": "sciverse-summit-delegate",
+  "private": true,
+  "version": "3.0.0",
+  "description": "SciVerse Summit — Delegate application for Windows",
+  "author": "SciVerse",
+  "main": "electron/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MystiTheDev/sciverse-summit.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "electron-updater": "^6.0.0"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.sciverse.summit.delegate",
+    "productName": "SciVerse Summit Delegate",
+    "icon": "build/icon.ico",
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json",
+      "node_modules/electron-updater/**/*",
+      "node_modules/builder-util-runtime/**/*",
+      "node_modules/fs-extra/**/*",
+      "node_modules/graceful-fs/**/*",
+      "node_modules/jsonfile/**/*",
+      "node_modules/universalify/**/*",
+      "node_modules/js-yaml/**/*",
+      "node_modules/argparse/**/*",
+      "node_modules/lazy-val/**/*",
+      "node_modules/lodash.escaperegexp/**/*",
+      "node_modules/lodash.isequal/**/*",
+      "node_modules/semver/**/*",
+      "node_modules/tiny-typed-emitter/**/*",
+      "node_modules/debug/**/*",
+      "node_modules/ms/**/*",
+      "node_modules/sax/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "SciVerse Summit Delegate"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "MystiTheDev",
+        "repo": "sciverse-summit",
+        "channel": "delegate"
+      }
+    ]
+  }
+}

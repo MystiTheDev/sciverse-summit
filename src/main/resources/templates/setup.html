@@ -1,398 +1,181 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Delegate List - SciVerse Summit</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>First-Time Setup - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Theme initialization script - prevents flash -->
+    <link href="/css/liquid-glass.css" rel="stylesheet">
     <script>
+        // Theme init: apply saved theme before render (no flash). Defaults to light.
         (function() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
+            if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark-mode-loading');
-                document.body.classList.add('dark-mode');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', function() {
+                    document.body.classList.add('dark-mode');
+                });
             }
         })();
     </script>
-    
     <style>
-        /* Styles for the Layout Structure */
-        :root {
-            --sidebar-width: 250px;
-        }
-        .sidebar {
-            position: fixed;
-            top: 80px;
-            left: 0;
-            height: calc(100% - 80px);
-            width: var(--sidebar-width); 
-            padding-top: 0.5rem; 
-            background-color: #f8f9fa;
-            z-index: 1000; 
-            transition: all 0.3s;
-        }
-        .content {
-            margin-left: var(--sidebar-width); 
-            padding: 95px 20px 20px 20px; 
-            position: relative; 
-            z-index: 1;
-            transition: all 0.3s;
-        }
-        /* Style for when the sidebar is collapsed */
-        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
-            margin-left: calc(-1 * var(--sidebar-width));
-        }
-
-        /* Modern Page Heading */
-        .page-heading {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #1e293b;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            margin-bottom: 0;
-        }
-
-        /* Modern Delegates Card */
-        .delegates-card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-            overflow: hidden;
-        }
-
-        .table-responsive {
-            background: #fff;
-        }
-
-        /* Modern Table Styles */
-        .modern-delegates-table {
-            margin: 0;
-            background: #fff;
-        }
-
-        .modern-delegates-table thead {
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-        }
-
-        .modern-delegates-table thead th {
-            padding: 18px 20px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #000000;
-            text-align: center;
-            vertical-align: middle;
-            border: none;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .modern-delegates-table thead th:first-child {
-            text-align: left;
-        }
-
-        .modern-delegates-table tbody {
-            background: #fff;
-        }
-
-        .modern-delegates-table tbody tr {
-            border-bottom: 1px solid #f1f5f9;
-            transition: background-color 0.15s ease;
-        }
-
-        .modern-delegates-table tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .modern-delegates-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .modern-delegates-table tbody td {
-            padding: 16px 20px;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 0.95rem;
-            color: #1e293b;
-            font-weight: 600;
-        }
-
-        .modern-delegates-table tbody td:first-child {
-            text-align: left;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        /* Delegate Badge with Icon */
-        .delegate-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .delegate-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
+        body {
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-size: 1rem;
+            background: linear-gradient(135deg, #f5f3ff 0%, #f8fafc 40%, #cffafe 100%);
+            padding: 24px;
         }
-
-        /* Modern Status Badges */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .status-badge.yes {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-badge.no {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Modern Action Buttons */
-        .action-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: none;
-            transition: all 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .action-btn.edit {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .action-btn.edit:hover {
-            background: #bfdbfe;
-            transform: translateY(-1px);
-        }
-
-        .action-btn.delete {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .action-btn.delete:hover {
-            background: #fecaca;
-            transform: translateY(-1px);
-        }
-
-        .action-btn i {
-            font-size: 1rem;
-        }
-
-        /* Add New Button */
-        .btn-add-new {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            border: none;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-add-new:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            color: #fff;
-        }
-
-        /* ================================
-           DARK MODE STYLES
-           ================================ */
         body.dark-mode {
-            background: #0f172a;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #334155 100%);
         }
-
-        body.dark-mode .content {
-            background: #0f172a;
+        .setup-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+            width: 100%;
+            max-width: 520px;
+            overflow: hidden;
         }
-
-        body.dark-mode .page-heading {
+        .setup-head {
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            padding: 34px 36px 30px;
+            text-align: center;
+            color: #fff;
+        }
+        .setup-head .logo-icon {
+            width: 64px; height: 64px; border-radius: 18px;
+            background: rgba(255,255,255,0.16);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px; font-size: 1.8rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+        }
+        .setup-head h1 { font-size: 1.3rem; font-weight: 800; letter-spacing: 0.02em; margin: 0; }
+        .setup-head p { margin: 8px 0 0; font-size: 0.86rem; opacity: 0.9; }
+        .setup-body { padding: 28px 36px 36px; }
+        .setup-note {
+            background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 12px 16px; font-size: 0.82rem; color: #475569; margin-bottom: 22px;
+            display: flex; gap: 10px; align-items: flex-start;
+        }
+        .setup-note i { color: #f59e0b; margin-top: 2px; }
+        .form-label { font-weight: 600; font-size: 0.82rem; color: #475569; }
+        .form-control {
+            border-radius: 10px; padding: 11px 14px;
+            border: 1px solid #cbd5e1; font-size: 0.95rem;
+        }
+        .form-control:focus { border-color: #06b6d4; box-shadow: 0 0 0 3px rgba(6,182,212,0.18); }
+        .btn-create {
+            width: 100%; padding: 13px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            color: #fff; font-weight: 700; font-size: 1rem; letter-spacing: 0.02em;
+            transition: all 0.2s ease; box-shadow: 0 8px 22px rgba(124,58,237,0.35);
+        }
+        .btn-create:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 12px 30px rgba(124,58,237,0.5); }
+        /* Phase 1: anime.js owns press motion — CSS keeps color/shadow only. */
+        html body .btn-create:hover { transform: none; }
+        html body .btn-create {
+            transition: box-shadow .15s ease-out, background .15s ease-out !important;
+        }
+        .alert-danger { border-radius: 10px; font-size: 0.86rem; }
+        .setup-foot { text-align: center; font-size: 0.76rem; color: #94a3b8; margin-top: 18px; }
+        body.dark-mode .setup-card {
+            position: relative;
+            background: linear-gradient(160deg, rgba(30,41,59,0.72), rgba(15,23,42,0.5));
+            border: 1px solid rgba(255,255,255,0.18);
+            border-top-color: rgba(255,255,255,0.32);
+            backdrop-filter: blur(34px) saturate(200%);
+            -webkit-backdrop-filter: blur(34px) saturate(200%);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+        body.dark-mode .setup-card > * { position: relative; z-index: 1; }
+        body.dark-mode .setup-note {
+            background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12);
+            color: #cbd5e1;
+        }
+        body.dark-mode .form-label { color: #cbd5e1; }
+        body.dark-mode .form-control {
+            background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16);
             color: #f1f5f9;
         }
-
-        body.dark-mode .delegates-card {
-            background: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        body.dark-mode .form-control::placeholder { color: #64748b; }
+        body.dark-mode .form-control:focus {
+            border-color: #06b6d4; background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.22);
         }
+        body.dark-mode .setup-foot { color: #64748b; }
 
-        body.dark-mode .table-responsive {
-            background-color: #1e293b !important;
-        }
-
-        body.dark-mode .modern-delegates-table {
-            background-color: #1e293b !important;
-        }
-
-        body.dark-mode .modern-delegates-table thead {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
-        }
-
-        body.dark-mode .modern-delegates-table thead th {
-            color: #ffffff !important;
-            background: transparent !important;
-        }
-
-        body.dark-mode .modern-delegates-table tbody {
-            background-color: #1e293b !important;
-        }
-
-        body.dark-mode .modern-delegates-table tbody tr {
-            border-bottom-color: #334155;
-            background-color: #1e293b !important;
-        }
-
-        body.dark-mode .modern-delegates-table tbody tr:hover {
-            background-color: #334155 !important;
-        }
-
-        body.dark-mode .modern-delegates-table tbody td {
-            color: #e2e8f0 !important;
-            background-color: transparent !important;
-        }
-
-        body.dark-mode .modern-delegates-table tbody td:first-child {
-            color: #ffffff !important;
-        }
-
-        body.dark-mode .status-badge.yes {
-            background: #065f46;
-            color: #d1fae5;
-        }
-
-        body.dark-mode .status-badge.no {
-            background: #7f1d1d;
-            color: #fecaca;
-        }
-
-        body.dark-mode .action-btn.edit {
-            background: #1e3a8a;
-            color: #bfdbfe;
-        }
-
-        body.dark-mode .action-btn.edit:hover {
-            background: #1e40af;
-        }
-
-        body.dark-mode .action-btn.delete {
-            background: #7f1d1d;
-            color: #fecaca;
-        }
-
-        body.dark-mode .action-btn.delete:hover {
-            background: #991b1b;
+        .svm-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(6,182,212,0.25);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
         }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
 
-    <!-- 1. HEADER (NAVBAR) FRAGMENT -->
-    <div th:replace="fragments :: header"></div>
-
-    <!-- 2. SIDEBAR FRAGMENT -->
-    <div th:replace="fragments :: sidebar"></div>
-
-    <!-- 3. MAIN CONTENT AREA -->
-    <div class="content">
-        <!-- WRAPPER: Limits width to 80% and centers it -->
-        <div class="container-fluid p-0 mx-auto" style="width: 80%;"> 
-            
-            <!-- Add New button on top of the table -->
-            <div class="d-flex justify-content-between align-items-center mb-4 pt-4"> 
-                <h2 class="page-heading">
-                    <i class="bi bi-people-fill me-2"></i>Delegate Records
-                </h2>
-                <a th:href="@{/add}" class="btn-add-new">
-                    <i class="bi bi-plus-circle-fill"></i>Add New Delegate
-                </a>
+    <div class="setup-card lg-reactive">
+        <div class="setup-head">
+            <div class="logo-icon"><i class="bi bi-person-badge-fill"></i></div>
+            <h1>First-Time Setup</h1>
+            <p>Create the chair account for your conference</p>
+        </div>
+        <div class="setup-body">
+            <div class="setup-note">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>
+                    You are signed in with a temporary administrator account.
+                    Create the chair account below - the temporary admin account is then
+                    <strong>permanently deleted</strong> and you will be signed out.
+                </span>
             </div>
-        
-            <!-- Modern Data Table Card -->
-            <div class="delegates-card">
-                <div class="table-responsive">
-                    <table class="table modern-delegates-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Delegate Name</th>
-                                <th>Presenting</th>
-                                <th>Voting</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="p : ${presentations}">
-                                <td>
-                                    <div class="delegate-badge">
-                                        <div class="delegate-icon">
-                                            <i class="bi bi-person-fill"></i>
-                                        </div>
-                                        <span th:text="${p.name}">Delegate Name</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span th:if="${p.presenting}" class="status-badge yes">
-                                        <i class="bi bi-check-circle-fill"></i>Yes
-                                    </span>
-                                    <span th:unless="${p.presenting}" class="status-badge no">
-                                        <i class="bi bi-x-circle-fill"></i>No
-                                    </span>
-                                </td>
-                                <td>
-                                    <span th:if="${p.voting}" class="status-badge yes">
-                                        <i class="bi bi-check-circle-fill"></i>Yes
-                                    </span>
-                                    <span th:unless="${p.voting}" class="status-badge no">
-                                        <i class="bi bi-x-circle-fill"></i>No
-                                    </span>
-                                </td>
-                                <td>
-                                    <!-- Edit Button -->
-                                    <a th:href="@{/edit/{id}(id=${p.id})}" class="action-btn edit me-2">
-                                       <i class="bi bi-pencil-fill"></i>Edit
-                                    </a>
-                                    <!-- Delete Button -->
-                                    <a th:href="@{/delete/{id}(id=${p.id})}" class="action-btn delete" 
-                                       onclick="return confirm('Are you sure you want to delete this delegate?');">
-                                       <i class="bi bi-trash-fill"></i>Delete
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+            <div th:if="${error != null}" class="alert alert-danger" th:text="${error}">Error</div>
+
+            <form method="post" action="/setup" autocomplete="off">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" name="username" maxlength="40" required>
                 </div>
-            </div>
-            
-        </div> <!-- End of the 80% width container -->
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" maxlength="120" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Chair's Full Name</label>
+                    <input type="text" class="form-control" name="fullName" maxlength="120">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" minlength="6" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" name="confirmPassword" minlength="6" required>
+                </div>
+                <button type="submit" class="btn-create">
+                    <i class="bi bi-shield-check me-1"></i> Create Chair &amp; Finish Setup
+                </button>
+            </form>
+
+            <div class="setup-foot">SciVerse Summit - Committee Management</div>
+        </div>
     </div>
 
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/liquid-glass.js"></script>
+    <script src="/js/anime.min.js"></script>
+    <script src="/js/anime-init.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('setup');
+        });
+    </script>
 </body>
 </html>

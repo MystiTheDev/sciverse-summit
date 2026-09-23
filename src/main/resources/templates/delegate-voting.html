@@ -1,0 +1,380 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voting - Delegate Portal</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) document.body.classList.add('dark-mode');
+                else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark-mode'));
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --bg-primary: #f8fafc; --bg-card: #ffffff; --bg-secondary: #f1f5f9; --bg-elevated: #ffffff;
+            --text-primary: #1e293b; --text-secondary: #475569; --text-muted: #94a3b8;
+            --border-color: #e2e8f0; --border-strong: #cbd5e1;
+            --accent-primary: #06b6d4; --accent-secondary: #7c3aed;
+            --accent-success: #10b981; --accent-warning: #f59e0b; --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 16px rgba(0,0,0,0.06); --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.55); --glass-border: rgba(255,255,255,0.5);
+        }
+        body.dark-mode {
+            --bg-primary: #0f172a; --bg-card: #1e293b; --bg-secondary: #334155; --bg-elevated: #1e293b;
+            --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
+            --border-color: #334155; --border-strong: #475569;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 16px rgba(0,0,0,0.3); --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+            --glass-bg: rgba(30,41,59,0.65); --glass-border: rgba(255,255,255,0.12);
+        }
+        body { background: var(--bg-primary); color: var(--text-primary); transition: background 0.3s ease, color 0.3s ease; }
+        .sidebar { position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width); padding-top: 0.5rem; background-color: var(--bg-secondary); z-index: 1000; transition: all 0.3s; }
+        .content { margin-left: var(--sidebar-width); padding: 95px 20px 40px 20px; position: relative; z-index: 1; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .sidebar { width: 0; } .content { margin-left: 0; } }
+        #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) { transform: translateX(calc(-1 * var(--sidebar-width))); margin-left: 0; }
+
+        .page-heading { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0; display: flex; align-items: center; gap: 12px; }
+        .page-heading i { color: var(--accent-primary); font-size: 1.7rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; margin: 6px 0 0 40px; }
+        .heading-block { margin-bottom: 1.5rem; }
+
+        .panel-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 16px 44px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.65) !important;
+            overflow: hidden;
+        }
+        body.dark-mode .panel-card { box-shadow: 0 20px 52px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08) !important; }
+
+        .vote-state { padding: 48px 28px; text-align: center; }
+        .vote-state-icon { width: 76px; height: 76px; margin: 0 auto 18px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .vote-state h4 { font-weight: 800; color: var(--text-primary); }
+        .vote-state p { color: var(--text-muted); font-size: 0.92rem; max-width: 460px; margin: 8px auto 0; line-height: 1.6; }
+        .icon-waiting { background: rgba(245,158,11,0.14); color: #d97706; }
+        .icon-open { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(124,58,237,0.16)); color: var(--accent-primary); animation: breathe 2s infinite; }
+        .icon-closed { background: rgba(16,185,129,0.14); color: #059669; }
+        @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+        .ballot-label { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+        .ballot-type-pill { display: inline-block; background: rgba(124,58,237,0.14); color: var(--accent-secondary); border: 1px solid rgba(124,58,237,0.3); padding: 5px 14px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; }
+        .my-vote-pill { display: inline-flex; align-items: center; gap: 7px; background: rgba(124,58,237,0.14); color: var(--accent-secondary); border: 1px solid rgba(124,58,237,0.3); padding: 7px 16px; border-radius: 50px; font-weight: 700; font-size: 0.8rem; }
+        .hint-box { background: rgba(124,58,237,0.08); border: 1px dashed rgba(124,58,237,0.35); border-radius: 14px; padding: 14px 18px; margin-top: 22px; display: inline-block; font-size: 0.85rem; color: var(--text-secondary); }
+        .hint-box i { color: var(--accent-secondary); }
+        .panel-header { display: flex; align-items: center; gap: 10px; padding: 16px 22px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-primary); }
+        .panel-header > i { color: var(--accent-primary); font-size: 1.05rem; }
+        .panel-header .count-badge { margin-left: auto; background: linear-gradient(135deg, #06b6d4, #7c3aed); color: #fff; font-size: 0.72rem; font-weight: 700; min-width: 24px; height: 24px; padding: 0 8px; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; }
+        .history-body { padding: 22px; }
+        .hist-list { display: flex; flex-direction: column; gap: 12px; }
+        .hist-item { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 18px; }
+        .hist-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .hist-title { flex: 1; min-width: 0; font-weight: 700; font-size: 0.95rem; color: var(--text-primary); word-break: break-word; }
+        .hist-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .hist-meta .my-vote-pill { font-size: 0.72rem; padding: 4px 12px; }
+        .hist-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 14px; border-radius: 50px; }
+        .hist-badge.passed { color: #059669; background: rgba(16,185,129,0.13); border: 1px solid rgba(16,185,129,0.35); }
+        .hist-badge.failed { color: #dc2626; background: rgba(239,68,68,0.13); border: 1px solid rgba(239,68,68,0.35); }
+        .vote-actions { text-align: center; margin-top: 20px; }
+        .vote-msg { margin-top: 12px; font-size: 0.85rem; font-weight: 600; text-align: center; }
+        .live-tally { text-align: left; margin-top: 22px; border-top: 1px solid var(--border-color); padding-top: 14px; }
+        .live-tally-hdr { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-secondary); margin-bottom: 12px; }
+        .live-tally-hdr .svm-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: breathe 1.4s infinite; }
+        .vote-bar-row { margin-bottom: 12px; }
+        .vote-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 5px; }
+        .vote-bar-track { height: 10px; border-radius: 50px; background: var(--bg-secondary); overflow: hidden; }
+        .vote-bar-fill { height: 100%; border-radius: 50px; width: 0; transition: width 0.7s ease; }
+        .vote-fill-for { background: linear-gradient(90deg, #10b981, #059669); }
+        .vote-fill-against { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .vote-fill-neutral { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .vote-btn { flex: 1; min-width: 120px; border: none; border-radius: 14px; padding: 14px 10px; font-weight: 800; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .vote-btn:hover:not(:disabled) { transform: translateY(-2px); color: #fff; }
+        .vote-btn:disabled { cursor: default; transform: none; opacity: 0.9; }
+        .vote-for { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
+        .vote-against { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 20px rgba(239,68,68,0.28); }
+        .vote-neutral { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 8px 20px rgba(245,158,11,0.28); }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    </style>
+</head>
+<body class="liquid-glass">
+    <style>
+        /* LIQUID GLASS - delegate-voting */
+        body.liquid-glass .panel-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(248,250,252,0.42)) !important;
+            backdrop-filter: blur(34px) saturate(220%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(220%) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+            box-shadow:
+                0 20px 52px rgba(15,23,42,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+        }
+        body.liquid-glass.dark-mode .panel-card {
+            background: linear-gradient(160deg, rgba(30,41,59,0.60), rgba(15,23,42,0.42)) !important;
+            border-color: rgba(255,255,255,0.14) !important;
+            box-shadow:
+                0 20px 52px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+        }
+    </style>
+
+    <div th:replace="fragments :: header"></div>
+
+    <!-- Notification Banner -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <div th:replace="fragments :: sidebar"></div>
+
+    <div class="content">
+        <div class="container-fluid">
+            <div class="heading-block entrance">
+                <h2 class="page-heading"><i class="bi bi-check2-square"></i><span>Voting</span></h2>
+                <div class="page-subtitle"><i class="bi bi-flag me-1"></i>When the chair opens a ballot for a resolution, cast your vote here - FOR, AGAINST or NEUTRAL.</div>
+            </div>
+
+            <div class="row justify-content-center entrance entrance-1">
+                <div class="col-lg-7 col-md-9">
+                    <div class="panel-card lg-reactive">
+                        <div id="voteArea">
+                            <div class="vote-state">
+                                <div class="vote-state-icon icon-waiting"><i class="bi bi-hourglass-split"></i></div>
+                                <h4>Checking for an open ballot...</h4>
+                                <p>Waiting for the chair to start a vote.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VOTING HISTORY - COMPLETED RESOLUTION BALLOTS -->
+            <div class="row justify-content-center entrance entrance-2">
+                <div class="col-lg-7 col-md-9">
+                    <div class="panel-card lg-reactive">
+                        <div class="panel-header">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Voting History - Resolutions</span>
+                            <span class="count-badge" id="delegate-history-count">0</span>
+                        </div>
+                        <div class="history-body" id="delegate-history">
+                            <div class="vote-state" style="padding:28px 20px;">
+                                <p>No completed resolution votes yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const voteArea = document.getElementById('voteArea');
+
+        function esc(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function render(iconCls, iconColor, title, text) {
+            voteArea.innerHTML =
+                '<div class="vote-state">' +
+                '<div class="vote-state-icon" style="color:' + iconColor + ';background:rgba(124,58,237,0.12);">' +
+                '<i class="bi ' + iconCls + '"></i></div>' +
+                '<h4>' + esc(title) + '</h4>' +
+                '<p>' + esc(text) + '</p>' +
+                '</div>';
+        }
+
+        function tallyHtml(t) {
+            const total = (t.for || 0) + (t.against || 0) + (t.neutral || 0);
+            const pct = n => total > 0 ? Math.round((n / total) * 100) : 0;
+            function row(label, key, cls) {
+                return '<div class="vote-bar-row">' +
+                    '<div class="vote-bar-label"><span>' + label + '</span><span>' + (t[key] || 0) + ' (' + pct(t[key]) + '%)</span></div>' +
+                    '<div class="vote-bar-track"><div class="vote-bar-fill ' + cls + '" style="width:' + pct(t[key]) + '%"></div></div>' +
+                    '</div>';
+            }
+            return '<div class="live-tally">' +
+                '<div class="live-tally-hdr"><span class="svm-live-dot"></span> Live results</div>' +
+                row('FOR', 'for', 'vote-fill-for') +
+                row('AGAINST', 'against', 'vote-fill-against') +
+                row('NEUTRAL', 'neutral', 'vote-fill-neutral') +
+                '<div class="vote-bar-label"><span>Total votes</span><span>' + total + '</span></div>' +
+                '</div>';
+        }
+
+        async function castVote(choice, btn) {
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="svm-spinner me-1"></span> Submitting...';
+            var spinEl = btn.querySelector('.svm-spinner');
+            if (spinEl && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                window.sciVerseAnime.spinElement(spinEl);
+            }
+            try {
+                const resp = await fetch('/api/delegate/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'choice=' + encodeURIComponent(choice)
+                });
+                const data = await resp.json();
+                const msgEl = document.getElementById('voteMsg');
+                if (data && data.success) {
+                    if (msgEl) msgEl.innerHTML = '<span style="color:#059669;"><i class="bi bi-check-circle-fill"></i> ' + esc(data.message || 'Your vote has been recorded.') + '</span>';
+                    refresh();
+                } else {
+                    if (msgEl) msgEl.innerHTML = '<span style="color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i> ' + esc((data && data.message) || 'Could not cast your vote.') + '</span>';
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    if (spinEl && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                        window.sciVerseAnime.stopSpinElement(spinEl);
+                    }
+                }
+            } catch (err) {
+                const msgEl = document.getElementById('voteMsg');
+                if (msgEl) msgEl.innerHTML = '<span style="color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i> Network error - please try again.</span>';
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                if (spinEl && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                    window.sciVerseAnime.stopSpinElement(spinEl);
+                }
+            }
+        }
+
+        function renderOpen(st) {
+            const votedPill = st.myVote
+                ? '<div class="mt-3"><span class="my-vote-pill"><i class="bi bi-check-circle-fill"></i> Your vote: ' + esc(st.myVote) + '</span></div>'
+                : '';
+            const buttons = st.myVote
+                ? ''
+                : '<div class="vote-actions">' +
+                  '<div class="d-flex gap-2 flex-wrap justify-content-center">' +
+                  '<button type="button" class="vote-btn vote-for" data-choice="FOR"><i class="bi bi-hand-thumbs-up"></i> FOR</button>' +
+                  '<button type="button" class="vote-btn vote-against" data-choice="AGAINST"><i class="bi bi-hand-thumbs-down"></i> AGAINST</button>' +
+                  '<button type="button" class="vote-btn vote-neutral" data-choice="NEUTRAL"><i class="bi bi-dash-circle"></i> NEUTRAL</button>' +
+                  '</div>' +
+                  '<div class="vote-msg" id="voteMsg"></div>' +
+                  '</div>';
+            const tally = st.tally ? tallyHtml(st.tally) : '';
+            voteArea.innerHTML =
+                '<div class="vote-state">' +
+                '<div class="vote-state-icon icon-open"><i class="bi bi-bullseye"></i></div>' +
+                '<h4>A vote is live</h4>' +
+                '<div class="text-center mt-3"><span class="ballot-type-pill"><i class="bi bi-bullseye me-1"></i>' + esc(st.ballotType || 'VOTE') + '</span></div>' +
+                '<p class="ballot-label mt-2">' + esc(st.ballotLabel || 'Vote on the pending question') + '</p>' +
+                buttons +
+                votedPill +
+                tally +
+                '</div>';
+            voteArea.querySelectorAll('[data-choice]').forEach(btn => {
+                btn.addEventListener('click', () => castVote(btn.getAttribute('data-choice'), btn));
+            });
+        }
+
+        async function refresh() {
+            try {
+                const resp = await fetch('/api/delegate/voting/status');
+                const st = await resp.json();
+                if (!st.success) {
+                    render('bi-shield-lock', '#f59e0b', 'Not in a session', st.message || 'Join a session to vote.');
+                    return;
+                }
+                if (st.ballotOpen) {
+                    renderOpen(st);
+                } else {
+                    const lastVote = st.myVote
+                        ? '<p>Your last vote on this ballot was <strong>' + esc(st.myVote) + '</strong>.</p>'
+                        : '<p>Waiting for the chair to open a ballot.</p>';
+                    voteArea.innerHTML =
+                        '<div class="vote-state">' +
+                        '<div class="vote-state-icon icon-waiting"><i class="bi bi-hourglass-split"></i></div>' +
+                        '<h4>No ballot open right now</h4>' +
+                        lastVote +
+                        '<p class="small">Voting options appear here automatically the moment voting starts.</p>' +
+                        '</div>';
+                }
+            } catch (err) {
+                render('bi-exclamation-triangle', '#ef4444', 'Something went wrong', 'Could not reach the server.');
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // VOTING HISTORY (closed resolution ballots)
+        // ------------------------------------------------------------------
+        async function loadHistory() {
+            const area = document.getElementById('delegate-history');
+            if (!area) return;
+            try {
+                const resp = await fetch('/api/delegate/ballot-history');
+                const data = await resp.json();
+                const recs = (data || []).filter(r =>
+                    (r.ballotType || '').toUpperCase() === 'RESOLUTION' &&
+                    (r.status || '').toUpperCase() === 'CLOSED');
+                document.getElementById('delegate-history-count').textContent = recs.length;
+                if (!recs.length) {
+                    area.innerHTML = '<div class="vote-state" style="padding:28px 20px;"><p>No completed resolution votes yet.</p></div>';
+                    return;
+                }
+                area.innerHTML = '<div class="hist-list">' + recs.map(r => {
+                    const forC = r.forCount || 0;
+                    const againstC = r.againstCount || 0;
+                    const neutralC = r.neutralCount || 0;
+                    const pass = forC > (againstC + neutralC);
+                    const myVote = r.myVote
+                        ? '<span class="my-vote-pill"><i class="bi bi-check-circle-fill"></i> You voted: ' + esc(r.myVote) + '</span>'
+                        : '';
+                    const badge = '<span class="hist-badge ' + (pass ? 'passed' : 'failed') + '">'
+                        + '<i class="bi ' + (pass ? 'bi-check-circle-fill' : 'bi-x-circle-fill') + '"></i> '
+                        + (pass ? 'Passed' : 'Failed') + '</span>';
+                    return '<div class="hist-item">'
+                        + '<div class="hist-head">'
+                        + '<span class="hist-title">' + esc(r.title || 'Resolution') + '</span>'
+                        + badge
+                        + '</div>'
+                        + '<div class="hist-meta"><i class="bi bi-clock-fill"></i> Closed ' + esc(r.closedAt || '-') + '</div>'
+                        + (myVote ? '<div class="hist-meta">' + myVote + '</div>' : '')
+                        + tallyHtml({ for: forC, against: againstC, neutral: neutralC })
+                        + '</div>';
+                }).join('') + '</div>';
+            } catch (err) { /* keep last state */ }
+        }
+
+        refresh();
+        loadHistory();
+        setInterval(() => { refresh(); loadHistory(); }, 3000);
+        if (window.SummitLive) window.SummitLive.on('vote.changed', () => { refresh(); loadHistory(); });
+    </script>
+
+    <script>
+    window.NotifBannerConfig = {
+        showLink: true,
+        onSessionEnded: function() { window.location.href = '/delegate'; }
+    };
+    </script>
+    <script src="/js/notif-banner.js"></script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('delegate-voting');
+        });
+    </script>
+</body>
+</html>

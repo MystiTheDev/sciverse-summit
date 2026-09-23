@@ -1,125 +1,487 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>Welcome Back - Sign In</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/inter.css" rel="stylesheet">
-    
+
+    <!-- Theme initialization - prevents flash -->
+    <script>
+        (function() {
+            var saved = localStorage.getItem('theme');
+            if (saved === 'dark') {
+                document.documentElement.classList.add('dark-mode-loading');
+                if (document.body) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                    });
+                }
+            }
+        })();
+    </script>
+
     <style>
+        /* ── Background ──────────────────────────────── */
         body {
-            background-color: #f4f7fa;
+            background: linear-gradient(135deg, #f5f3ff 0%, #f8fafc 40%, #cffafe 100%);
             font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            position: relative;
+            overflow: hidden;
         }
+        /* Soft animated blobs */
+        body::before, body::after {
+            content: ''; position: fixed; border-radius: 50%;
+            filter: blur(80px); opacity: 0.35; z-index: 0;
+            animation: blob-drift 18s ease-in-out infinite alternate;
+        }
+        body::before {
+            width: 500px; height: 500px; top: -120px; left: -100px;
+            background: radial-gradient(circle, rgba(124,58,237,0.5), transparent 70%);
+        }
+        body::after {
+            width: 450px; height: 450px; bottom: -100px; right: -80px;
+            background: radial-gradient(circle, rgba(16,185,129,0.45), transparent 70%);
+            animation-delay: -8s;
+        }
+        @keyframes blob-drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            50%  { transform: translate(40px, 30px) scale(1.08); }
+            100% { transform: translate(-20px, -15px) scale(0.95); }
+        }
+
+        /* ── Animated background canvas ────────────────── */
+        #loginBg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── Login Card ──────────────────────────────── */
         .login-card {
-            max-width: 400px;
-            width: 90%;
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative; z-index: 1;
+            max-width: 420px; width: 92%;
+            padding: 44px 40px 36px;
+            border-radius: 24px;
+            background: #ffffff;
+            border: 1px solid rgba(100,116,139,0.45);
+            box-shadow:
+                0 24px 60px rgba(15,23,42,0.12),
+                0 4px 16px rgba(15,23,42,0.06);
+            overflow: hidden;
+        }
+
+        /* ── Header area ──────────────────────────────── */
+        .login-logo-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 14px; margin: 0 auto 20px;
+            position: relative; z-index: 1;
+        }
+        .login-logo-img {
+            width: 60px; height: 60px; object-fit: contain;
+            border-radius: 50%;
+            box-shadow: 0 6px 20px rgba(124,58,237,0.35);
+        }
+        .login-brand-text {
+            display: flex; flex-direction: column; line-height: 1.1;
+            text-align: left;
+        }
+        .login-brand-name {
+            font-size: 1.7rem; font-weight: 800;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-brand-sub {
+            font-size: 1.05rem; font-weight: 700;
+            letter-spacing: 0.22em; text-transform: uppercase;
+            color: rgba(30,41,59,0.6);
         }
         .card-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
+            font-size: 1.75rem; font-weight: 700; color: #1e293b;
+            margin-bottom: 6px; position: relative; z-index: 1;
         }
         .card-subtitle {
-            font-size: 1rem;
-            color: #64748b;
-            margin-bottom: 30px;
+            font-size: 0.95rem; color: rgba(30,41,59,0.55);
+            margin-bottom: 32px; position: relative; z-index: 1;
         }
-        .input-group-text {
-            background-color: #e2e8f0;
-            border: 1px solid #cbd5e1;
-            border-right: none;
-            color: #475569;
-        }
-        .form-control {
-            border-left: none;
-            border-color: #cbd5e1;
-            height: 50px;
-            font-size: 1rem;
-        }
-        .form-control:focus {
-            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
-            border-color: #3b82f6;
-        }
+
+        /* ── Form labels ──────────────────────────────── */
         .form-label-custom {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #475569;
-            margin-bottom: 5px;
+            display: flex; align-items: center;
+            font-size: 0.85rem; font-weight: 600; color: rgba(30,41,59,0.75);
+            margin-bottom: 6px; position: relative; z-index: 1;
+            text-transform: uppercase; letter-spacing: 0.04em;
         }
         .form-label-custom i {
-            margin-right: 8px;
-            font-size: 1.1rem;
+            margin-right: 7px; font-size: 1rem; opacity: 0.7;
         }
-        .sign-in-btn {
-            background-color: #2c3e50; /* Dark blue/charcoal matching screenshot */
-            border: none;
-            padding: 12px 20px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-            width: 100%;
+
+        /* ── Input groups ────────────────────────────── */
+        .input-group {
+            position: relative; z-index: 1;
         }
-        .sign-in-btn:hover {
-            background-color: #34495e;
+        .input-group-text {
+            background: #f8fafc !important;
+            border: 1px solid rgba(100,116,139,0.28) !important;
+            border-right: none !important;
+            color: rgba(30,41,59,0.55) !important;
+            border-radius: 12px 0 0 12px !important;
+            height: 50px; display: flex; align-items: center;
+        }
+        .form-control {
+            background: #f8fafc !important;
+            border: 1px solid rgba(100,116,139,0.28) !important;
+            border-left: none !important;
+            border-radius: 0 12px 12px 0 !important;
+            height: 50px; font-size: 0.95rem; color: #1e293b;
+            padding: 0 14px;
+            transition: all 0.2s;
+        }
+        .form-control::placeholder { color: rgba(30,41,59,0.35); }
+        .form-control:focus {
+            background: #ffffff !important;
+            border-color: rgba(6,182,212,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12) !important;
+            color: #1e293b !important;
+        }
+
+        /* ── Standalone input (no icon group) ──────── */
+        .form-control-standalone {
+            background: #f8fafc !important;
+            border: 1px solid rgba(100,116,139,0.28) !important;
+            border-radius: 12px !important;
+            height: 50px; font-size: 0.95rem; color: #1e293b;
+            padding: 0 14px; transition: all 0.2s;
+        }
+        .form-control-standalone::placeholder { color: rgba(30,41,59,0.35); }
+        .form-control-standalone:focus {
+            background: rgba(255,255,255,0.75) !important;
+            border-color: rgba(6,182,212,0.45) !important;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12) !important;
+        }
+
+        /* ── Password eye ─────────────────────────────── */
+        .password-wrapper { position: relative; }
+        .password-wrapper .form-control { padding-right: 44px; }
+        .password-eye-btn {
+            position: absolute; right: 0; top: 0; bottom: 0;
+            width: 42px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: rgba(30,41,59,0.4);
+            cursor: pointer; font-size: 1rem; transition: color 0.15s;
+            border-radius: 0 12px 12px 0; z-index: 2;
+        }
+        .password-eye-btn:hover { color: #06b6d4; }
+
+        /* ── Links ────────────────────────────────────── */
+        .link-group {
+            display: flex; justify-content: space-between;
+            margin-top: 10px; margin-bottom: 22px;
+            position: relative; z-index: 1;
         }
         .link-text {
-            font-size: 0.9rem;
+            font-size: 0.88rem; font-weight: 500;
+            color: rgba(30,41,59,0.6); text-decoration: none;
+            transition: color 0.15s;
         }
-        .link-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
-        .error-message {
-            color: #dc3545;
-            margin-top: 15px;
-            font-weight: 500;
-            text-align: center;
-        }
-        .password-wrapper {
-            position: relative;
-        }
-        .password-wrapper .form-control {
-            padding-right: 44px;
-        }
-        .password-eye-btn {
-            position: absolute;
-            right: 0; top: 0; bottom: 0;
-            width: 42px;
-            display: flex; align-items: center; justify-content: center;
-            background: none; border: none;
-            color: #94a3b8; cursor: pointer;
-            font-size: 1rem; transition: color 0.15s;
-            border-radius: 0 8px 8px 0;
-        }
-        .password-eye-btn:hover { color: #475569; }
+        .link-text:hover { color: #06b6d4; }
 
+        /* ── Sign In button - liquid glass gradient ────── */
+        .sign-in-btn {
+            position: relative; z-index: 1;
+            width: 100%; padding: 13px 20px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.92), rgba(124,58,237,0.92));
+            border: 1px solid rgba(255,255,255,0.45);
+            border-top-color: rgba(255,255,255,0.65);
+            color: #fff; font-size: 1.05rem; font-weight: 700;
+            border-radius: 14px; letter-spacing: 0.03em;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.35),
+                inset 0 -1px 0 rgba(255,255,255,0.1),
+                0 6px 20px rgba(6,182,212,0.35);
+            transition: all 0.2s;
+        }
+        .sign-in-btn:hover {
+            background: linear-gradient(135deg, rgba(6,182,212,1), rgba(124,58,237,1));
+            border-color: rgba(255,255,255,0.6);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.45),
+                0 8px 28px rgba(6,182,212,0.45);
+            transform: translateY(-1px);
+        }
+        .sign-in-btn:active { transform: translateY(0); }
+
+        /* ── Error ────────────────────────────────────── */
+        .error-message {
+            position: relative; z-index: 1;
+            color: #dc2626; margin-top: 15px; font-weight: 500; text-align: center;
+            font-size: 0.88rem;
+        }
+
+        /* ── Forgot Password Modal - Liquid Glass ─────── */
+        #forgotPasswordModal .modal-content {
+            position: relative;
+            /* Near-solid in light mode: translucent glass washes out over the bright backdrop. */
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(241,245,249,0.94)) !important;
+            backdrop-filter: blur(12px) saturate(160%) !important;
+            -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+            border: 1px solid rgba(15,23,42,0.12) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.28), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+            overflow: hidden;
+        }
+        #forgotPasswordModal .modal-content::before {
+            content: ''; position: absolute; top: -30%; left: -15%;
+            width: 130%; height: 80%;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 45%, transparent 70%);
+            pointer-events: none;
+        }
+        #forgotPasswordModal .modal-content::after {
+            content: ''; position: absolute; bottom: -45%; right: -20%;
+            width: 120%; height: 70%;
+            background: radial-gradient(ellipse at 70% 100%, rgba(167,139,250,0.16), transparent 65%);
+            pointer-events: none;
+        }
+        #forgotPasswordModal .modal-header {
+            background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(6,182,212,0.02)) !important;
+            border-bottom: 1px solid rgba(15,23,42,0.08) !important;
+            border-radius: 24px 24px 0 0 !important;
+        }
+        #forgotPasswordModal .modal-title { color: #1e293b; }
+        #forgotPasswordModal .modal-body { color: #1e293b; position: relative; z-index: 1; }
+        #forgotPasswordModal .btn-close { opacity: 0.65; }
+        #forgotPasswordModal .btn-close:hover { opacity: 1; }
+        /* Modal buttons - glass */
+        #forgotPasswordModal .sign-in-btn {
+            font-size: 0.95rem; padding: 10px 20px;
+        }
+        #forgotPasswordModal .btn-outline-secondary {
+            background: rgba(255,255,255,0.5) !important;
+            border: 1px solid rgba(255,255,255,0.6) !important;
+            border-top-color: rgba(255,255,255,0.8) !important;
+            color: #475569 !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+            border-radius: 12px;
+        }
+        #forgotPasswordModal .btn-outline-secondary:hover {
+            background: rgba(255,255,255,0.75) !important;
+            border-color: rgba(255,255,255,0.8) !important;
+            color: #1e293b !important;
+        }
+        /* Modal result table */
+        #forgotPasswordModal table tr { border-bottom-color: rgba(30,41,59,0.08) !important; }
+        #forgotPasswordModal table td { color: #1e293b !important; }
+        #forgotPasswordModal table td:first-child { color: rgba(30,41,59,0.55) !important; }
+        #forgotPasswordModal .btn-link { color: #06b6d4 !important; }
+
+        /* ── Theme toggle (floating) ────────────────────── */
+        .theme-toggle-login {
+            position: fixed; top: 20px; right: 24px; z-index: 100;
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-top-color: rgba(255,255,255,0.75);
+            border-radius: 50px; padding: 6px 12px;
+            cursor: pointer; transition: all 0.25s;
+            box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+            user-select: none; -webkit-user-select: none;
+        }
+        .theme-toggle-login:hover {
+            background: rgba(255,255,255,0.65);
+            box-shadow: 0 6px 20px rgba(15,23,42,0.12);
+        }
+        .theme-toggle-login .ti-sun  { font-size: 0.85rem; color: #f59e0b; }
+        .theme-toggle-login .ti-moon { font-size: 0.85rem; color: rgba(30,41,59,0.35); }
+        .theme-toggle-login .ti-track {
+            position: relative; width: 34px; height: 18px;
+            background: rgba(30,41,59,0.15); border-radius: 50px;
+            transition: background 0.25s; display: inline-block;
+        }
+        .theme-toggle-login .ti-thumb {
+            position: absolute; top: 3px; left: 3px;
+            width: 12px; height: 12px;
+            background: #fff; border-radius: 50%;
+            transition: transform 0.25s; display: block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        /* ════════════════════════════════════════════════
+           DARK MODE
+           ════════════════════════════════════════════════ */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f0a1e 0%, #0f172a 40%, #0f1b2d 100%);
+        }
+        body.dark-mode::before {
+            background: radial-gradient(circle, rgba(124,58,237,0.35), transparent 70%);
+        }
+        body.dark-mode::after {
+            background: radial-gradient(circle, rgba(16,185,129,0.3), transparent 70%);
+        }
+
+        body.dark-mode .login-card {
+            background: linear-gradient(135deg, #1e293b, #16213e);
+            border: 1px solid rgba(148,163,184,0.38);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        body.dark-mode .card-title { color: #f1f5f9; }
+        body.dark-mode .card-subtitle { color: rgba(255,255,255,0.5); }
+        body.dark-mode .login-brand-sub { color: rgba(255,255,255,0.55); }
+        body.dark-mode .login-logo-img {
+            filter: invert(1) grayscale(100%);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+        }
+        body.dark-mode .form-label-custom { color: rgba(255,255,255,0.75); }
+        body.dark-mode .input-group-text {
+            background: rgba(255,255,255,0.07) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: rgba(255,255,255,0.5) !important;
+        }
+        body.dark-mode .form-control {
+            background: rgba(255,255,255,0.07) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        body.dark-mode .form-control::placeholder { color: rgba(255,255,255,0.35); }
+        body.dark-mode .form-control:focus {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(6,182,212,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18) !important;
+        }
+        body.dark-mode .form-control-standalone {
+            background: rgba(255,255,255,0.07) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        body.dark-mode .form-control-standalone::placeholder { color: rgba(255,255,255,0.35); }
+        body.dark-mode .form-control-standalone:focus {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(6,182,212,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18) !important;
+        }
+        body.dark-mode .password-eye-btn { color: rgba(255,255,255,0.35); }
+        body.dark-mode .password-eye-btn:hover { color: #22d3ee; }
+        body.dark-mode .link-text { color: rgba(255,255,255,0.55); }
+        body.dark-mode .link-text:hover { color: #22d3ee; }
+        body.dark-mode .error-message { color: #f87171; }
+        body.dark-mode .sign-in-btn {
+            background: linear-gradient(135deg, rgba(6,182,212,0.88), rgba(124,58,237,0.88));
+            border-color: rgba(255,255,255,0.18);
+        }
+
+        /* Dark mode - forgot password modal */
+        body.dark-mode #forgotPasswordModal .modal-content {
+            background: linear-gradient(135deg, rgba(30,41,59,0.72), rgba(15,23,42,0.48)) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            border-top-color: rgba(255,255,255,0.28) !important;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #forgotPasswordModal .modal-content::before {
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 45%, transparent 70%);
+        }
+        body.dark-mode #forgotPasswordModal .modal-content::after {
+            background: radial-gradient(ellipse at 70% 100%, rgba(124,58,237,0.2), transparent 65%);
+        }
+        body.dark-mode #forgotPasswordModal .modal-header {
+            background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(6,182,212,0.03)) !important;
+            border-bottom-color: rgba(255,255,255,0.12) !important;
+        }
+        body.dark-mode #forgotPasswordModal .modal-title { color: #f1f5f9; }
+        body.dark-mode #forgotPasswordModal .modal-header p { color: rgba(255,255,255,0.55) !important; }
+        body.dark-mode #forgotPasswordModal .modal-body p { color: rgba(255,255,255,0.75) !important; }
+        body.dark-mode #forgotPasswordModal .form-label-custom span { color: rgba(255,255,255,0.4) !important; }
+        body.dark-mode #forgotPasswordModal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.8; }
+        body.dark-mode #forgotPasswordModal .form-control {
+            background: rgba(255,255,255,0.07) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        body.dark-mode #forgotPasswordModal .form-control::placeholder { color: rgba(255,255,255,0.35); }
+        body.dark-mode #forgotPasswordModal .form-control:focus {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(6,182,212,0.5) !important;
+        }
+        body.dark-mode #forgotPasswordModal table td { color: rgba(255,255,255,0.9) !important; }
+        body.dark-mode #forgotPasswordModal #fpPassMask { color: rgba(255,255,255,0.9) !important; }
+        body.dark-mode #forgotPasswordModal table td:first-child { color: rgba(255,255,255,0.5) !important; }
+        body.dark-mode #forgotPasswordModal table tr { border-bottom-color: rgba(255,255,255,0.07) !important; }
+        body.dark-mode #forgotPasswordModal .btn-outline-secondary {
+            background: rgba(255,255,255,0.07) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            color: rgba(255,255,255,0.75) !important;
+        }
+        body.dark-mode #forgotPasswordModal .btn-outline-secondary:hover {
+            background: rgba(255,255,255,0.14) !important;
+            color: #fff !important;
+        }
+        body.dark-mode #forgotPasswordModal .btn-link { color: #22d3ee !important; }
+
+        /* Dark mode - theme toggle */
+        body.dark-mode .theme-toggle-login {
+            background: rgba(30,41,59,0.6);
+            border-color: rgba(255,255,255,0.15);
+            border-top-color: rgba(255,255,255,0.22);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .theme-toggle-login:hover {
+            background: rgba(30,41,59,0.8);
+        }
+        body.dark-mode .theme-toggle-login .ti-sun { color: rgba(255,255,255,0.3); }
+        body.dark-mode .theme-toggle-login .ti-moon { color: #a5b4fc; }
+        body.dark-mode .theme-toggle-login .ti-track { background: #7c3aed; }
+        body.dark-mode .theme-toggle-login .ti-thumb { transform: translateX(16px); }
+
+        .svm-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(6,182,212,0.25);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+        }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
+
+    <!-- Animated background -->
+    <canvas id="loginBg" aria-hidden="true"></canvas>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle-login" onclick="toggleLoginTheme()" title="Toggle dark / light mode">
+        <i class="bi bi-sun-fill ti-sun"></i>
+        <span class="ti-track"><span class="ti-thumb"></span></span>
+        <i class="bi bi-moon-stars-fill ti-moon"></i>
+    </div>
 
     <div class="login-card">
+        <!-- Logo -->
+        <div class="login-logo-row">
+            <img src="/images/sciverse_summit_logo_final.png" alt="SciVerse Summit Logo" class="login-logo-img">
+            <div class="login-brand-text">
+                <div class="login-brand-name">Sciverse</div>
+                <div class="login-brand-sub">Summit</div>
+            </div>
+        </div>
+
         <h1 class="card-title text-center">Welcome Back</h1>
         <p class="card-subtitle text-center">Log in to your dashboard.</p>
 
         <!-- The login form will post credentials to the controller -->
         <form th:action="@{/login}" method="post">
-            
+
             <!-- Error message display (if Thymeleaf error model is present) -->
             <div th:if="${error}" class="error-message mb-3">
                 <p th:text="${error}">Invalid username or password.</p>
@@ -128,68 +490,93 @@
             <!-- Username / Email Field -->
             <div class="mb-4">
                 <label for="username" class="form-label-custom">
-                    <i class="user-avatar"></i> User name / Email
+                    <i class="bi bi-person-fill"></i> User name / Email
                 </label>
-                <input type="text" class="form-control" id="username" name="username" required aria-label="Username or Email">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-at"></i></span>
+                    <input type="text" class="form-control" id="username" name="username"
+                           placeholder="e.g. john@example.com" required aria-label="Username or Email">
+                </div>
             </div>
 
             <!-- Password Field -->
             <div class="mb-4">
                 <label for="password" class="form-label-custom">
-                    <i class="bi bi-lock"></i> Password
+                    <i class="bi bi-lock-fill"></i> Password
                 </label>
                 <div class="password-wrapper">
-                    <input type="password" class="form-control" id="password" name="password" required aria-label="Password">
+                    <input type="password" class="form-control" id="password" name="password"
+                           placeholder="Enter your password" required aria-label="Password">
                     <button type="button" class="password-eye-btn" id="passwordEyeBtn"
                             onclick="togglePasswordVisibility()" tabindex="-1" aria-label="Show/hide password">
-                        <i class="bi bi-eye" id="passwordEyeIcon"></i>
+                        <i class="bi bi-eye-fill" id="passwordEyeIcon"></i>
                     </button>
                 </div>
             </div>
-            
+
             <!-- Account Links -->
             <div class="link-group">
-                <a href="/register" class="link-text text-secondary text-decoration-none">Create Account</a>
-                <a href="#" class="link-text text-secondary text-decoration-none"
+                <a href="/register" class="link-text">Create Account</a>
+                <a href="#" class="link-text"
                    data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
             </div>
 
             <!-- Sign In Button -->
-            <button type="submit" class="btn sign-in-btn text-white">
-                SIGN IN <i class="bi bi-arrow-right"></i>
+            <button type="submit" class="btn sign-in-btn">
+                SIGN IN <i class="bi bi-arrow-right ms-1"></i>
             </button>
         </form>
     </div>
 
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/anime.min.js"></script>
+    <script src="/js/anime-init.js"></script>
 
     <script>
+        /* ── Password visibility toggle ─────────────── */
         function togglePasswordVisibility() {
             var input = document.getElementById('password');
             var icon  = document.getElementById('passwordEyeIcon');
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.className = 'bi bi-eye-slash';
+                icon.className = 'bi bi-eye-slash-fill';
             } else {
                 input.type = 'password';
-                icon.className = 'bi bi-eye';
+                icon.className = 'bi bi-eye-fill';
             }
             input.focus();
         }
+
+        /* ── Theme toggle ────────────────────────────── */
+        function toggleLoginTheme() {
+            var body = document.body;
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                document.documentElement.classList.remove('dark-mode-loading');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
     </script>
+
+    <!-- ════════════════════════════════════════════════
+         Forgot Password Modal
+         ════════════════════════════════════════════════ -->
     <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
-            <div class="modal-content" style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 50px rgba(0,0,0,0.12);">
+            <div class="modal-content">
 
                 <!-- Header -->
                 <div class="modal-header border-0 pb-0 px-4 pt-4">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;box-shadow:0 4px 12px rgba(99,102,241,0.35);flex-shrink:0;">
+                        <div style="width:40px;height:40px;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;box-shadow:0 4px 14px rgba(124,58,237,0.4),inset 0 1px 0 rgba(255,255,255,0.3);flex-shrink:0;">
                             <i class="bi bi-key-fill"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title fw-bold mb-0" style="color:#1e293b;font-size:1.05rem;">Account Recovery</h5>
-                            <p class="mb-0" style="font-size:0.78rem;color:#64748b;">Find your account details</p>
+                            <h5 class="modal-title fw-bold mb-0" style="font-size:1.05rem;">Account Recovery</h5>
+                            <p class="mb-0" style="font-size:0.78rem;color:rgba(30,41,59,0.55);">Find your account details</p>
                         </div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="fpModalClose"></button>
@@ -199,61 +586,61 @@
 
                     <!-- STEP 1: Lookup form -->
                     <div id="forgotStep1">
-                        <p style="font-size:0.88rem;color:#475569;margin-bottom:20px;">
+                        <p style="font-size:0.88rem;color:rgba(30,41,59,0.65);margin-bottom:20px;">
                             Enter your <strong>username</strong>, <strong>email</strong>, or both.
                             We&rsquo;ll look up your account.
                         </p>
                         <div class="mb-3">
                             <label class="form-label-custom">
-                                <i class="bi bi-person me-1"></i>Username <span style="font-size:0.78rem;color:#94a3b8;">(optional)</span>
+                                <i class="bi bi-person-fill me-1"></i>Username <span style="font-size:0.78rem;color:rgba(30,41,59,0.4);">(optional)</span>
                             </label>
-                            <input type="text" id="fpUsername" class="form-control" placeholder="e.g. john_doe" autocomplete="username">
+                            <input type="text" id="fpUsername" class="form-control-standalone" placeholder="e.g. john_doe" autocomplete="username">
                         </div>
                         <div class="mb-3">
                             <label class="form-label-custom">
-                                <i class="bi bi-envelope me-1"></i>Email <span style="font-size:0.78rem;color:#94a3b8;">(optional)</span>
+                                <i class="bi bi-envelope-fill me-1"></i>Email <span style="font-size:0.78rem;color:rgba(30,41,59,0.4);">(optional)</span>
                             </label>
-                            <input type="email" id="fpEmail" class="form-control" placeholder="e.g. john@example.com" autocomplete="email">
+                            <input type="email" id="fpEmail" class="form-control-standalone" placeholder="e.g. john@example.com" autocomplete="email">
                         </div>
-                        <div id="fpError" class="mb-3 p-2 rounded" style="background:#fee2e2;color:#991b1b;font-size:0.82rem;display:none;"></div>
-                        <button id="fpLookupBtn" onclick="fpLookup()" class="btn sign-in-btn text-white" style="font-size:1rem;padding:10px 20px;">
+                        <div id="fpError" class="mb-3 p-2 rounded" style="background:rgba(239,68,68,0.1);color:#dc2626;font-size:0.82rem;display:none;"></div>
+                        <button id="fpLookupBtn" onclick="fpLookup()" class="btn sign-in-btn" style="font-size:0.95rem;padding:10px 20px;">
                             <i class="bi bi-search me-1"></i>Look Up Account
                         </button>
                     </div>
 
                     <!-- STEP 2: Results -->
                     <div id="forgotStep2" style="display:none;">
-                        <div class="mb-3 p-2 rounded" style="background:#dcfce7;color:#14532d;font-size:0.82rem;">
+                        <div class="mb-3 p-2 rounded" style="background:rgba(16,185,129,0.1);color:#059669;font-size:0.82rem;">
                             <i class="bi bi-check-circle-fill me-1"></i>Account found!
                         </div>
                         <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:10px 0;color:#64748b;font-weight:600;width:130px;"><i class="bi bi-person me-2"></i>Full Name</td>
+                            <tr style="border-bottom:1px solid rgba(30,41,59,0.08);">
+                                <td style="padding:10px 0;color:rgba(30,41,59,0.55);font-weight:600;width:130px;"><i class="bi bi-person-fill me-2"></i>Full Name</td>
                                 <td style="padding:10px 0;color:#1e293b;font-weight:600;" id="fpResFullName"></td>
                             </tr>
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:10px 0;color:#64748b;font-weight:600;"><i class="bi bi-at me-2"></i>Username</td>
+                            <tr style="border-bottom:1px solid rgba(30,41,59,0.08);">
+                                <td style="padding:10px 0;color:rgba(30,41,59,0.55);font-weight:600;"><i class="bi bi-at me-2"></i>Username</td>
                                 <td style="padding:10px 0;color:#1e293b;font-weight:600;" id="fpResUsername"></td>
                             </tr>
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:10px 0;color:#64748b;font-weight:600;"><i class="bi bi-envelope me-2"></i>Email</td>
+                            <tr style="border-bottom:1px solid rgba(30,41,59,0.08);">
+                                <td style="padding:10px 0;color:rgba(30,41,59,0.55);font-weight:600;"><i class="bi bi-envelope-fill me-2"></i>Email</td>
                                 <td style="padding:10px 0;color:#1e293b;font-weight:600;" id="fpResEmail"></td>
                             </tr>
                             <tr>
-                                <td style="padding:10px 0;color:#64748b;font-weight:600;"><i class="bi bi-lock me-2"></i>Password</td>
+                                <td style="padding:10px 0;color:rgba(30,41,59,0.55);font-weight:600;"><i class="bi bi-lock-fill me-2"></i>Password</td>
                                 <td style="padding:10px 0;" id="fpResPassword">
                                     <span id="fpPassMask" style="letter-spacing:0.12em;color:#1e293b;"></span>
-                                    <button onclick="fpTogglePass()" class="btn btn-sm btn-link p-0 ms-2" style="font-size:0.75rem;color:#3b82f6;" id="fpPassToggleBtn">
-                                        <i class="bi bi-eye" id="fpPassEye"></i> Show
+                                    <button onclick="fpTogglePass()" class="btn btn-sm btn-link p-0 ms-2" style="font-size:0.75rem;color:#06b6d4;" id="fpPassToggleBtn">
+                                        <i class="bi bi-eye-fill" id="fpPassEye"></i> Show
                                     </button>
                                 </td>
                             </tr>
                         </table>
                         <div class="d-flex gap-2 mt-4">
-                            <button onclick="fpReset()" class="btn btn-outline-secondary btn-sm flex-fill">
+                            <button onclick="fpReset()" class="btn btn-outline-secondary btn-sm flex-fill" style="border-radius:12px;">
                                 <i class="bi bi-arrow-left me-1"></i>Search Again
                             </button>
-                            <button class="btn btn-sm flex-fill text-white" style="background:linear-gradient(135deg,#3b82f6,#6366f1);"
+                            <button class="btn btn-sm flex-fill sign-in-btn" style="font-size:0.88rem;padding:8px 16px;"
                                     data-bs-dismiss="modal">
                                 <i class="bi bi-box-arrow-in-right me-1"></i>Go to Login
                             </button>
@@ -283,7 +670,11 @@
 
             var btn = document.getElementById('fpLookupBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Looking up...';
+            btn.innerHTML = '<span class="svm-spinner me-2"></span>Looking up...';
+            var spinEl = btn.querySelector('.svm-spinner');
+            if (spinEl && window.sciVerseAnime && window.sciVerseAnime.spinElement) {
+                window.sciVerseAnime.spinElement(spinEl);
+            }
 
             fetch('/api/forgot-password', {
                 method: 'POST',
@@ -294,13 +685,16 @@
             .then(function(data) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-search me-1"></i>Look Up Account';
+                if (spinEl && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                    window.sciVerseAnime.stopSpinElement(spinEl);
+                }
                 if (data.found) {
                     _fpRawPassword  = data.password || '';
                     _fpPassVisible  = false;
-                    document.getElementById('fpResFullName').textContent  = data.fullName  || '—';
-                    document.getElementById('fpResUsername').textContent  = data.username  || '—';
-                    document.getElementById('fpResEmail').textContent     = data.email     || '—';
-                    document.getElementById('fpPassMask').textContent     = '•'.repeat(Math.min(_fpRawPassword.length, 12));
+                    document.getElementById('fpResFullName').textContent  = data.fullName  || '\u2014';
+                    document.getElementById('fpResUsername').textContent  = data.username  || '\u2014';
+                    document.getElementById('fpResEmail').textContent     = data.email     || '\u2014';
+                    document.getElementById('fpPassMask').textContent     = '\u2022'.repeat(Math.min(_fpRawPassword.length, 12));
                     document.getElementById('forgotStep1').style.display  = 'none';
                     document.getElementById('forgotStep2').style.display  = 'block';
                 } else {
@@ -311,6 +705,9 @@
             .catch(function() {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-search me-1"></i>Look Up Account';
+                if (spinEl && window.sciVerseAnime && window.sciVerseAnime.stopSpinElement) {
+                    window.sciVerseAnime.stopSpinElement(spinEl);
+                }
                 errorEl.textContent = 'An error occurred. Please try again.';
                 errorEl.style.display = 'block';
             });
@@ -324,13 +721,11 @@
             if (_fpPassVisible) {
                 mask.textContent = _fpRawPassword;
                 mask.style.letterSpacing = '0';
-                eye.className  = 'bi bi-eye-slash';
-                btn.innerHTML  = '<i class="bi bi-eye-slash" id="fpPassEye"></i> Hide';
+                btn.innerHTML  = '<i class="bi bi-eye-slash-fill" id="fpPassEye"></i> Hide';
             } else {
-                mask.textContent = '•'.repeat(Math.min(_fpRawPassword.length, 12));
+                mask.textContent = '\u2022'.repeat(Math.min(_fpRawPassword.length, 12));
                 mask.style.letterSpacing = '0.12em';
-                eye.className  = 'bi bi-eye';
-                btn.innerHTML  = '<i class="bi bi-eye" id="fpPassEye"></i> Show';
+                btn.innerHTML  = '<i class="bi bi-eye-fill" id="fpPassEye"></i> Show';
             }
         }
 
@@ -348,6 +743,81 @@
             var modal = document.getElementById('forgotPasswordModal');
             if (modal) modal.addEventListener('hidden.bs.modal', fpReset);
         });
+    </script>
+
+    <!-- ════════════════════════════════════════════════
+         Animated background (theme-aware)
+         ════════════════════════════════════════════════ -->
+    <script th:inline="none">
+        (function() {
+            var canvas = document.getElementById('loginBg');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var particles = [];
+            var W = 0, H = 0;
+
+            function isDark() {
+                return document.body.classList.contains('dark-mode');
+            }
+
+            function palette() {
+                if (isDark()) {
+                    return [[129,140,248],[56,189,248],[45,212,191],[251,191,36],[167,139,250]];
+                }
+                return [[99,102,241],[59,130,246],[16,185,129],[14,165,233],[245,158,11]];
+            }
+
+            function makeParticle(anywhere) {
+                var colors = palette();
+                return {
+                    x: Math.random() * W,
+                    y: anywhere ? Math.random() * H : H + 24,
+                    r: 1 + Math.random() * 3.4,
+                    vx: (Math.random() - 0.5) * 0.25,
+                    vy: 0.12 + Math.random() * 0.45,
+                    a: 0.2 + Math.random() * 0.5,
+                    tw: 0.6 + Math.random() * 1.6,
+                    ph: Math.random() * Math.PI * 2,
+                    c: colors[Math.floor(Math.random() * colors.length)]
+                };
+            }
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+                var count = Math.min(110, Math.round((W * H) / 16000));
+                particles = [];
+                for (var i = 0; i < count; i++) particles.push(makeParticle(true));
+            }
+
+            function step() {
+                ctx.clearRect(0, 0, W, H);
+                var dark = isDark();
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
+                    p.x += p.vx;
+                    p.y -= p.vy;
+                    if (p.y < -24) { particles[i] = makeParticle(false); continue; }
+                    if (p.x < -24) p.x = W + 24;
+                    if (p.x > W + 24) p.x = -24;
+                    var alpha = p.a * (0.55 + 0.45 * Math.sin(p.ph + performance.now() / 1000 * p.tw));
+                    var glow = p.r * (dark ? 5.5 : 4);
+                    var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
+                    g.addColorStop(0, 'rgba(' + p.c[0] + ',' + p.c[1] + ',' + p.c[2] + ',' + (alpha * 0.9) + ')');
+                    g.addColorStop(1, 'rgba(' + p.c[0] + ',' + p.c[1] + ',' + p.c[2] + ',0)');
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(step);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            step();
+        })();
+        if (window.sciVerseAnime) window.sciVerseAnime.initPage('login');
     </script>
 </body>
 </html>

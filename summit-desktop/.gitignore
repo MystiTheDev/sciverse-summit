@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.log
+chair/server/summit.jar
+chair/server/jre/

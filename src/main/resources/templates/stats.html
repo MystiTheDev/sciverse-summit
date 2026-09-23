@@ -1,376 +1,656 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Delegate Statistics - SciVerse Summit</title>
+    <link rel="icon" type="image/png" href="/images/sciverse_summit_logo_final.png">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Theme initialization script - prevents flash -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark-mode-loading');
-                document.body.classList.add('dark-mode');
+                if (document.body) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                    });
+                }
             }
         })();
     </script>
-    
     <style>
         :root { --sidebar-width: 250px; }
-        .sidebar {
-            position: fixed; top: 80px; left: 0; height: calc(100% - 80px); width: var(--sidebar-width); 
-            padding-top: 0.5rem; background-color: #f8f9fa; z-index: 1000; transition: all 0.3s;
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1e293b;
         }
+        body.dark-mode {
+            color: #e2e8f0;
+        }
+
         .content {
-            margin-left: var(--sidebar-width); padding: 95px 40px 40px 40px; 
-            position: relative; z-index: 1; transition: all 0.3s;
+            margin-left: var(--sidebar-width); padding: 95px 36px 48px 36px;
+            position: relative; z-index: 1; transition: all 0.3s; min-height: 100vh;
         }
         @media (max-width: 991.98px) {
             .sidebar { width: 0; }
-            .content { margin-left: 0; }
+            .content { margin-left: 0; padding: 95px 18px 36px 18px; }
         }
         #sidebarMenu.collapsing, #sidebarMenu.collapse:not(.show) {
             margin-left: calc(-1 * var(--sidebar-width));
         }
 
+        /* Background blobs: canonical ambient (#svBgDecor in fragments) */
+
+        /* Page header */
+        .page-head {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 14px; margin-bottom: 28px;
+        }
+        .page-head-left { display: flex; align-items: center; gap: 16px; }
+        .page-icon {
+            width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.4rem;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.30), inset 0 1px 0 rgba(255,255,255,0.30);
+        }
         .section-heading {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #1e293b;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            margin-bottom: 1.25rem;
+            font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;
+            color: #0f172a; margin-bottom: 1px;
+        }
+        body.dark-mode .section-heading { color: #f1f5f9; }
+        .page-subtitle { color: #64748b; font-size: 0.85rem; font-weight: 500; }
+        body.dark-mode .page-subtitle { color: #94a3b8; }
+
+        .session-pill {
+            display: inline-flex; align-items: center;
+            padding: 8px 18px; border-radius: 999px;
+            background: rgba(255,255,255,0.55);
+            border: 1px solid rgba(255,255,255,0.7);
+            backdrop-filter: blur(12px);
+            color: #334155; font-weight: 600; font-size: 0.84rem;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+        }
+        .session-pill i { color: #7c3aed; }
+        body.dark-mode .session-pill {
+            background: rgba(30,41,59,0.5); border-color: rgba(255,255,255,0.12);
+            color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        body.dark-mode .session-pill i { color: #a5b4fc; }
+
+        /* No session */
+        .no-session-glass {
+            max-width: 640px; margin-bottom: 20px;
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 18px 22px; border-radius: 16px;
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.22);
+        }
+        body.dark-mode .no-session-glass { background: rgba(120,53,15,0.22); border-color: rgba(245,158,11,0.30); }
+        .no-session-icon {
+            width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1rem;
+        }
+        .no-session-title { font-weight: 700; color: #b45309; font-size: 0.9rem; margin-bottom: 2px; }
+        .no-session-body { color: #92400e; font-size: 0.84rem; line-height: 1.5; }
+        .no-session-body a { color: #b45309; font-weight: 600; }
+        body.dark-mode .no-session-title { color: #fbbf24; }
+        body.dark-mode .no-session-body { color: rgba(255,255,255,0.72); }
+
+        /* ── Stat tiles ── */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 14px; margin-bottom: 22px;
+        }
+        @media (max-width: 1199.98px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 575.98px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-tile {
+            position: relative; overflow: hidden;
+            padding: 18px 20px; border-radius: 18px;
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.65);
+            box-shadow: 0 4px 20px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+            transition: transform 0.2s ease, box-shadow 0.25s ease;
+        }
+        .stat-tile:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .stat-tile::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            border-radius: 18px 18px 0 0;
+        }
+        .stat-tile:nth-child(1)::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+        .stat-tile:nth-child(2)::before { background: linear-gradient(90deg, #06b6d4, #38bdf8); }
+        .stat-tile:nth-child(3)::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .stat-tile:nth-child(4)::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+        .stat-tile:nth-child(5)::before { background: linear-gradient(90deg, #10b981, #34d399); }
+
+        body.dark-mode .stat-tile {
+            background: rgba(30,41,59,0.75);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.06);
         }
 
+        .stat-tile-inner { display: flex; align-items: center; gap: 14px; }
+        .stat-tile-icon {
+            width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+        .tint-indigo  { background: rgba(124,58,237,0.12); color: #7c3aed; }
+        .tint-sky     { background: rgba(6,182,212,0.12); color: #0891b2; }
+        .tint-amber   { background: rgba(245,158,11,0.14); color: #d97706; }
+        .tint-violet  { background: rgba(167,139,250,0.12); color: #7c3aed; }
+        .tint-emerald { background: rgba(16,185,129,0.12); color: #059669; }
+        body.dark-mode .tint-indigo  { background: rgba(124,58,237,0.22); color: #a5b4fc; }
+        body.dark-mode .tint-sky     { background: rgba(6,182,212,0.18); color: #7dd3fc; }
+        body.dark-mode .tint-amber   { background: rgba(245,158,11,0.18); color: #fcd34d; }
+        body.dark-mode .tint-violet  { background: rgba(167,139,250,0.22); color: #c4b5fd; }
+        body.dark-mode .tint-emerald { background: rgba(16,185,129,0.18); color: #6ee7b7; }
+
+        .stat-tile-value {
+            font-size: 1.5rem; font-weight: 800; color: #0f172a;
+            line-height: 1.1; font-variant-numeric: tabular-nums;
+        }
+        body.dark-mode .stat-tile-value { color: #f1f5f9; }
+        .value-unit { font-size: 0.8rem; font-weight: 700; color: #94a3b8; margin-left: 1px; }
+        .stat-tile-label {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
+            text-transform: uppercase; color: #94a3b8; margin-top: 2px;
+        }
+
+        /* ── Most active delegate card ── */
+        .top-card {
+            position: relative; overflow: hidden;
+            padding: 24px 28px; border-radius: 20px; margin-bottom: 22px;
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.65);
+            box-shadow: 0 8px 32px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        body.dark-mode .top-card {
+            background: rgba(30,41,59,0.50);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .top-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #f59e0b, #f97316, #ef4444);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .top-card-body { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+
+        .top-avatar {
+            width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.35rem; font-weight: 800;
+            box-shadow: 0 8px 24px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,255,255,0.30);
+            position: relative;
+        }
+        .top-avatar::after {
+            content: '\1F3C6'; position: absolute; top: -8px; right: -8px;
+            font-size: 1.1rem; line-height: 1;
+        }
+
+        .top-info { flex: 1; min-width: 200px; }
+        .top-tag {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px; border-radius: 999px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: #fff; font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 0.05em; text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.30);
+            margin-bottom: 8px;
+        }
+        .top-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+        .top-sub { color: #64748b; font-size: 0.84rem; line-height: 1.4; }
+        body.dark-mode .top-name { color: #f1f5f9; }
+        body.dark-mode .top-sub { color: #94a3b8; }
+
+        .top-stats { display: flex; gap: 24px; }
+        .top-stat { text-align: center; }
+        .top-stat-num {
+            display: block; font-size: 1.3rem; font-weight: 800;
+            color: #0f172a; font-variant-numeric: tabular-nums;
+        }
+        .top-stat-label {
+            display: block; font-size: 0.65rem; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase; color: #94a3b8;
+        }
+        body.dark-mode .top-stat-num { color: #f1f5f9; }
+        body.dark-mode .top-stat-label { color: #94a3b8; }
+
+        /* ── Table card ── */
         .stats-card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-            overflow: hidden;
+            position: relative; overflow: hidden;
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.65);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.8);
         }
-        
-        .table-responsive {
-            background: #fff;
-        }
-
-        .modern-stats-table {
-            margin: 0;
-            background: #fff;
-        }
-        
-        .modern-stats-table tbody {
-            background: #fff;
+        body.dark-mode .stats-card {
+            background: rgba(30,41,59,0.85);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.06);
         }
 
-        .modern-stats-table thead {
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        .table-card-head {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 14px; flex-wrap: wrap; padding: 20px 24px 14px;
+        }
+        .table-card-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
+        .table-card-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 1px; }
+        body.dark-mode .table-card-title { color: #f1f5f9; }
+
+        .count-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 14px; border-radius: 999px;
+            background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.18);
+            color: #7c3aed; font-weight: 700; font-size: 0.82rem;
+        }
+        body.dark-mode .count-chip {
+            background: rgba(124,58,237,0.16); border-color: rgba(124,58,237,0.30); color: #a5b4fc;
         }
 
+        .modern-stats-table { margin: 0; background: transparent; }
+        body.dark-mode .modern-stats-table { background: rgba(30,41,59,0.70) !important; }
         .modern-stats-table thead th {
-            padding: 18px 20px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #000000;
-            text-align: center;
-            vertical-align: middle;
-            border: none;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+            padding: 12px 18px;
+            font-weight: 600; font-size: 0.72rem;
+            color: #94a3b8; text-align: center; vertical-align: middle;
+            border: none; letter-spacing: 0.06em; text-transform: uppercase;
+            border-bottom: 1px solid rgba(15,23,42,0.06);
+            background: transparent;
         }
-
-        .modern-stats-table thead th:first-child {
-            text-align: left;
+        .modern-stats-table thead th:first-child { text-align: left; padding-left: 24px; width: 52px; }
+        .modern-stats-table thead th:nth-child(2) { text-align: left; }
+        body.dark-mode .modern-stats-table thead th {
+            color: #cbd5e1;
+            border-bottom-color: rgba(255,255,255,0.18);
+            background: rgba(30,41,59,0.70) !important;
         }
 
         .modern-stats-table tbody tr {
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid rgba(15,23,42,0.06);
             transition: background-color 0.15s ease;
+            background: transparent;
         }
-
-        .modern-stats-table tbody tr:hover {
-            background-color: #f8fafc;
+        .modern-stats-table tbody tr:last-child { border-bottom: none; }
+        .modern-stats-table tbody tr:hover { background-color: rgba(124,58,237,0.04); }
+        body.dark-mode .modern-stats-table tbody tr {
+            border-bottom-color: rgba(255,255,255,0.14);
+            background: rgba(30,41,59,0.55) !important;
         }
-
-        .modern-stats-table tbody tr:last-child {
-            border-bottom: none;
+        body.dark-mode .modern-stats-table tbody tr:hover {
+            background-color: rgba(124,58,237,0.18);
         }
 
         .modern-stats-table tbody td {
-            padding: 16px 20px;
+            padding: 14px 18px;
             text-align: center;
             vertical-align: middle;
-            font-size: 0.95rem;
-            color: #1e293b;
-            font-weight: 600;
+            font-size: 0.88rem;
+            color: #334155;
+            font-weight: 500;
+            background: transparent;
+        }
+        .modern-stats-table tbody td:first-child { text-align: left; padding-left: 24px; }
+        .modern-stats-table tbody td:nth-child(2) { text-align: left; }
+        body.dark-mode .modern-stats-table tbody td {
+            color: #f1f5f9;
+            background: rgba(30,41,59,0.55) !important;
         }
 
-        .modern-stats-table tbody td:first-child {
-            text-align: left;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .delegate-badge {
+        .rank-cell {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(15,23,42,0.04);
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+        }
+        body.dark-mode .rank-cell {
+            background: rgba(255,255,255,0.12);
+            color: #e2e8f0;
         }
 
-        .delegate-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1rem;
+        .top-row {
+            background: linear-gradient(90deg, rgba(245,158,11,0.06), rgba(249,115,22,0.03));
         }
+        .top-row td:first-child { box-shadow: inset 3px 0 0 #f59e0b; }
+        .top-row .rank-cell {
+            background: linear-gradient(135deg, #f59e0b, #f97316); color: #fff;
+            box-shadow: 0 2px 8px rgba(245,158,11,0.30);
+        }
+        body.dark-mode .top-row {
+            background: linear-gradient(90deg, rgba(245,158,11,0.10), rgba(249,115,22,0.05));
+        }
+
+        .delegate-badge { display: inline-flex; align-items: center; gap: 10px; }
+        .delegate-icon {
+            width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 0.85rem;
+            box-shadow: 0 3px 10px rgba(124,58,237,0.30);
+        }
+        .delegate-name { font-weight: 600; color: #0f172a; font-size: 0.88rem; }
+        body.dark-mode .delegate-name { color: #e2e8f0; }
 
         .stat-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40px;
-            height: 32px;
-            padding: 0 12px;
-            border-radius: 8px;
-            background: #e2e8f0;
-            color: #0f172a;
-            font-weight: 700;
-            font-size: 0.9rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 44px; height: 28px; padding: 0 10px; border-radius: 8px;
+            font-weight: 700; font-size: 0.82rem;
+            font-variant-numeric: tabular-nums;
         }
+        .badge-blue    { background: rgba(6,182,212,0.10); color: #0369a1; }
+        .badge-amber   { background: rgba(245,158,11,0.10); color: #b45309; }
+        .badge-violet  { background: rgba(167,139,250,0.10); color: #6d28d9; }
+        .badge-emerald { background: rgba(16,185,129,0.10); color: #047857; }
+        body.dark-mode .badge-blue    { background: rgba(6,182,212,0.16); color: #7dd3fc; }
+        body.dark-mode .badge-amber   { background: rgba(245,158,11,0.16); color: #fcd34d; }
+        body.dark-mode .badge-violet  { background: rgba(167,139,250,0.16); color: #c4b5fd; }
+        body.dark-mode .badge-emerald { background: rgba(16,185,129,0.16); color: #6ee7b7; }
 
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
+        /* Inline proportional bar in table */
+        .mini-bar-wrap {
+            display: flex; align-items: center; gap: 8px; justify-content: center;
         }
+        .mini-bar {
+            width: 60px; height: 5px; border-radius: 999px;
+            background: rgba(15,23,42,0.06);
+            overflow: hidden; flex-shrink: 0;
+        }
+        body.dark-mode .mini-bar { background: rgba(255,255,255,0.08); }
+        .mini-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(.22,.61,.36,1); }
 
+        /* Empty state */
+        .empty-state { text-align: center; padding: 72px 20px; }
         .empty-state-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            font-size: 2rem;
+            width: 76px; height: 76px; margin: 0 auto 20px; border-radius: 22px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.10), rgba(167,139,250,0.10));
+            border: 1px solid rgba(124,58,237,0.15);
+            display: flex; align-items: center; justify-content: center;
+            color: #7c3aed; font-size: 2rem;
         }
+        body.dark-mode .empty-state-icon { background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(167,139,250,0.18)); border-color: rgba(124,58,237,0.25); color: #a5b4fc; }
+        .empty-state-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .empty-state-text { font-size: 0.9rem; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+        body.dark-mode .empty-state-title { color: #f1f5f9; }
+        body.dark-mode .empty-state-text { color: #94a3b8; }
 
-        .empty-state-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 10px;
+        .btn-liquid {
+            border-radius: 12px; padding: 11px 24px; font-weight: 600; font-size: 0.88rem;
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6); border: none; color: #fff;
+            box-shadow: 0 6px 20px rgba(124,58,237,0.30), inset 0 1px 0 rgba(255,255,255,0.25);
+            transition: transform 0.15s ease, box-shadow 0.2s ease; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-liquid:hover { transform: translateY(-2px); color: #fff; box-shadow: 0 10px 28px rgba(124,58,237,0.40); filter: brightness(1.04); }
 
-        .empty-state-text {
-            font-size: 0.95rem;
-            color: #64748b;
-            margin-bottom: 24px;
-        }
+        /* Entrance animations handled by anime.js */
 
-        /* ================================
-           DARK MODE STYLES
-           ================================ */
-        body.dark-mode {
-            background: #0f172a;
+        /* When anime.js is active, set initial state so anime.js can animate in */
+        html.anime-ready .entrance,
+        html.anime-ready .entrance-1,
+        html.anime-ready .entrance-2,
+        html.anime-ready .entrance-3 {
+            opacity: 0 !important;
+            transform: translateY(16px) !important;
         }
-
-        body.dark-mode .content {
-            background: #0f172a;
-        }
-
-        body.dark-mode .section-heading {
-            color: #f1f5f9;
-        }
-
-        body.dark-mode .text-muted {
-            color: #94a3b8 !important;
-        }
-
-        body.dark-mode .stats-card {
-            background: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-        }
-
-        body.dark-mode .modern-stats-table thead {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
-        }
-
-        body.dark-mode .modern-stats-table thead th {
-            color: #ffffff !important;
-            background: transparent !important;
-        }
-
-        body.dark-mode .modern-stats-table tbody tr {
-            border-bottom-color: #334155;
-            background-color: #1e293b !important;
-        }
-
-        body.dark-mode .modern-stats-table tbody tr:hover {
-            background-color: #334155 !important;
-        }
-
-        body.dark-mode .modern-stats-table tbody td {
-            color: #e2e8f0 !important;
-            font-weight: 600;
-            background-color: transparent !important;
-        }
-
-        body.dark-mode .modern-stats-table tbody td:first-child {
-            color: #ffffff !important;
-            font-weight: 700;
-        }
-        
-        body.dark-mode .table-responsive {
-            background-color: #1e293b !important;
-        }
-        
-        body.dark-mode .modern-stats-table {
-            background-color: #1e293b !important;
-        }
-        
-        body.dark-mode .modern-stats-table tbody {
-            background-color: #1e293b !important;
-        }
-        
-        body.dark-mode .stats-card .table-responsive {
-            background-color: #1e293b !important;
-        }
-        
-        body.dark-mode .stats-card .table {
-            background-color: #1e293b !important;
-        }
-
-        body.dark-mode .stat-badge {
-            background: #475569;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode .empty-state-icon {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            color: #64748b;
-        }
-
-        body.dark-mode .empty-state-title {
-            color: #f1f5f9;
-        }
-
-        body.dark-mode .empty-state-text {
-            color: #94a3b8;
-        }
-
-        body.dark-mode .alert-warning {
-            background-color: #78350f;
-            border-color: #92400e;
-            color: #fef3c7;
-        }
-
-        body.dark-mode .alert-warning strong {
-            color: #fef3c7;
-        }
-
-        body.dark-mode .alert-warning .alert-link {
-            color: #fde68a;
+    </style>
+    <style>
+        /* Phase 1: anime.js owns hover/press motion — CSS keeps color/shadow only
+           (a CSS transform transition would fight anime's per-frame transforms). */
+        html body .stat-tile:hover, html body .btn-liquid:hover { transform: none; }
+        html body .stat-tile, html body .btn-liquid {
+            transition: background .15s ease-out, box-shadow .15s ease-out, border-color .15s ease-out, color .15s ease-out, filter .15s ease-out !important;
         }
     </style>
 </head>
-<body>
+<body class="liquid-glass">
 
-    <!-- HEADER -->
     <div th:replace="fragments :: header"></div>
-
-    <!-- SIDEBAR -->
     <div th:replace="fragments :: sidebar"></div>
 
-    <!-- MAIN CONTENT -->
+    <!-- Notification banner (toast popups for server notifications) -->
+    <div id="notifBanner" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:1998;max-width:640px;width:92%;">
+        <div id="notifBannerInner" style="border-radius:16px;padding:18px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#06b6d4,#7c3aed);">
+            <div style="flex:1;min-width:200px;">
+                <div id="notifBannerTitle" style="color:#fff;font-weight:800;font-size:0.95rem;margin-bottom:3px;"></div>
+                <div id="notifBannerMsg" style="color:rgba(255,255,255,0.85);font-size:0.82rem;"></div>
+            </div>
+            <a id="notifBannerLink" href="#" style="background:#fff;color:#06b6d4;font-weight:800;border-radius:12px;padding:9px 20px;text-decoration:none;white-space:nowrap;font-size:0.88rem;display:none;"><i class="bi bi-box-arrow-up-right me-1"></i><span id="notifBannerLinkText">View</span></a>
+            <button id="notifBannerDismiss" style="background:none;border:none;color:rgba(255,255,255,0.8);font-size:1.1rem;cursor:pointer;padding:4px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
     <div class="content">
-        <h1 class="section-heading">
-            <i class="bi bi-bar-chart-line me-2"></i>Delegate Statistics
-        </h1>
-
-        <!-- No Session Warning -->
-        <div th:if="${currentSession == null}" style="max-width:700px;margin-bottom:18px;display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-radius:14px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.30);backdrop-filter:blur(12px);">
-            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.05rem;flex-shrink:0;">
-                <i class="bi bi-exclamation-triangle-fill"></i>
+        <div class="page-head entrance">
+            <div class="page-head-left">
+                <div class="page-icon">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <div>
+                    <h1 class="section-heading mb-0">Delegate Statistics</h1>
+                    <div class="page-subtitle">Performance &amp; engagement overview</div>
+                </div>
             </div>
+            <div th:if="${currentSession != null}" class="session-pill">
+                <i class="bi bi-diagram-3 me-2"></i><span th:text="${currentSession.name}">Session</span>
+            </div>
+        </div>
+
+        <div th:if="${currentSession == null}" class="no-session-glass entrance entrance-1">
+            <div class="no-session-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
             <div>
-                <div style="font-weight:700;color:#fcd34d;font-size:0.92rem;margin-bottom:3px;">No session found</div>
-                <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">Please <a href="/dashboard" style="color:#fbbf24;font-weight:600;text-decoration:underline;">create a session</a> from the dashboard first.</div>
+                <div class="no-session-title">No active session</div>
+                <div class="no-session-body">Create a session from the <a href="/dashboard">dashboard</a> to start tracking delegate statistics.</div>
             </div>
         </div>
 
-        <!-- Session Info -->
-        <div th:if="${currentSession != null}" class="text-muted small mb-3">
-            <i class="bi bi-info-circle me-1"></i>
-            Statistics for session: <strong th:text="${currentSession.name}">Session Name</strong>
-        </div>
+        <div th:if="${currentSession != null}">
+            <!-- Summary tiles -->
+            <div class="stats-grid entrance entrance-1">
+                <div class="stat-tile">
+                    <div class="stat-tile-inner">
+                        <div class="stat-tile-icon tint-indigo"><i class="bi bi-people-fill"></i></div>
+                        <div>
+                            <div class="stat-tile-value" th:text="${#lists.size(delegates)}">0</div>
+                            <div class="stat-tile-label">Delegates</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-tile-inner">
+                        <div class="stat-tile-icon tint-sky"><i class="bi bi-mic-fill"></i></div>
+                        <div>
+                            <div class="stat-tile-value" th:text="${totalSpoken}">0</div>
+                            <div class="stat-tile-label">Times Spoken</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-tile-inner">
+                        <div class="stat-tile-icon tint-amber"><i class="bi bi-stopwatch-fill"></i></div>
+                        <div>
+                            <div class="stat-tile-value">
+                                <span th:text="${totalSpeakingSeconds / 60}">0</span><span class="value-unit">m</span>
+                                <span th:text="${totalSpeakingSeconds % 60}">0</span><span class="value-unit">s</span>
+                            </div>
+                            <div class="stat-tile-label">Speaking Time</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-tile-inner">
+                        <div class="stat-tile-icon tint-violet"><i class="bi bi-flag-fill"></i></div>
+                        <div>
+                            <div class="stat-tile-value" th:text="${totalMotions}">0</div>
+                            <div class="stat-tile-label">Motions</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-tile-inner">
+                        <div class="stat-tile-icon tint-emerald"><i class="bi bi-pencil-square"></i></div>
+                        <div>
+                            <div class="stat-tile-value" th:text="${totalAmendments}">0</div>
+                            <div class="stat-tile-label">Amendments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Stats Card -->
-        <div th:if="${currentSession != null}" class="stats-card">
-            <!-- Table with delegates -->
-            <div th:if="${!#lists.isEmpty(delegates)}" class="table-responsive">
-                <table class="table modern-stats-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Delegate Name</th>
-                            <th>Times Spoken</th>
-                            <th>Speaking Time</th>
-                            <th>Motions</th>
-                            <th>Amendments</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="delegate : ${delegates}">
-                            <td>
-                                <div class="delegate-badge">
-                                    <div class="delegate-icon">
-                                        <i class="bi bi-person"></i>
+            <!-- Most active delegate -->
+            <div th:if="${topDelegate != null and topDelegate.timesSpoken > 0}"
+                 class="top-card entrance entrance-2">
+                <div class="top-card-body">
+                    <div class="top-avatar"
+                         th:text="${#strings.isEmpty(topDelegate.name) ? '?' : #strings.toUpperCase(#strings.substring(topDelegate.name, 0, 1))}">A</div>
+                    <div class="top-info">
+                        <div class="top-tag"><i class="bi bi-lightning-charge-fill"></i> Most Active Delegate</div>
+                        <div class="top-name" th:text="${topDelegate.name}">Name</div>
+                        <div class="top-sub">
+                            Spoke <strong th:text="${topDelegate.timesSpoken}">0</strong> times &middot;
+                            <span th:text="${topDelegate.formattedSpeakingTime}">0:00</span> total floor time
+                        </div>
+                    </div>
+                    <div class="top-stats">
+                        <div class="top-stat">
+                            <span class="top-stat-num" th:text="${topDelegate.motionProposals}">0</span>
+                            <span class="top-stat-label">Motions</span>
+                        </div>
+                        <div class="top-stat">
+                            <span class="top-stat-num" th:text="${topDelegate.amendmentProposals}">0</span>
+                            <span class="top-stat-label">Amendments</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delegates table -->
+            <div th:if="${!#lists.isEmpty(delegates)}" class="stats-card entrance entrance-3">
+                <div class="table-card-head">
+                    <div>
+                        <div class="table-card-title">Delegates Overview</div>
+                        <div class="table-card-sub">Speaking, motion &amp; amendment activity</div>
+                    </div>
+                    <span class="count-chip">
+                        <i class="bi bi-people me-1"></i>
+                        <span th:text="${#lists.size(delegates)}">0</span>
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table modern-stats-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Delegate</th>
+                                <th>Spoken</th>
+                                <th>Time</th>
+                                <th>Motions</th>
+                                <th>Amendments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="delegate, iter : ${delegates}"
+                                th:classappend="${topDelegate != null and delegate.timesSpoken > 0 and delegate.timesSpoken == topDelegate.timesSpoken} ? 'top-row' : ''">
+                                <td>
+                                    <span class="rank-cell" th:text="${iter.index + 1}">1</span>
+                                </td>
+                                <td>
+                                    <div class="delegate-badge">
+                                        <div class="delegate-icon">
+                                            <i class="bi bi-person"></i>
+                                        </div>
+                                        <span class="delegate-name" th:text="${delegate.name}">Name</span>
                                     </div>
-                                    <span th:text="${delegate.name}">Delegate Name</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="stat-badge" th:text="${delegate.timesSpoken}">0</span>
-                            </td>
-                            <td>
-                                <span class="stat-badge" th:text="${delegate.formattedSpeakingTime}">0:00</span>
-                            </td>
-                            <td>
-                                <span class="stat-badge" th:text="${delegate.motionProposals}">0</span>
-                            </td>
-                            <td>
-                                <span class="stat-badge" th:text="${delegate.amendmentProposals}">0</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                </td>
+                                <td>
+                                    <div class="mini-bar-wrap">
+                                        <span class="stat-badge badge-blue" th:text="${delegate.timesSpoken}">0</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="stat-badge badge-amber" th:text="${delegate.formattedSpeakingTime}">0:00</span>
+                                </td>
+                                <td>
+                                    <div class="mini-bar-wrap">
+                                        <span class="stat-badge badge-violet" th:text="${delegate.motionProposals}">0</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="mini-bar-wrap">
+                                        <span class="stat-badge badge-emerald" th:text="${delegate.amendmentProposals}">0</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Empty state when no delegates -->
-            <div th:if="${#lists.isEmpty(delegates)}" class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="bi bi-people"></i>
+            <!-- Empty state -->
+            <div th:if="${#lists.isEmpty(delegates)}" class="stats-card entrance entrance-3">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="empty-state-title">No Delegates Yet</div>
+                    <div class="empty-state-text">
+                        Add delegates to this session to start tracking their activity and performance.
+                    </div>
+                    <a href="/" class="btn-liquid">
+                        <i class="bi bi-plus-circle"></i> Add Delegates
+                    </a>
                 </div>
-                <div class="empty-state-title">No Delegates Yet</div>
-                <div class="empty-state-text">
-                    You haven't added any delegates to this session yet.<br>
-                    Add delegates to start tracking their statistics.
-                </div>
-                <a href="/" class="btn btn-primary px-4">
-                    <i class="bi bi-plus-circle me-2"></i>Add Delegates
-                </a>
             </div>
         </div>
     </div>
 
+    <script>window.NotifBannerConfig = { showLink: true };</script>
+    <script src="/js/notif-banner.js"></script>
+
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!window.SummitLive) return;
+        var _lastReload = 0;
+        function reloadOnce() {
+            var now = Date.now();
+            if (now - _lastReload < 2000) return;
+            _lastReload = now;
+            window.location.reload();
+        }
+        window.SummitLive.on('stats.changed', reloadOnce);
+        window.SummitLive.on('delegate.changed', reloadOnce);
+    });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.sciVerseAnime) window.sciVerseAnime.initPage('stats');
+        });
+    </script>
 </body>
 </html>
