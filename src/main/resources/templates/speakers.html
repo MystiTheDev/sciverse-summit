@@ -831,6 +831,51 @@
         }
         .card-panel::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.8); }
 
+        /* Custom glass queue picker (replaces the native select) */
+        .svq-select { position: relative; flex: 1; min-width: 0; }
+        .svq-trigger {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; padding: 12px 16px; font-size: 1.05rem;
+            border-radius: 12px 0 0 12px;
+            background: rgba(255,255,255,0.65); border: 1px solid rgba(148,163,184,0.4);
+            border-right: none; color: #1e293b; cursor: pointer;
+        }
+        .svq-trigger.has-value { font-weight: 600; }
+        .svq-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .svq-trigger-text.placeholder { color: #94a3b8; font-weight: 400; }
+        .svq-chevron { transition: transform .2s; color: #06b6d4; flex-shrink: 0; }
+        .svq-select.open .svq-chevron { transform: rotate(180deg); }
+        .svq-panel {
+            position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 2000;
+            max-height: 260px; overflow-y: auto; border-radius: 16px; padding: 6px;
+            background: rgba(255,255,255,0.92); border: 1px solid rgba(148,163,184,0.35);
+            box-shadow: 0 20px 44px rgba(15,23,42,0.22);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+        }
+        .svq-option {
+            display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+            border: none; background: none; padding: 10px 12px; border-radius: 10px;
+            font-size: 0.95rem; color: #1e293b; cursor: pointer;
+        }
+        .svq-option:hover { background: rgba(6,182,212,0.12); }
+        .svq-option.selected { font-weight: 700; }
+        .svq-option .tick { margin-left: auto; color: #06b6d4; visibility: hidden; }
+        .svq-option.selected .tick { visibility: visible; }
+        .svq-empty { padding: 12px; font-size: 0.88rem; color: #94a3b8; text-align: center; }
+        body.dark-mode .svq-trigger {
+            background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark-mode .svq-trigger-text.placeholder { color: rgba(255,255,255,0.35); }
+        body.dark-mode .svq-panel {
+            background: rgba(15,23,42,0.94); border-color: rgba(255,255,255,0.14);
+            box-shadow: 0 20px 44px rgba(0,0,0,0.5);
+        }
+        body.dark-mode .svq-option { color: #e2e8f0; }
+        body.dark-mode .svq-option:hover { background: rgba(6,182,212,0.18); }
+        body.dark-mode .svq-empty { color: rgba(255,255,255,0.45); }
+
         /* Phase 1: anime.js owns hover/press motion — CSS keeps color/shadow only
            (a CSS transform transition would fight anime's per-frame transforms). */
         html body .glass-card:hover,
@@ -1006,11 +1051,18 @@
                             </button>
                         </div>
 
-                        <!-- Queue picker: choose a delegate, no typing needed -->
+                        <!-- Queue picker: custom glass dropdown (populated by script — no typing needed) -->
+                        <select id="queue-input" style="display:none;" aria-hidden="true" tabindex="-1">
+                            <option value="">Choose a delegate.</option>
+                        </select>
                         <div class="input-group mb-3">
-                            <select id="queue-input" class="form-select form-select-lg" aria-label="Choose a delegate to queue">
-                                <option value="">Choose a delegate…</option>
-                            </select>
+                            <div class="svq-select" id="queue-picker">
+                                <button type="button" class="svq-trigger" id="queue-trigger" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="svq-trigger-text placeholder" id="queue-trigger-text">Choose a delegate.</span>
+                                    <i class="bi bi-chevron-down svq-chevron"></i>
+                                </button>
+                                <div class="svq-panel" id="queue-panel" role="listbox" style="display:none;"></div>
+                            </div>
                             <button class="btn" type="button" id="add-to-queue-btn">
                                 <i class="bi bi-plus-lg"></i> Add
                             </button>
@@ -1272,12 +1324,74 @@
         const clearQueueBtn     = document.getElementById('clear-queue-btn');
 
         // Populate the delegate picker (official list only — no free typing)
+        const queueTrigger = document.getElementById('queue-trigger');
+        const queueTriggerText = document.getElementById('queue-trigger-text');
+        const queuePanel = document.getElementById('queue-panel');
+        const queuePicker = document.getElementById('queue-picker');
         allPresenterNames.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            queueInput.appendChild(option);
+            const hidden = document.createElement('option');
+            hidden.value = name;
+            hidden.textContent = name;
+            queueInput.appendChild(hidden);
+
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'svq-option';
+            item.setAttribute('role', 'option');
+            item.dataset.name = name;
+            const label = document.createElement('span');
+            label.textContent = name;
+            const tick = document.createElement('i');
+            tick.className = 'bi bi-check-lg tick';
+            item.appendChild(label);
+            item.appendChild(tick);
+            item.addEventListener('click', function() {
+                queueInput.value = name;
+                syncQueueTrigger();
+                closeQueuePanel();
+            });
+            queuePanel.appendChild(item);
         });
+        if (!allPresenterNames.length) {
+            queuePanel.innerHTML = '<div class="svq-empty">No delegates in this session.</div>';
+        }
+
+        function syncQueueTrigger() {
+            const v = queueInput.value;
+            queueTriggerText.textContent = v || 'Choose a delegate.';
+            queueTriggerText.classList.toggle('placeholder', !v);
+            queueTrigger.classList.toggle('has-value', !!v);
+            queuePanel.querySelectorAll('.svq-option').forEach(function(o) {
+                o.classList.toggle('selected', o.dataset.name === v);
+            });
+        }
+        function openQueuePanel() {
+            queuePanel.style.display = 'block';
+            queueTrigger.setAttribute('aria-expanded', 'true');
+            queuePicker.classList.add('open');
+            if (window.sciVerseAnime && window.sciVerseAnime.shouldAnimate()) {
+                window.sciVerseAnime.dropdownIn(queuePanel);
+                window.sciVerseAnime.staggerRows('#queue-panel .svq-option');
+            }
+        }
+        function closeQueuePanel() {
+            if (!queuePanel || queuePanel.style.display === 'none') return;
+            queuePanel.style.display = 'none';
+            queueTrigger.setAttribute('aria-expanded', 'false');
+            queuePicker.classList.remove('open');
+        }
+        queueTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (queuePanel.style.display === 'none' || !queuePanel.style.display) openQueuePanel();
+            else closeQueuePanel();
+        });
+        document.addEventListener('click', function(e) {
+            if (!queuePicker.contains(e.target)) closeQueuePanel();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeQueuePanel();
+        });
+        syncQueueTrigger();
 
         // Utility for messages
         function showMessage(text, type) {
@@ -1413,6 +1527,7 @@
             if (!isDelegate) {
                 showMessage(`"${name}" is not on the delegate list. Only registered delegates can be added.`);
                 queueInput.value = '';
+                syncQueueTrigger();
                 return;
             }
 
@@ -1421,6 +1536,7 @@
             } else {
                 speakersQueue.push(name);
                 queueInput.value = '';
+                syncQueueTrigger();
                 renderQueue();
                 notifyQueued(name, 'QUEUED', speakersQueue.length);
             }
