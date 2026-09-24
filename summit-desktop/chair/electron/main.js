@@ -288,7 +288,7 @@ app.whenReady().then(() => {
   // ask-first, no OS notification, no silent download. Windows follows the
   // `chair` channel, Linux follows `chair-linux` (separate feed files, one repo).
   if (app.isPackaged) {
-    autoUpdater.channel = process.platform === 'linux' ? 'chair-linux' : 'chair';
+    autoUpdater.channel = 'chair'; // same on all platforms: the builder appends -linux itself
     autoUpdater.checkForUpdates().catch(() => {});
   }
 

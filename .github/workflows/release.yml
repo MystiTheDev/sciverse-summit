@@ -148,8 +148,8 @@ jobs:
           v=$(node -p "require('./summit-desktop/chair/package.json').version")
           t="${{ github.event.release.tag_name }}"; t="${t#v}"
           [ "$v" = "$t" ] || { echo "chair package.json ($v) != tag ($t)"; exit 1; }
-      - name: Point feed at chair-linux channel
-        run: node -e "const fs=require('fs');const p='summit-desktop/chair/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='chair-linux';fs.writeFileSync(p,JSON.stringify(j,null,2));console.log('channel now:',JSON.parse(fs.readFileSync(p)).build.publish[0].channel);"
+      - name: Point feed at chair channel (builder appends -linux itself)
+        run: node -e "const fs=require('fs');const p='summit-desktop/chair/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='chair';fs.writeFileSync(p,JSON.stringify(j,null,2));console.log('channel now:',JSON.parse(fs.readFileSync(p)).build.publish[0].channel);"
       - name: Stage summit.jar
         uses: actions/download-artifact@v4
         with:
@@ -198,8 +198,8 @@ jobs:
           v=$(node -p "require('./summit-desktop/delegate/package.json').version")
           t="${{ github.event.release.tag_name }}"; t="${t#v}"
           [ "$v" = "$t" ] || { echo "delegate package.json ($v) != tag ($t)"; exit 1; }
-      - name: Point feed at delegate-linux channel
-        run: node -e "const fs=require('fs');const p='summit-desktop/delegate/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='delegate-linux';fs.writeFileSync(p,JSON.stringify(j,null,2));console.log('channel now:',JSON.parse(fs.readFileSync(p)).build.publish[0].channel);"
+      - name: Point feed at delegate channel (builder appends -linux itself)
+        run: node -e "const fs=require('fs');const p='summit-desktop/delegate/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='delegate';fs.writeFileSync(p,JSON.stringify(j,null,2));console.log('channel now:',JSON.parse(fs.readFileSync(p)).build.publish[0].channel);"
       - name: Build AppImage
         working-directory: summit-desktop/delegate
         run: |

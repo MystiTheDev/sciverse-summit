@@ -147,7 +147,7 @@ app.whenReady().then(() => {
   // ask-first, no OS notification, no silent download. Windows follows the
   // `delegate` channel, Linux follows `delegate-linux` (separate feed files, one repo).
   if (app.isPackaged) {
-    autoUpdater.channel = process.platform === 'linux' ? 'delegate-linux' : 'delegate';
+    autoUpdater.channel = 'delegate'; // same on all platforms: the builder appends -linux itself
     autoUpdater.checkForUpdates().catch(() => {});
   }
 
