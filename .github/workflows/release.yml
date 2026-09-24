@@ -77,6 +77,8 @@ jobs:
         with:
           name: summit-jar
           path: summit-desktop/chair/server/
+      - name: Rename staged jar to summit.jar
+        run: Move-Item summit-desktop/chair/server/summit-0.0.1-SNAPSHOT.jar summit-desktop/chair/server/summit.jar -Force
       - name: Stage Windows JRE (Temurin 17)
         run: |
           Invoke-WebRequest -Uri $env:TEMURIN_WIN_JRE -OutFile "$env:TEMP\win-jre.zip"
@@ -154,6 +156,8 @@ jobs:
         with:
           name: summit-jar
           path: summit-desktop/chair/server/
+      - name: Rename staged jar to summit.jar
+        run: mv summit-desktop/chair/server/summit-0.0.1-SNAPSHOT.jar summit-desktop/chair/server/summit.jar
       - name: Stage Linux JRE (Temurin 17)
         run: |
           curl -L -o /tmp/linux-jre.tgz "$TEMURIN_LINUX_JRE"

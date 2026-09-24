@@ -1,6 +1,7 @@
 package com.ishan.sciverse.summit.data;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,6 +41,10 @@ public class Presentation {
 	private int resolutionDrafting;     // max 15
 	private int collaboration;          // max 10
 	private int leadershipMatrix;       // max 5
+
+	// Private notes written by the chair about this delegate (shown to the delegate)
+	@Column(columnDefinition = "TEXT")
+	private String delegateNotes;
 	
 	
 
@@ -113,5 +118,8 @@ public class Presentation {
 
 	public int getLeadershipMatrix() { return leadershipMatrix; }
 	public void setLeadershipMatrix(int leadershipMatrix) { this.leadershipMatrix = Math.min(leadershipMatrix, 5); }
+
+	public String getDelegateNotes() { return delegateNotes; }
+	public void setDelegateNotes(String delegateNotes) { this.delegateNotes = delegateNotes; }
 
 }
