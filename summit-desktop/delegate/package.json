@@ -1,7 +1,7 @@
 {
   "name": "sciverse-summit-delegate",
   "private": true,
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "SciVerse Summit — Delegate application for Windows",
   "author": "SciVerse",
   "main": "electron/main.js",

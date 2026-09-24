@@ -26,6 +26,7 @@ function createSplash() {
     width: 440,
     height: 600,
     title: 'SciVerse Summit Delegate',
+    icon: path.join(__dirname, '..', 'src', 'logo.png'),
     frame: false,
     transparent: true,
     resizable: false,
@@ -63,6 +64,7 @@ function createWindow() {
     width: 1100,
     height: 750,
     title: 'SciVerse Summit Delegate',
+    icon: path.join(__dirname, '..', 'src', 'logo.png'),
     autoHideMenuBar: true,
     show: false,
     webPreferences: {
