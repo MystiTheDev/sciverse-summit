@@ -59,7 +59,8 @@
         "nsis"
       ],
       "icon": "build/icon.ico",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "artifactName": "${productName} Setup ${version}.${ext}"
     },
     "linux": {
       "target": [
