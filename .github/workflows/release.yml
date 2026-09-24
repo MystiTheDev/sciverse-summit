@@ -163,7 +163,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
       - name: Stage Linux JRE (jlink mini-runtime)
         run: |
-          jlink --add-modules java.se,jdk.zipfs,jdk.unsupported,jdk.crypto.cryptoki,jdk.management,jdk.net,jdk.localedata --strip-debug --no-man-pages --no-header-files --compress=zip-6 --output summit-desktop/chair/server/jre
+          jlink --add-modules java.se,jdk.zipfs,jdk.unsupported,jdk.crypto.cryptoki,jdk.management,jdk.net,jdk.localedata --strip-debug --no-man-pages --no-header-files --compress=2 --output summit-desktop/chair/server/jre
           summit-desktop/chair/server/jre/bin/java -version
       - name: Build AppImage
         working-directory: summit-desktop/chair
