@@ -60,7 +60,7 @@
       ],
       "icon": "build/icon.ico",
       "signAndEditExecutable": false,
-      "artifactName": "${productName} Setup ${version}.${ext}"
+      "artifactName": "SciVerse-Summit-Chair-Setup-${version}.${ext}"
     },
     "linux": {
       "target": [

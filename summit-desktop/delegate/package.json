@@ -51,7 +51,7 @@
       ],
       "icon": "build/icon.ico",
       "signAndEditExecutable": false,
-      "artifactName": "${productName} Setup ${version}.${ext}"
+      "artifactName": "SciVerse-Summit-Delegate-Setup-${version}.${ext}"
     },
     "linux": {
       "target": [
