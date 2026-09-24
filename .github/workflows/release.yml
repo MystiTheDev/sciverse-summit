@@ -33,7 +33,6 @@ env:
   JAVA_VERSION: '17'
   NODE_VERSION: '22'
   TEMURIN_WIN_JRE: https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jre/hotspot/normal/eclipse
-  TEMURIN_LINUX_JRE: https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jre/hotspot/normal/eclipse
 
 jobs:
   build-jar:
@@ -158,14 +157,13 @@ jobs:
           path: summit-desktop/chair/server/
       - name: Rename staged jar to summit.jar
         run: mv summit-desktop/chair/server/summit-0.0.1-SNAPSHOT.jar summit-desktop/chair/server/summit.jar
-      - name: Stage Linux JRE (Temurin 17)
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Stage Linux JRE (jlink mini-runtime)
         run: |
-          curl -L -o /tmp/linux-jre.tgz "$TEMURIN_LINUX_JRE"
-          EXTRACT=$(mktemp -d)
-          tar -xzf /tmp/linux-jre.tgz -C "$EXTRACT"
-          mkdir -p summit-desktop/chair/server/jre
-          cp -r "$EXTRACT"/*/ summit-desktop/chair/server/jre/
-          rm -rf "$EXTRACT"
+          jlink --add-modules java.se,jdk.zipfs,jdk.unsupported,jdk.crypto.cryptoki,jdk.management,jdk.net,jdk.localedata --strip-debug --no-man-pages --no-header-files --compress=zip-6 --output summit-desktop/chair/server/jre
           summit-desktop/chair/server/jre/bin/java -version
       - name: Build AppImage
         working-directory: summit-desktop/chair
