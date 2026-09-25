@@ -3,7 +3,7 @@
 Sciverse Summit is a conference management app built with **Spring Boot** and **Thymeleaf** — sessions, delegates, motions, speakers, timers, notes, all in one modern, glassy interface, built for the ambitious project knows as **"SciVerse Summit"**. And as of **v3.0.3**, it comes as proper **Windows installer apps** (Chair + Delegate) with **built-in auto-updates**. No Java to install, no zips to extract, no folders to babysit. 🥳
 
 > ⬇️ **Get the apps:** go to [**Releases**](https://github.com/MystiTheDev/sciverse-summit/releases/latest) and grab your installer:
-> - 🪑 **Chairs download:** `SciVerse-Summit-Chair-Setup-3.0.3.exe` — hosts the session server on your PC
+> - 🪑 **Chairs download:** `SciVerse-Summit-Chair-Setup-3.0.3.exe` — hosts the session server on your PC (**NOTE: When you install the app for the first time, there will be no account existing. To setup your chair account, login as admin with these credentials: Username: admin  Password: admin123**
 > - 🎤 **Delegates download:** `SciVerse-Summit-Delegate-Setup-3.0.3.exe` — connects to the chair's session
 > - **RUN THEM AS ADMINISTRATOR OR ELSE IT WILL NOT WORK!!!**
 > (The other files in the release — `.yml`, `.blockmap` — are for auto-update. You can ignore them.)
