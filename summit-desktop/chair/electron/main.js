@@ -20,6 +20,10 @@ const dgram = require('dgram');
 const { spawn } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 
+// Windows taskbar groups icons by AppUserModelId — must match build.appId,
+// or the taskbar (and notifications) fall back to the stock Electron icon.
+app.setAppUserModelId('com.sciverse.summit.chair');
+
 let mainWindow = null;
 let splashWindow = null;
 let splashTimer = null;

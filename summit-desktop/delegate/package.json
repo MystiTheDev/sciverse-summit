@@ -50,7 +50,6 @@
         "nsis"
       ],
       "icon": "build/icon.ico",
-      "signAndEditExecutable": false,
       "artifactName": "SciVerse-Summit-Delegate-Setup-${version}.${ext}"
     },
     "linux": {

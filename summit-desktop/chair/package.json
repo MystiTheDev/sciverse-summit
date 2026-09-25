@@ -59,7 +59,6 @@
         "nsis"
       ],
       "icon": "build/icon.ico",
-      "signAndEditExecutable": false,
       "artifactName": "SciVerse-Summit-Chair-Setup-${version}.${ext}"
     },
     "linux": {
