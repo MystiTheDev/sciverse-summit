@@ -444,6 +444,27 @@
             body.dark-mode .dropdown-menu-glass .dropdown-item.text-danger:hover { background: rgba(239,68,68,0.14) !important; color: #fca5a5 !important; }
             body.dark-mode .dropdown-menu-glass .dropdown-divider { border-top-color: rgba(255,255,255,0.07) !important; }
 
+            /* Real frosted glass on modals.
+               The blur MUST live on .modal-backdrop: it is the element painted
+               over the page. A backdrop-filter on .modal-content can only sample
+               the flat backdrop div directly behind it, so it never showed any
+               page content and the panel read as a plain rectangle. */
+            .modal-backdrop {
+                background-color: rgba(15, 23, 42, 0.5) !important;
+            }
+            .modal-backdrop.show {
+                opacity: 1 !important;
+                -webkit-backdrop-filter: blur(16px) saturate(150%);
+                backdrop-filter: blur(16px) saturate(150%);
+            }
+            body.dark-mode .modal-backdrop {
+                background-color: rgba(2, 6, 23, 0.55) !important;
+            }
+            /* Honour reduced-motion: the blur is static, the fade is not */
+            @media (prefers-reduced-motion: reduce) {
+                .modal-backdrop.show { -webkit-backdrop-filter: none; backdrop-filter: none; }
+            }
+
             /* Liquid-glass generic modal (Help Center, Profile) */
             .modal-content.glass-modal-content {
                 background: linear-gradient(135deg, rgba(255,255,255,0.72), rgba(248,250,252,0.55)) !important;
@@ -4133,7 +4154,10 @@
             body.dark-mode .settings-panel .form-control:focus { background: rgba(255,255,255,0.1) !important; border-color: rgba(6,182,212,0.5) !important; box-shadow: 0 0 0 3px rgba(6,182,212,0.15), 0 2px 8px rgba(6,182,212,0.1) !important; }
             body.dark-mode .settings-panels::-webkit-scrollbar-thumb, body.dark-mode .settings-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
-            body.dark-mode .modal-content:not(.settings-modal-content) { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+            /* .glass-modal-content is excluded: this rule tied on specificity with
+               the glass rule and, being later in source order, won — flattening
+               every glass modal to a solid slab in dark mode. */
+            body.dark-mode .modal-content:not(.settings-modal-content):not(.glass-modal-content) { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
             body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: #334155 !important; }
             body.dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
 
@@ -5301,7 +5325,7 @@
             }
 
             /* Dark mode for modals (not the settings/preferences modal which has its own glassmorphism) */
-            body.dark-mode .modal-content:not(.settings-modal-content) {
+            body.dark-mode .modal-content:not(.settings-modal-content):not(.glass-modal-content) {
                 background: #1e293b !important;
                 color: #e2e8f0 !important;
                 border-color: #334155 !important;
