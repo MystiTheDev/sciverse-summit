@@ -4731,9 +4731,9 @@
                             <span class="session-text">
                                 <strong class="session-label" th:text="${sidebarSession.isChair ? 'ACTIVE SESSION' : 'YOUR SESSION'}">ACTIVE SESSION</strong>
                                 <span class="session-name" th:text="${sidebarSession.name}">Session Name</span>
+                                <span class="session-code" th:if="${sidebarSession.joinCode != null}"
+                                      th:text="${sidebarSession.joinCode}">CODE</span>
                             </span>
-                            <span class="session-code" th:if="${sidebarSession.joinCode != null}"
-                                  th:text="${sidebarSession.joinCode}">CODE</span>
                             <i class="bi bi-chevron-down sv-session-chevron" aria-hidden="true"></i>
                         </button>
 
@@ -5332,6 +5332,7 @@
                 display: flex;
                 flex-direction: column;
                 gap: 6px;
+                min-width: 0;
                 border-top: 1px solid rgba(15,23,42,0.07);
             }
             body.dark-mode .session-details { border-top-color: rgba(255,255,255,0.10); }
@@ -5339,6 +5340,7 @@
                 display: flex;
                 align-items: flex-start;
                 gap: 8px;
+                min-width: 0;
                 font-size: 0.78rem;
                 color: #475569;
                 line-height: 1.4;
@@ -5379,7 +5381,13 @@
             /* Modern Navigation */
             .modern-nav {
                 gap: 4px;
+                /* Bootstrap's .nav ships flex-wrap: wrap. Combined with
+                   .flex-column that makes this a MULTI-COLUMN flex container, so
+                   any item wider than the sidebar opens a new column and the item
+                   grows past the sidebar edge. A nav list must be one column. */
+                flex-wrap: nowrap;
             }
+            .modern-nav > .nav-item { max-width: 100%; }
 
             /* Navigation group eyebrow label */
             .modern-nav .nav-eyebrow {
@@ -5513,6 +5521,7 @@
             .modern-session-badge {
                 position: relative;
                 overflow: hidden;
+                min-width: 0;
                 border-radius: 16px;
                 background: linear-gradient(150deg, rgba(255,255,255,0.66), rgba(255,255,255,0.40));
                 background-image:
@@ -5571,7 +5580,7 @@
             }
 
             .sv-session-chevron {
-                margin-left: auto;
+                align-self: center;
                 flex-shrink: 0;
                 font-size: 0.78rem;
                 color: #64748b;
@@ -5582,10 +5591,15 @@
             body.dark-mode .sv-session-chevron { color: #94a3b8; }
             body.dark-mode .sv-session-head:hover .sv-session-chevron { color: #e2e8f0; }
 
-            /* Expandable detail region */
+            /* Expandable detail region.
+               minmax(0, 1fr) is essential: a grid's implicit column is sized to
+               max-content, so a long topic would otherwise widen the whole card
+               past the sidebar. Capping the track lets it shrink and wrap. */
             .sv-session-collapse {
                 display: grid;
+                grid-template-columns: minmax(0, 1fr);
                 grid-template-rows: 0fr;
+                min-width: 0;
                 opacity: 0;
                 transition: grid-template-rows .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease;
             }
@@ -5597,6 +5611,7 @@
                state collapses to exactly 0px instead of leaving a 26px gap. */
             .sv-session-collapse > .sv-session-clip {
                 overflow: hidden;
+                min-width: 0;
                 min-height: 0;
             }
 
@@ -5626,8 +5641,11 @@
             .session-text {
                 display: flex;
                 flex-direction: column;
-                gap: 1px;
-                flex: 1;
+                gap: 3px;
+                /* stretch (default) is required: it constrains .session-name so
+                   text-overflow: ellipsis can kick in. The code chip opts out via
+                   align-self: flex-start. */
+                flex: 1 1 auto;
                 min-width: 0;
             }
 
@@ -5674,7 +5692,8 @@
             .session-code {
                 display: inline-flex;
                 align-items: center;
-                flex-shrink: 0;
+                align-self: flex-start;
+                max-width: 100%;
                 padding: 3px 8px;
                 border-radius: 7px;
                 background: rgba(124,58,237,0.10);
