@@ -473,6 +473,81 @@
                 content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
                 background: linear-gradient(90deg, #06b6d4, #7c3aed); z-index: 5;
             }
+            /* ── Session details modal (sidebar card) ── */
+            .svd-sub { font-size: 0.78rem; color: #64748b; font-weight: 600; }
+            body.dark-mode .svd-sub { color: #94a3b8; }
+            .svd-hero {
+                padding: 16px 18px;
+                border-radius: 16px;
+                margin-bottom: 18px;
+                background:
+                    linear-gradient(150deg, rgba(124,58,237,0.12), rgba(6,182,212,0.10)),
+                    linear-gradient(150deg, rgba(255,255,255,0.55), rgba(255,255,255,0.35));
+                border: 1px solid rgba(255,255,255,0.6);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+            }
+            body.dark-mode .svd-hero {
+                background:
+                    linear-gradient(150deg, rgba(124,58,237,0.20), rgba(6,182,212,0.12)),
+                    linear-gradient(150deg, rgba(30,41,59,0.60), rgba(15,23,42,0.45));
+                border-color: rgba(255,255,255,0.14);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+            }
+            .svd-hero-label { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; color: #6d28d9; }
+            body.dark-mode .svd-hero-label { color: #a5b4fc; }
+            .svd-hero-name { font-size: 1.2rem; font-weight: 800; color: #0f172a; line-height: 1.25; margin-top: 3px; word-break: break-word; }
+            body.dark-mode .svd-hero-name { color: #f8fafc; }
+            .svd-hero-code { display: flex; align-items: center; gap: 9px; margin-top: 11px; }
+            .svd-code-label { font-size: 0.72rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+            body.dark-mode .svd-code-label { color: #94a3b8; }
+            .svd-code {
+                font-family: Consolas, 'Cascadia Code', 'Courier New', monospace;
+                font-size: 0.9rem; font-weight: 800; letter-spacing: 0.16em;
+                padding: 5px 12px; border-radius: 9px;
+                background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.26);
+                color: #6d28d9; user-select: text;
+            }
+            body.dark-mode .svd-code { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); color: #c4b5fd; }
+            .svd-list { display: flex; flex-direction: column; }
+            .svd-row { display: flex; align-items: flex-start; gap: 13px; padding: 11px 2px; }
+            .svd-row + .svd-row { border-top: 1px solid rgba(100,116,139,0.16); }
+            body.dark-mode .svd-row + .svd-row { border-top-color: rgba(255,255,255,0.09); }
+            .svd-tile {
+                width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0;
+                display: inline-flex; align-items: center; justify-content: center;
+                font-size: 0.95rem; color: #fff;
+                box-shadow: 0 4px 12px rgba(6,182,212,0.28), inset 0 1px 0 rgba(255,255,255,0.35);
+            }
+            .svd-cell { flex: 1; min-width: 0; }
+            .svd-key { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
+            .svd-val { font-size: 0.92rem; font-weight: 600; color: #0f172a; margin-top: 2px; line-height: 1.45; word-break: break-word; }
+            body.dark-mode .svd-val { color: #e2e8f0; }
+            .svd-pill { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; }
+            .svd-pill-live { background: rgba(16,185,129,0.14); color: #047857; border: 1px solid rgba(16,185,129,0.32); }
+            .svd-pill-closed { background: rgba(100,116,139,0.14); color: #475569; border: 1px solid rgba(100,116,139,0.3); }
+            body.dark-mode .svd-pill-live { background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+            body.dark-mode .svd-pill-closed { background: rgba(100,116,139,0.2); color: #cbd5e1; border-color: rgba(148,163,184,0.35); }
+            /* "View details" button inside the sidebar card */
+            .sv-session-details-btn {
+                display: flex; align-items: center; justify-content: center; gap: 7px;
+                width: 100%; margin-top: 3px;
+                padding: 8px 12px;
+                border: 1px solid rgba(124,58,237,0.24);
+                border-radius: 10px;
+                background: rgba(124,58,237,0.08);
+                color: #6d28d9;
+                font-size: 0.78rem; font-weight: 700;
+                cursor: pointer;
+                transition: background .18s ease, transform .18s ease, border-color .18s ease;
+            }
+            .sv-session-details-btn:hover { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4); }
+            .sv-session-details-btn:active { transform: scale(0.98); }
+            .sv-session-details-btn:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+            body.dark-mode .sv-session-details-btn {
+                background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); color: #c4b5fd;
+            }
+            body.dark-mode .sv-session-details-btn:hover { background: rgba(255,255,255,0.12); }
+
             .profile-rows { display: flex; flex-direction: column; font-size: 0.88rem; }
             .profile-row {
                 display: flex; align-items: center; gap: 12px;
@@ -1856,6 +1931,87 @@
                             <div th:unless="${isChair}">
                                 <div class="help-title"><i class="bi bi-broadcast me-2" style="color:#f59e0b;"></i>Live segments</div>
                                 <div class="help-desc">When the chair starts Candor, a banner with a live countdown appears on every page.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius:12px;font-size:0.9rem;">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Details Modal (opened from the sidebar session card) -->
+        <div class="modal fade" id="svSessionModal" tabindex="-1" aria-labelledby="svSessionModalLabel" aria-hidden="true" th:if="${sidebarSession != null}">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content glass-modal-content">
+                    <div class="modal-header">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(6,182,212,0.4);"><i class="bi bi-calendar-event"></i></div>
+                            <div>
+                                <h5 class="modal-title fw-bold mb-0" id="svSessionModalLabel" style="font-size:1.05rem;">Session details</h5>
+                                <div class="svd-sub" th:text="${sidebarSession.isChair ? 'Active session' : 'Your session'}">Active session</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" style="padding:20px 24px;">
+                        <div class="svd-hero">
+                            <div class="svd-hero-label" th:text="${sidebarSession.isChair ? 'ACTIVE SESSION' : 'YOUR SESSION'}">ACTIVE SESSION</div>
+                            <div class="svd-hero-name" th:text="${sidebarSession.name}">Session Name</div>
+                            <div class="svd-hero-code" th:if="${sidebarSession.joinCode != null}">
+                                <span class="svd-code-label">Join code</span>
+                                <span class="svd-code" th:text="${sidebarSession.joinCode}">CODE</span>
+                            </div>
+                        </div>
+
+                        <div class="svd-list">
+                            <div class="svd-row" th:if="${sidebarSession.committee != null}">
+                                <div class="svd-tile" style="background:linear-gradient(135deg,#7c3aed,#a855f7);"><i class="bi bi-mortarboard-fill"></i></div>
+                                <div class="svd-cell">
+                                    <div class="svd-key">Committee</div>
+                                    <div class="svd-val" th:text="${sidebarSession.committee}">Committee</div>
+                                </div>
+                            </div>
+                            <div class="svd-row">
+                                <div class="svd-tile" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="bi bi-people-fill"></i></div>
+                                <div class="svd-cell">
+                                    <div class="svd-key">Delegates recorded</div>
+                                    <div class="svd-val" th:text="${sidebarSession.delegateCount + (sidebarSession.delegateCount == 1 ? ' delegate' : ' delegates')}">0 delegates</div>
+                                </div>
+                            </div>
+                            <div class="svd-row" th:if="${sidebarSession.strength > 0}">
+                                <div class="svd-tile" style="background:linear-gradient(135deg,#f59e0b,#f97316);"><i class="bi bi-people"></i></div>
+                                <div class="svd-cell">
+                                    <div class="svd-key">Committee strength</div>
+                                    <div class="svd-val" th:text="${sidebarSession.strength}">0</div>
+                                </div>
+                            </div>
+                            <div class="svd-row">
+                                <div class="svd-tile" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="bi bi-clock-history"></i></div>
+                                <div class="svd-cell">
+                                    <div class="svd-key">Started</div>
+                                    <div class="svd-val" th:text="${sidebarSession.startedLabel}">—</div>
+                                </div>
+                            </div>
+                            <div class="svd-row">
+                                <div class="svd-tile" th:style="${sidebarSession.active} ? 'background:linear-gradient(135deg,#10b981,#059669)' : 'background:linear-gradient(135deg,#64748b,#475569)'">
+                                    <i class="bi" th:classappend="${sidebarSession.active} ? 'bi-broadcast' : 'bi-archive'"></i>
+                                </div>
+                                <div class="svd-cell">
+                                    <div class="svd-key">Status</div>
+                                    <div class="svd-val">
+                                        <span class="svd-pill" th:classappend="${sidebarSession.active} ? 'svd-pill-live' : 'svd-pill-closed'"
+                                              th:text="${sidebarSession.active} ? 'Live' : 'Ended'">Live</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="svd-row" th:if="${sidebarSession.topic != null}">
+                                <div class="svd-tile" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="bi bi-chat-square-text-fill"></i></div>
+                                <div class="svd-cell">
+                                    <div class="svd-key">Topic</div>
+                                    <div class="svd-val" th:text="${sidebarSession.topic}">Topic</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4757,6 +4913,11 @@
                                     <span class="session-detail-val session-topic-val"
                                           th:text="${sidebarSession.topic}">Topic</span>
                                 </div>
+                                <button type="button" class="sv-session-details-btn"
+                                        id="svViewDetailsBtn"
+                                        data-bs-toggle="modal" data-bs-target="#svSessionModal">
+                                    <i class="bi bi-card-list"></i><span>View details</span>
+                                </button>
                                 </div>
                             </div>
                         </div>

@@ -69,7 +69,7 @@ public class GlobalControllerAdvice {
      */
     public record SidebarSession(String name, String joinCode, String committee,
                                  String topic, int strength, int delegateCount,
-                                 boolean isChair) {}
+                                 boolean isChair, String startedLabel, boolean active) {}
 
     @ModelAttribute("sidebarSession")
     public SidebarSession getSidebarSession() {
@@ -89,12 +89,21 @@ public class GlobalControllerAdvice {
             if (session instanceof Session s) {
                 int actual = presentationRepository.findBySessionOrderByIdAsc(s).size();
                 return new SidebarSession(s.getName(), s.getJoinCode(), s.getCommittee(),
-                        s.getTopic(), s.getStrength(), actual, chair);
+                        s.getTopic(), s.getStrength(), actual, chair,
+                        formatStarted(s), Boolean.TRUE.equals(s.getActive()));
             }
             return null;
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    /** "26 Sep 2026, 14:05" — formatted here because thymeleaf-extras-java8time isn't on the classpath. */
+    private static String formatStarted(Session s) {
+        if (s.getCreatedAt() == null) {
+            return "—";
+        }
+        return s.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm"));
     }
 
     @Autowired
