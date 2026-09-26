@@ -1,6 +1,9 @@
 package com.ishan.sciverse.summit.controller;
 
+import com.ishan.sciverse.summit.entity.Session;
+import com.ishan.sciverse.summit.entity.User;
 import com.ishan.sciverse.summit.service.SessionService;
+import com.ishan.sciverse.summit.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -58,6 +61,42 @@ public class GlobalControllerAdvice {
         return null;
     }
     
+    /**
+     * Everything the sidebar session card needs, resolved once.
+     * Replaces the old pattern of reading {@code currentSession}/{@code joinedSession}
+     * and re-testing which one is non-null in a dozen Thymeleaf expressions.
+     * Chairs see their active session; delegates see the one they joined.
+     */
+    public record SidebarSession(String name, String joinCode, String committee,
+                                 String topic, int strength, int delegateCount,
+                                 boolean isChair) {}
+
+    @ModelAttribute("sidebarSession")
+    public SidebarSession getSidebarSession() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken
+                || !authentication.isAuthenticated()) {
+            return null;
+        }
+        try {
+            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+            boolean chair = user != null && UserService.isChairRole(user.getRole());
+
+            Object session = chair
+                    ? sessionService.getActiveSession().or(() -> sessionService.getLatestSession()).orElse(null)
+                    : delegateService.getJoinedSession(authentication.getName()).orElse(null);
+
+            if (session instanceof Session s) {
+                int actual = presentationRepository.findBySessionOrderByIdAsc(s).size();
+                return new SidebarSession(s.getName(), s.getJoinCode(), s.getCommittee(),
+                        s.getTopic(), s.getStrength(), actual, chair);
+            }
+            return null;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     @Autowired
     private com.ishan.sciverse.summit.repository.PresentationRepository presentationRepository;
 

@@ -58,7 +58,8 @@ body.liquid-glass .content-panel::after,
 body.liquid-glass .stat-card::after,
 body.liquid-glass .draft-file-card::after,
 body.liquid-glass .login-card::after,
-body.liquid-glass .registration-card::after {
+body.liquid-glass .registration-card::after,
+body.liquid-glass .modern-session-badge::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -85,7 +86,8 @@ body.liquid-glass.dark-mode .content-panel::after,
 body.liquid-glass.dark-mode .stat-card::after,
 body.liquid-glass.dark-mode .draft-file-card::after,
 body.liquid-glass.dark-mode .login-card::after,
-body.liquid-glass.dark-mode .registration-card::after {
+body.liquid-glass.dark-mode .registration-card::after,
+body.liquid-glass.dark-mode .modern-session-badge::after {
     background: linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0.06) 42%, rgba(6,182,212,0.18));
 }
 

@@ -4665,38 +4665,117 @@
                         applySidebarState(localStorage.getItem('sidebarState') === 'mini');
                     }
                 });
+
+                // ── Session card: expand/collapse details ──
+                // Preference persists like the sidebar's own collapse state, so the
+                // card looks the same on every page.
+                var svCard = document.getElementById('svSessionCard');
+                var svToggle = document.getElementById('svSessionToggle');
+                if (svCard && svToggle) {
+                    var SV_KEY = 'svSessionExpanded';
+
+                    function svSetExpanded(open) {
+                        svCard.classList.toggle('is-expanded', open);
+                        svToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                        try { localStorage.setItem(SV_KEY, open ? '1' : '0'); } catch (e) {}
+                    }
+
+                    svToggle.addEventListener('click', function() {
+                        svSetExpanded(!svCard.classList.contains('is-expanded'));
+                    });
+
+                    // Restore the saved state, but only where the panel is visible.
+                    var saved = false;
+                    try { saved = localStorage.getItem(SV_KEY) === '1'; } catch (e) {}
+                    if (saved) svSetExpanded(true);
+
+                    // The sidebar is shared markup on every page; when it collapses
+                    // to icons there is no room for the panel, so force it shut and
+                    // restore the saved preference once there's room again.
+                    var sidebarEl = document.getElementById('sidebarMenu');
+                    function svSyncWithSidebar() {
+                        if (!sidebarEl) return;
+                        var mini = sidebarEl.classList.contains('sidebar-mini') && !isMobile();
+                        if (mini) {
+                            svCard.classList.remove('is-expanded');
+                            svToggle.setAttribute('aria-expanded', 'false');
+                        } else {
+                            var want = false;
+                            try { want = localStorage.getItem(SV_KEY) === '1'; } catch (e) {}
+                            svCard.classList.toggle('is-expanded', want);
+                            svToggle.setAttribute('aria-expanded', want ? 'true' : 'false');
+                        }
+                    }
+                    svSyncWithSidebar();
+                    if (sidebarEl) {
+                        new MutationObserver(svSyncWithSidebar).observe(sidebarEl, {
+                            attributes: true, attributeFilter: ['class']
+                        });
+                    }
+                }
             });
         </script>
         <div class="sidebar d-flex flex-column p-3 modern-sidebar" id="sidebarMenu">
         
             <ul class="nav nav-pills flex-column mb-auto modern-nav">
 
-                <!-- Session Name Item (Only if session exists) -->
-                <li class="nav-item mb-3" th:if="${currentSession != null or joinedSession != null}">
-                    <div class="modern-session-badge">
-                        <div class="session-icon-wrapper">
-                            <i class="bi bi-calendar-event"></i>
+                <!-- Session card: label, name, code. Click to expand details. -->
+                <li class="nav-item mb-3" th:if="${sidebarSession != null}">
+                    <div class="modern-session-badge lg-reactive" id="svSessionCard">
+                        <button type="button" class="sv-session-head" id="svSessionToggle"
+                                aria-expanded="false" aria-controls="svSessionDetails"
+                                th:attr="title=${sidebarSession.name}">
+                            <span class="session-icon-wrapper">
+                                <i class="bi bi-calendar-event"></i>
+                            </span>
+                            <span class="session-text">
+                                <strong class="session-label" th:text="${sidebarSession.isChair ? 'ACTIVE SESSION' : 'YOUR SESSION'}">ACTIVE SESSION</strong>
+                                <span class="session-name" th:text="${sidebarSession.name}">Session Name</span>
+                            </span>
+                            <span class="session-code" th:if="${sidebarSession.joinCode != null}"
+                                  th:text="${sidebarSession.joinCode}">CODE</span>
+                            <i class="bi bi-chevron-down sv-session-chevron" aria-hidden="true"></i>
+                        </button>
+
+                        <div class="sv-session-collapse" id="svSessionDetails">
+                            <div class="sv-session-clip">
+                                <div class="session-details">
+                                <div class="session-detail-row" th:if="${sidebarSession.committee != null}">
+                                    <i class="bi bi-mortarboard-fill session-detail-icon"></i>
+                                    <span class="session-detail-val sv-detail-committee"
+                                          th:text="${sidebarSession.committee}">Committee</span>
+                                </div>
+                                <div class="session-detail-row">
+                                    <i class="bi bi-people-fill session-detail-icon"></i>
+                                    <span class="session-detail-val">
+                                        <th:block th:text="${sidebarSession.delegateCount}">0</th:block>
+                                        <span th:text="${sidebarSession.delegateCount == 1 ? 'delegate' : 'delegates'}">delegates</span>
+                                    </span>
+                                </div>
+                                <div class="session-detail-row" th:if="${sidebarSession.topic != null}">
+                                    <i class="bi bi-chat-square-text session-detail-icon"></i>
+                                    <span class="session-detail-val session-topic-val"
+                                          th:text="${sidebarSession.topic}">Topic</span>
+                                </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="session-text">
-                            <strong class="session-label" th:text="${isChair ? 'ACTIVE SESSION' : 'YOUR SESSION'}">ACTIVE SESSION</strong>
-                            <span th:text="${currentSession != null ? currentSession.name : joinedSession.name}" class="session-name">Session Name</span>
-                            <span class="session-code" th:text="${currentSession != null ? currentSession.joinCode : joinedSession.joinCode}">CODE</span>
-                        </div>
+
                         <!-- Rich tooltip shown only in mini (icon-only) mode -->
-                        <div class="session-mini-tooltip">
-                            <div class="smt-label" th:text="${isChair ? 'Active Session' : 'Your Session'}">Active Session</div>
-                            <div class="smt-name" th:text="${currentSession != null ? currentSession.name : joinedSession.name}">Session Name</div>
-                            <div class="smt-row">
+                        <div class="session-mini-tooltip" aria-hidden="true">
+                            <div class="smt-label" th:text="${sidebarSession.isChair ? 'Active Session' : 'Your Session'}">Active Session</div>
+                            <div class="smt-name" th:text="${sidebarSession.name}">Session Name</div>
+                            <div class="smt-row" th:if="${sidebarSession.committee != null}">
                                 <i class="bi bi-mortarboard-fill smt-icon"></i>
-                                <span th:text="${currentSession != null ? currentSession.committee : joinedSession.committee}">Committee</span>
+                                <span th:text="${sidebarSession.committee}">Committee</span>
                             </div>
                             <div class="smt-row">
                                 <i class="bi bi-people-fill smt-icon"></i>
-                                <span><th:block th:text="${currentSession != null ? currentSession.strength : joinedSession.strength}">0</th:block> delegates</span>
+                                <span><th:block th:text="${sidebarSession.delegateCount}">0</th:block> delegates</span>
                             </div>
-                            <div class="smt-row">
+                            <div class="smt-row" th:if="${sidebarSession.topic != null}">
                                 <i class="bi bi-chat-square-text smt-icon" style="margin-top:2px; flex-shrink:0;"></i>
-                                <span class="smt-topic" th:text="${currentSession != null ? currentSession.topic : joinedSession.topic}">Topic</span>
+                                <span class="smt-topic" th:text="${sidebarSession.topic}">Topic</span>
                             </div>
                         </div>
                     </div>
@@ -5180,10 +5259,19 @@
                 margin-right: 0 !important;
             }
             .modern-sidebar.sidebar-mini .modern-session-badge {
+                border-radius: 13px !important;
+                overflow: visible !important; /* allow tooltip ::after to escape */
+            }
+            /* Icon-only: the head centres, code + chevron + details step aside. */
+            .modern-sidebar.sidebar-mini .sv-session-head {
                 justify-content: center !important;
                 padding: 10px 8px !important;
-                border-radius: 12px !important;
-                overflow: visible !important; /* allow tooltip ::after to escape */
+                cursor: default;
+            }
+            .modern-sidebar.sidebar-mini .session-code,
+            .modern-sidebar.sidebar-mini .sv-session-chevron,
+            .modern-sidebar.sidebar-mini .sv-session-collapse {
+                display: none !important;
             }
             .modern-sidebar.sidebar-mini .session-icon-wrapper {
                 margin: 0 auto !important;
@@ -5239,27 +5327,47 @@
 
             /* â”€â”€ Session detail rows (expanded sidebar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
             .session-details {
-                margin-top: 10px;
+                margin: 0;
+                padding: 11px 14px 14px;
                 display: flex;
                 flex-direction: column;
-                gap: 5px;
+                gap: 6px;
+                border-top: 1px solid rgba(15,23,42,0.07);
             }
+            body.dark-mode .session-details { border-top-color: rgba(255,255,255,0.10); }
             .session-detail-row {
                 display: flex;
                 align-items: flex-start;
-                gap: 6px;
-                font-size: 0.74rem;
-                color: rgba(255,255,255,0.82);
-                line-height: 1.35;
+                gap: 8px;
+                font-size: 0.78rem;
+                color: #475569;
+                line-height: 1.4;
             }
+            body.dark-mode .session-detail-row { color: #cbd5e1; }
             .session-detail-icon {
-                font-size: 0.72rem;
-                opacity: 0.85;
+                font-size: 0.76rem;
+                color: #7c3aed;
+                opacity: 0.9;
                 flex-shrink: 0;
-                margin-top: 2px;
+                margin-top: 3px;
             }
+            body.dark-mode .session-detail-icon { color: #a78bfa; }
             .session-detail-val {
                 flex: 1;
+                min-width: 0;
+            }
+            .sv-detail-committee {
+                display: inline-block;
+                padding: 2px 9px;
+                border-radius: 999px;
+                background: rgba(124,58,237,0.09);
+                border: 1px solid rgba(124,58,237,0.20);
+                font-weight: 600;
+                font-size: 0.74rem;
+            }
+            body.dark-mode .sv-detail-committee {
+                background: rgba(255,255,255,0.07);
+                border-color: rgba(255,255,255,0.14);
             }
             .session-topic-val {
                 display: -webkit-box;
@@ -5401,81 +5509,147 @@
                 letter-spacing: 0.01em;
             }
             
-            /* Modern Session Badge */
+            /* ── Session card (liquid glass, matches sidebar/header) ── */
             .modern-session-badge {
-                background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #7c3aed 140%);
-                border-radius: 18px;
-                padding: 16px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
                 position: relative;
                 overflow: hidden;
-                border: 1px solid rgba(255,255,255,0.4);
-                border-top-color: rgba(255,255,255,0.65);
-                box-shadow: 0 12px 26px rgba(6,182,212,0.38), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.1);
+                border-radius: 16px;
+                background: linear-gradient(150deg, rgba(255,255,255,0.66), rgba(255,255,255,0.40));
+                background-image:
+                    linear-gradient(150deg, rgba(124,58,237,0.10), rgba(6,182,212,0.09)),
+                    linear-gradient(150deg, rgba(255,255,255,0.66), rgba(255,255,255,0.40));
+                backdrop-filter: blur(var(--lg-blur, 22px)) saturate(var(--lg-saturate, 160%));
+                -webkit-backdrop-filter: blur(var(--lg-blur, 22px)) saturate(var(--lg-saturate, 160%));
+                border: 1px solid rgba(255,255,255,0.6);
+                box-shadow:
+                    0 12px 28px rgba(15,23,42,0.13),
+                    inset 0 1px 0 rgba(255,255,255,0.95),
+                    inset -1px 0 0 rgba(255,255,255,0.30);
+                transition: box-shadow .22s ease, transform .22s cubic-bezier(.22,.61,.36,1);
             }
-            
-            .modern-session-badge::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                right: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
-                animation: pulse 3s ease-in-out infinite;
+            .modern-session-badge:hover {
+                transform: translateY(-1px);
+                box-shadow:
+                    0 16px 34px rgba(15,23,42,0.17),
+                    inset 0 1px 0 rgba(255,255,255,1);
             }
-            
-            @keyframes pulse {
-                0%, 100% { opacity: 0.5; }
-                50% { opacity: 1; }
+            body.dark-mode .modern-session-badge {
+                background-image:
+                    linear-gradient(150deg, rgba(124,58,237,0.16), rgba(6,182,212,0.10)),
+                    linear-gradient(150deg, rgba(15,23,42,0.66), rgba(30,27,75,0.50));
+                border: 1px solid rgba(255,255,255,0.16);
+                box-shadow:
+                    0 12px 28px rgba(0,0,0,0.44),
+                    inset 0 1px 0 rgba(255,255,255,0.14);
             }
-            
+            body.dark-mode .modern-session-badge:hover {
+                box-shadow:
+                    0 16px 34px rgba(0,0,0,0.52),
+                    inset 0 1px 0 rgba(255,255,255,0.2);
+            }
+            /* Keep content above the ::after rim and the injected .lg-glow */
+            .modern-session-badge > * { position: relative; z-index: 1; }
+
+            /* Header row: doubles as the expand toggle */
+            .sv-session-head {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                width: 100%;
+                padding: 14px 14px;
+                background: none;
+                border: 0;
+                text-align: left;
+                font: inherit;
+                color: inherit;
+                cursor: pointer;
+                border-radius: 16px;
+            }
+            .sv-session-head:focus-visible {
+                outline: 2px solid #6366f1;
+                outline-offset: -3px;
+            }
+
+            .sv-session-chevron {
+                margin-left: auto;
+                flex-shrink: 0;
+                font-size: 0.78rem;
+                color: #64748b;
+                transition: transform .26s cubic-bezier(.22,.61,.36,1), color .18s ease;
+            }
+            .sv-session-head:hover .sv-session-chevron { color: #475569; }
+            .modern-session-badge.is-expanded .sv-session-chevron { transform: rotate(180deg); }
+            body.dark-mode .sv-session-chevron { color: #94a3b8; }
+            body.dark-mode .sv-session-head:hover .sv-session-chevron { color: #e2e8f0; }
+
+            /* Expandable detail region */
+            .sv-session-collapse {
+                display: grid;
+                grid-template-rows: 0fr;
+                opacity: 0;
+                transition: grid-template-rows .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease;
+            }
+            .modern-session-badge.is-expanded .sv-session-collapse {
+                grid-template-rows: 1fr;
+                opacity: 1;
+            }
+            /* Clip wrapper carries no padding/border of its own, so the collapsed
+               state collapses to exactly 0px instead of leaving a 26px gap. */
+            .sv-session-collapse > .sv-session-clip {
+                overflow: hidden;
+                min-height: 0;
+            }
+
             .session-icon-wrapper {
-                width: 44px;
-                height: 44px;
-                border-radius: 14px;
-                background: rgba(255, 255, 255, 0.22);
-                border: 1px solid rgba(255,255,255,0.4);
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+                width: 40px;
+                height: 40px;
+                border-radius: 13px;
+                background: linear-gradient(135deg, rgba(124,58,237,0.20), rgba(6,182,212,0.20));
+                border: 1px solid rgba(255,255,255,0.55);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
             }
-            
-            .session-icon-wrapper i {
-                font-size: 1.3rem;
-                color: #ffffff;
+            body.dark-mode .session-icon-wrapper {
+                background: linear-gradient(135deg, rgba(124,58,237,0.34), rgba(6,182,212,0.30));
+                border-color: rgba(255,255,255,0.18);
             }
-            
+
+            .session-icon-wrapper i {
+                font-size: 1.2rem;
+                color: #6d28d9;
+            }
+            body.dark-mode .session-icon-wrapper i { color: #c4b5fd; }
+
             .session-text {
                 display: flex;
                 flex-direction: column;
-                gap: 2px;
+                gap: 1px;
                 flex: 1;
                 min-width: 0;
             }
-            
+
             .session-label {
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
-                font-size: 0.7rem;
+                font-size: 0.66rem;
                 font-weight: 700;
-                letter-spacing: 0.1em;
-                color: rgba(255, 255, 255, 0.85);
+                letter-spacing: 0.11em;
+                color: #6d28d9;
                 text-transform: uppercase;
             }
+            body.dark-mode .session-label { color: #a5b4fc; }
             /* Pulsing "live" indicator */
             .session-label::before {
                 content: '';
                 width: 6px;
                 height: 6px;
                 border-radius: 50%;
-                background: #6ee7b7;
-                box-shadow: 0 0 7px rgba(110,231,183,0.9);
+                background: #10b981;
+                box-shadow: 0 0 7px rgba(16,185,129,0.75);
                 animation: sidebar-live-pulse 1.8s ease-in-out infinite;
                 flex-shrink: 0;
             }
@@ -5483,36 +5657,44 @@
                 0%, 100% { opacity: 1; transform: scale(1); }
                 50%      { opacity: 0.45; transform: scale(0.72); }
             }
-            
+
             .session-name {
-                font-size: 1rem;
+                font-size: 0.97rem;
                 font-weight: 700;
-                color: #ffffff;
-                letter-spacing: 0.02em;
-                line-height: 1.2;
+                color: #0f172a;
+                letter-spacing: 0.01em;
+                line-height: 1.25;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+            body.dark-mode .session-name { color: #f1f5f9; }
 
+            /* Read-only join code — informational, never clickable */
             .session-code {
                 display: inline-flex;
                 align-items: center;
-                align-self: flex-start;
-                margin-top: 3px;
-                padding: 2px 8px;
-                border-radius: 6px;
-                background: rgba(255,255,255,0.18);
-                border: 1px solid rgba(255,255,255,0.35);
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+                flex-shrink: 0;
+                padding: 3px 8px;
+                border-radius: 7px;
+                background: rgba(124,58,237,0.10);
+                border: 1px solid rgba(124,58,237,0.22);
                 font-family: Consolas, 'Cascadia Code', 'Courier New', monospace;
-                font-size: 0.68rem;
+                font-size: 0.66rem;
                 font-weight: 800;
-                letter-spacing: 0.14em;
+                letter-spacing: 0.12em;
                 text-transform: uppercase;
-                color: #ffffff;
+                font-variant-numeric: tabular-nums;
+                color: #6d28d9;
+                user-select: text;
+                cursor: default;
             }
-            
+            body.dark-mode .session-code {
+                background: rgba(255,255,255,0.08);
+                border-color: rgba(255,255,255,0.16);
+                color: #a5b4fc;
+            }
+
             /* Sidebar Footer */
             .sidebar-footer {
                 margin-top: auto;
@@ -5805,6 +5987,21 @@
                 .modern-sidebar.sidebar-mini .session-details {
                     display: flex !important;
                 }
+                /* Drawer is full width — restore the code chip, chevron and expand */
+                .modern-sidebar.sidebar-mini .session-code {
+                    display: inline-flex !important;
+                }
+                .modern-sidebar.sidebar-mini .sv-session-chevron {
+                    display: inline-block !important;
+                }
+                .modern-sidebar.sidebar-mini .sv-session-collapse {
+                    display: grid !important;
+                }
+                .modern-sidebar.sidebar-mini .sv-session-head {
+                    justify-content: flex-start !important;
+                    padding: 12px 16px !important;
+                    cursor: pointer;
+                }
                 .modern-sidebar.sidebar-mini .session-mini-tooltip {
                     display: none !important;
                 }
@@ -5812,6 +6009,9 @@
                 .modern-sidebar.sidebar-mini .modern-session-badge,
                 .modern-sidebar.sidebar-mini .modern-back-btn {
                     justify-content: flex-start !important;
+                }
+                .modern-sidebar.sidebar-mini .modern-nav-link,
+                .modern-sidebar.sidebar-mini .modern-back-btn {
                     padding: 12px 16px !important;
                 }
                 .modern-sidebar.sidebar-mini .nav-icon-wrapper {
