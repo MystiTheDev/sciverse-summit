@@ -120,6 +120,29 @@ Standard **MVC**, plus a desktop shell that never touches web code:
 Tag `v<version>` and let CI build the installers. The **release body is the
 changelog** the apps display when an update is offered.
 
+**Bump only the app you changed.** CI builds an app only when its
+`package.json` version equals the tag, so a chair-only release is a one-line
+change:
+
+| you changed | bump | CI builds | delegates are prompted |
+| --- | --- | --- | --- |
+| the web app / chair only | `chair/package.json` | chair | no |
+| the delegate shell | `delegate/package.json` | delegate | yes |
+| both | both | both | yes |
+
+Each app has its own auto-update channel, so a delegate is never offered a
+build that did not include it. If the tag matches *neither* app the run fails
+loudly, so a forgotten bump can never quietly publish a release with no
+installers.
+
+Most releases are chair-only. The delegate is a thin shell — its own code is
+just the connect screen, and every page it shows is served by the chair's jar.
+A delegate that skips a release loses nothing: it picks up the new interface
+from the chair the next time it connects. **Release the delegate when you
+change its shell** — the connect screen, native notifications, or the login
+override (which depends on the `/login` path and its `username`/`password`
+fields, the delegate's only real coupling to the server).
+
 To mark a release as a **major upgrade** — which shows a full-screen prompt
 with the changelog instead of the small overlay, and blocks the update while
 the Chair is running a session — make the very first line of the release body:

@@ -112,6 +112,28 @@ which would double-fire every updater event.
 To write a release, set the first line to `type: upgrade` for a release that
 changes a lot, and keep the rest as the changelog.
 
+## Release model: chair-first, delegate-optional
+
+The two apps version and ship independently. CI builds an app only when its
+`package.json` version equals the release tag, so most releases touch the
+chair alone. Each app has its own auto-update channel (`chair` / `delegate`),
+so **a delegate is never offered a build that did not include it** — a
+chair-only release produces no delegate prompt at all, and therefore no
+spurious major-upgrade screen either.
+
+This is safe because the delegate is a thin shell. Its own code is the connect
+screen plus the notification bridge; every page it displays is served by the
+chair's jar. A delegate left on an older build sees the current interface as
+soon as it connects, with no install.
+
+The delegate's only real coupling to the server is the login override, which
+replaces the body of `/login` with its own form posting `username` and
+`password`. That is the one contract to preserve — if `/login` or those field
+names change, the delegate needs a release too.
+
+So: release the delegate when you change its shell, not when the chair's
+features change.
+
 ## Editing the UI
 
 - `shared/theme.css` — tokens, glass panels, buttons, inputs, toggles, modals,

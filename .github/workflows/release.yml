@@ -9,15 +9,26 @@
 #            Delegate AppImage + delegate-linux.yml + blockmap
 #
 # Your checklist per release (nothing else):
-#   1. Bump "version" in summit-desktop/chair/package.json AND
-#      summit-desktop/delegate/package.json (must equal the tag, no leading v).
+#   1. Bump "version" in the package.json of the app(s) you changed. The
+#      version must equal the tag (no leading v). An app whose version does
+#      NOT equal the tag is skipped, so you only bump what you changed.
+#      At least one of the two must match, or the run fails loudly.
 #   2. Commit + push to main.
 #   3. Draft a Release with tag vX.Y.Z, paste notes, Publish.
 #   4. Wait ~15 min, check the Release — files appear automatically.
 #   5. Install once manually; every later release self-installs via auto-update.
 #
+# Chair-only releases are the common case. The delegate is a thin shell: its
+# own code is just the connect screen, and every page it shows is served by
+# the chair's jar. So a delegate that skips a release loses nothing — it picks
+# up the new interface from the chair the next time it connects, without
+# installing anything.
+#
+# Each app also has its own auto-update channel ("chair" / "delegate"), so a
+# delegate is never offered a build that did not include it.
+#
 # Test without publishing: Actions tab -> "Release installers" -> Run workflow
-# (builds only, attaches nothing).
+# (builds both apps, attaches nothing, ignores versions).
 
 name: Release installers
 
@@ -35,8 +46,68 @@ env:
   TEMURIN_WIN_JRE: https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jre/hotspot/normal/eclipse
 
 jobs:
+  # Decides which apps this release actually contains, before anything is built.
+  # An app is built only when its package.json version equals the release tag.
+  # This replaces the old per-job "version must match tag" check, which forced
+  # both apps to be bumped in lockstep even for a chair-only change.
+  plan:
+    name: Plan release contents
+    runs-on: ubuntu-latest
+    outputs:
+      build_chair: ${{ steps.decide.outputs.build_chair }}
+      build_delegate: ${{ steps.decide.outputs.build_delegate }}
+      tag: ${{ steps.decide.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - id: decide
+        name: Compare app versions against the tag
+        run: |
+          set -euo pipefail
+          chair=$(node -p "require('./summit-desktop/chair/package.json').version")
+          delegate=$(node -p "require('./summit-desktop/delegate/package.json').version")
+
+          if [ "${{ github.event_name }}" != "release" ]; then
+            # Manual test run: no tag, so build everything and check nothing.
+            echo "Manual run — building both apps, ignoring versions."
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            echo "build_chair=true" >> "$GITHUB_OUTPUT"
+            echo "build_delegate=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tag="${{ github.event.release.tag_name }}"; tag="${tag#v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "chair in repo:    $chair"
+          echo "delegate in repo: $delegate"
+          echo "release tag:      $tag"
+
+          build_chair=false;    [ "$chair"    = "$tag" ] && build_chair=true
+          build_delegate=false; [ "$delegate" = "$tag" ] && build_delegate=true
+
+          if [ "$build_chair" = false ] && [ "$build_delegate" = false ]; then
+            echo "::error::Tag $tag matches neither chair ($chair) nor delegate ($delegate). Bump the version of the app you changed, or fix the tag."
+            exit 1
+          fi
+
+          echo "build_chair=$build_chair" >> "$GITHUB_OUTPUT"
+          echo "build_delegate=$build_delegate" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Release plan"
+            echo ""
+            echo "| app | version | in this release |"
+            echo "| --- | --- | --- |"
+            echo "| chair | $chair | $build_chair |"
+            echo "| delegate | $delegate | $build_delegate |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build-jar:
     name: Web jar (Maven)
+    needs: plan
+    if: needs.plan.outputs.build_chair == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -55,7 +126,8 @@ jobs:
 
   chair-win:
     name: Chair (Windows NSIS)
-    needs: build-jar
+    needs: [plan, build-jar]
+    if: needs.plan.outputs.build_chair == 'true'
     runs-on: windows-latest
     defaults:
       run:
@@ -65,12 +137,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Version must match release tag
-        if: github.event_name == 'release'
-        run: |
-          $v = (Get-Content summit-desktop/chair/package.json | ConvertFrom-Json).version
-          $t = '${{ github.event.release.tag_name }}'.TrimStart('v')
-          if ($v -ne $t) { Write-Error "chair package.json ($v) != tag ($t)"; exit 1 }
       - name: Stage summit.jar
         uses: actions/download-artifact@v4
         with:
@@ -103,6 +169,8 @@ jobs:
 
   delegate-win:
     name: Delegate (Windows NSIS)
+    needs: plan
+    if: needs.plan.outputs.build_delegate == 'true'
     runs-on: windows-latest
     defaults:
       run:
@@ -112,12 +180,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Version must match release tag
-        if: github.event_name == 'release'
-        run: |
-          $v = (Get-Content summit-desktop/delegate/package.json | ConvertFrom-Json).version
-          $t = '${{ github.event.release.tag_name }}'.TrimStart('v')
-          if ($v -ne $t) { Write-Error "delegate package.json ($v) != tag ($t)"; exit 1 }
       - name: Build installer
         working-directory: summit-desktop/delegate
         run: |
@@ -135,19 +197,14 @@ jobs:
 
   chair-linux:
     name: Chair (Linux AppImage)
-    needs: build-jar
+    needs: [plan, build-jar]
+    if: needs.plan.outputs.build_chair == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Version must match release tag
-        if: github.event_name == 'release'
-        run: |
-          v=$(node -p "require('./summit-desktop/chair/package.json').version")
-          t="${{ github.event.release.tag_name }}"; t="${t#v}"
-          [ "$v" = "$t" ] || { echo "chair package.json ($v) != tag ($t)"; exit 1; }
       - name: Point feed at chair channel (builder appends -linux itself)
         run: node -e "const fs=require('fs');const p='summit-desktop/chair/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='chair';fs.writeFileSync(p,JSON.stringify(j,null,2));console.log('channel now:',JSON.parse(fs.readFileSync(p)).build.publish[0].channel);"
       - name: Stage summit.jar
@@ -186,18 +243,14 @@ jobs:
 
   delegate-linux:
     name: Delegate (Linux AppImage)
+    needs: plan
+    if: needs.plan.outputs.build_delegate == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Version must match release tag
-        if: github.event_name == 'release'
-        run: |
-          v=$(node -p "require('./summit-desktop/delegate/package.json').version")
-          t="${{ github.event.release.tag_name }}"; t="${t#v}"
-          [ "$v" = "$t" ] || { echo "delegate package.json ($v) != tag ($t)"; exit 1; }
       - name: Point feed at delegate channel (builder appends -linux itself)
         run: node -e "const fs=require('fs');const p='summit-desktop/delegate/package.json';const j=JSON.parse(fs.readFileSync(p));j.build.publish[0].channel='delegate';fs.writeFileSync(p,JSON.stringify(j,null,2));console.log('channel now:',JSON.parse(fs.readFileSync(p)).build.publish[0].channel);"
       - name: Build AppImage
@@ -221,8 +274,11 @@ jobs:
 
   attach:
     name: Attach files to Release
-    needs: [chair-win, delegate-win, chair-linux, delegate-linux]
-    if: github.event_name == 'release'
+    needs: [plan, chair-win, delegate-win, chair-linux, delegate-linux]
+    # always(), because the build jobs for an app not in this release are
+    # skipped rather than failed, and a skipped dependency would otherwise
+    # skip this job too.
+    if: always() && github.event_name == 'release' && needs.plan.outputs.tag != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -232,9 +288,49 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name }}
+          # Unmatched globs are expected: an app not in this release has no
+          # artifact directory. A verification step below is the real check.
+          fail_on_unmatched_files: false
           files: |
-            artifacts/chair-win/*
-            artifacts/delegate-win/*
-            artifacts/chair-linux/*
-            artifacts/delegate-linux/*
-          fail_on_unmatched_files: true
+            ${{ needs.plan.outputs.build_chair == 'true' && 'artifacts/chair-win/*' || '' }}
+            ${{ needs.plan.outputs.build_chair == 'true' && 'artifacts/chair-linux/*' || '' }}
+            ${{ needs.plan.outputs.build_delegate == 'true' && 'artifacts/delegate-win/*' || '' }}
+            ${{ needs.plan.outputs.build_delegate == 'true' && 'artifacts/delegate-linux/*' || '' }}
+      # The auto-update feed files are what actually make an update work, so
+      # assert the ones this release promised. This is what catches a build
+      # that silently produced no installer.
+      - name: Verify the release received the expected update feeds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          WANT_CHAIR: ${{ needs.plan.outputs.build_chair }}
+          WANT_DELEGATE: ${{ needs.plan.outputs.build_delegate }}
+        run: |
+          set -euo pipefail
+          assets=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+          echo "Assets on $TAG:"
+          printf '%s\n' "$assets" | sed 's/^/  /'
+
+          count=$(printf '%s\n' "$assets" | grep -c . || true)
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No assets were attached to $TAG."
+            exit 1
+          fi
+
+          missing=""
+          if [ "$WANT_CHAIR" = "true" ]; then
+            printf '%s\n' "$assets" | grep -qx 'chair.yml'        || missing="$missing chair.yml"
+            printf '%s\n' "$assets" | grep -qx 'chair-linux.yml' || missing="$missing chair-linux.yml"
+          fi
+          if [ "$WANT_DELEGATE" = "true" ]; then
+            printf '%s\n' "$assets" | grep -qx 'delegate.yml'        || missing="$missing delegate.yml"
+            printf '%s\n' "$assets" | grep -qx 'delegate-linux.yml' || missing="$missing delegate-linux.yml"
+          fi
+
+          if [ -n "$missing" ]; then
+            echo "::error::Missing update feed(s) for this release:$missing"
+            echo "Without them the app cannot discover or install this version."
+            exit 1
+          fi
+
+          echo "All expected update feeds are present."
