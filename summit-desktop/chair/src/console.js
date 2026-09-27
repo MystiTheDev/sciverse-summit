@@ -178,6 +178,17 @@
     startBtn.style.display = canStop ? 'none' : '';
   }
 
+  /** The server's real start time, so uptime does not reset on page reload. */
+  async function currentStartedAt() {
+    try {
+      if (api && api.serverInfo) {
+        const info = await api.serverInfo();
+        if (info && info.startedAt) return info.startedAt;
+      }
+    } catch (e) { /* fall back to now */ }
+    return Date.now();
+  }
+
   function startTicker() {
     stopTicker();
     tick = setInterval(() => {
@@ -367,7 +378,7 @@
       await api.startServer();
       append('Waiting for http://127.0.0.1:8080 …', 'lv-app');
       if (await waitForServer()) {
-        startedAt = Date.now();
+        startedAt = await currentStartedAt();
         setState('live', 'Server live', '');
         startTicker();
         openBtn.disabled = false;
@@ -385,7 +396,7 @@
     }
   });
 
-  openBtn.addEventListener('click', () => { window.location.href = BASE + '/'; });
+  openBtn.addEventListener('click', () => { window.location.href = BASE + '/dashboard'; });
 
   stopBtn.addEventListener('click', async () => {
     if (!confirm('Stop the session server?\n\nEvery delegate will be disconnected and anything not yet saved is lost.')) return;
@@ -444,7 +455,7 @@
     }
     try {
       if (api && api.serverStatus && await api.serverStatus() === 'running') {
-        startedAt = Date.now();
+        startedAt = await currentStartedAt();
         setState('live', 'Server live', '');
         startTicker();
         startBtn.disabled = true;

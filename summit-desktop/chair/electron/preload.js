@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('summitAPI', {
   startServer: () => ipcRenderer.invoke('server:start'),
   stopServer: () => ipcRenderer.invoke('server:stop'),
   serverStatus: () => ipcRenderer.invoke('server:status'),
+  serverInfo: () => ipcRenderer.invoke('server:info'),
   backToConsole: () => ipcRenderer.invoke('app:console'),
   lanAddress: () => ipcRenderer.invoke('server:lan-address'),
   probeServer: (host, port, path, timeout) => ipcRenderer.invoke('server:probe', { host: host, port: port, path: path, timeout: timeout }),

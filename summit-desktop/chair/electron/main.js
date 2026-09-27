@@ -40,6 +40,11 @@ let mainWindow = null;
 let splashWindow = null;
 let splashTimer = null;
 let serverProc = null;
+// When the current server process was spawned. Kept in the main process because
+// the console page is reloaded whenever the user visits the web UI and returns,
+// which wiped renderer state and made uptime read 0. The server is a child of
+// this process, so a new app launch always means a new server.
+let serverStartedAt = null;
 let tray = null;
 let quitting = false;
 
@@ -339,6 +344,7 @@ function stopServerProc() {
     }
     const proc = serverProc;
     serverProc = null;
+    serverStartedAt = null;
     proc.once('exit', () => resolve('stopped'));
     try {
       proc.kill();
@@ -368,16 +374,19 @@ ipcMain.handle('server:start', async () => {
   const env = { ...process.env, SPRING_DATASOURCE_URL: userDataDbUrl() };
   sendLog(`DB -> ${env.SPRING_DATASOURCE_URL}`);
   serverProc = spawn(java, ['-jar', jar], { env });
+    serverStartedAt = Date.now();
   serverProc.stdout.on('data', (d) => sendLog(String(d).trimEnd()));
   serverProc.stderr.on('data', (d) => sendLog(String(d).trimEnd()));
   serverProc.on('exit', (code, signal) => {
     sendLog(`Server process exited (code=${code} signal=${signal})`);
     serverProc = null;
+    serverStartedAt = null;
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('server:exited');
   });
   serverProc.on('error', (err) => {
     sendLog('ERROR spawning server: ' + err.message);
     serverProc = null;
+    serverStartedAt = null;
   });
   return 'started';
 });
@@ -385,6 +394,13 @@ ipcMain.handle('server:start', async () => {
 ipcMain.handle('server:stop', async () => stopServerProc());
 
 ipcMain.handle('server:status', async () => (serverProc ? 'running' : 'stopped'));
+
+// startedAt lives in the main process so uptime survives the console page being
+// reloaded when the user visits the web UI and comes back.
+ipcMain.handle('server:info', async () => ({
+  running: !!serverProc,
+  startedAt: serverProc ? serverStartedAt : null,
+}));
 
 // Back-to-console: the web UI is server-rendered and untouched — instead the
 // shell injects a floating button on local server pages that returns here.

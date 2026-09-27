@@ -132,7 +132,7 @@
     </div>
     <div class="badge">
       <img src="logo.png" alt="SciVerse Summit logo">
-      <h1>SciVerse Summit <span class="yr">3.0</span></h1>
+      <h1>SciVerse Summit <span class="yr" id="yr"></span></h1>
       <p class="role">Delegate</p>
       <p class="status" id="hint">Starting up&hellip;</p>
       <div class="bar"><div class="fill"></div></div>
@@ -144,6 +144,7 @@
   try {
     var v = new URLSearchParams(window.location.search).get('v');
     if (v) document.getElementById('ver').textContent = 'v' + v;
+      if (v) { var yr = document.getElementById('yr'); if (yr) yr.textContent = v; }
   } catch (e) { /* version stays blank */ }
   var lines = [
     'Finding your seat\u2026',
