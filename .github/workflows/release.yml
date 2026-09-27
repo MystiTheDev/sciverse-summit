@@ -314,9 +314,26 @@ jobs:
           WANT_DELEGATE: ${{ needs.plan.outputs.build_delegate }}
         run: |
           set -euo pipefail
-          assets=$(gh release view "$TAG" --json assets --jq '.assets[].name')
-          echo "Assets on $TAG:"
-          printf '%s\n' "$assets" | sed 's/^/  /'
+          # This job has no checkout, so gh cannot infer the repo from git.
+          # Pass it explicitly or every gh call dies with "not a git repository".
+          REPO="${{ github.repository }}"
+
+          # Uploading ~600 MB of assets is not reflected in the API instantly,
+          # so poll briefly before concluding anything is missing.
+          assets=""
+          for attempt in 1 2 3 4 5 6; do
+            # A transient API failure must not abort the step under `set -e`;
+            # the final count check below still catches a genuine absence.
+            assets=$(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name' || true)
+            count=$(printf '%s\n' "$assets" | grep -c . || true)
+            if [ "$count" -gt 0 ]; then
+              echo "Assets on $TAG (attempt $attempt):"
+              printf '%s\n' "$assets" | sed 's/^/  /'
+              break
+            fi
+            echo "No assets visible yet (attempt $attempt/6), waiting..."
+            sleep 10
+          done
 
           count=$(printf '%s\n' "$assets" | grep -c . || true)
           if [ "$count" -eq 0 ]; then
