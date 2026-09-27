@@ -12,6 +12,7 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
+const { probeServer } = require('./probe');
 
 // Windows taskbar groups icons by AppUserModelId — must match build.appId,
 // or the taskbar (and notifications) fall back to the stock Electron icon.
@@ -21,6 +22,45 @@ let mainWindow = null;
 let splashWindow = null;
 let splashTimer = null;
 let loginOverrideJs = '';
+
+/* ── Settings + recents (JSON in userData) ──────────────── */
+const SETTINGS_DEFAULTS = {
+  remember: true,
+  autoConnect: false,
+  launchAtLogin: false,
+  glint: true,
+};
+let settings = Object.assign({}, SETTINGS_DEFAULTS);
+let storeCache = null;
+
+function storeFile() {
+  return path.join(app.getPath('userData'), 'delegate-store.json');
+}
+
+function readStore() {
+  if (storeCache) return storeCache;
+  try { storeCache = JSON.parse(fs.readFileSync(storeFile(), 'utf8')) || {}; } catch (e) { storeCache = {}; }
+  return storeCache;
+}
+
+function saveStore() {
+  try {
+    fs.writeFileSync(storeFile(), JSON.stringify({
+      settings: settings,
+      recents: readStore().recents || [],
+      lastHost: readStore().lastHost || '',
+    }, null, 2));
+  } catch (e) { /* non-fatal */ }
+}
+
+function applyLaunchAtLogin() {
+  try { app.setLoginItemSettings({ openAtLogin: !!settings.launchAtLogin }); } catch (e) { /* unsupported */ }
+}
+
+function loadStore() {
+  settings = Object.assign({}, SETTINGS_DEFAULTS, readStore().settings);
+  applyLaunchAtLogin();
+}
 
 // Native splash: logo + name for a fixed brand moment before the app opens.
 const SPLASH_MS = 14000;
@@ -51,8 +91,36 @@ function createSplash() {
   });
 }
 
-function isServerLogin(urlString) {
-  try {
+/* ── Recents ────────────────────────────────────────────── */
+function addRecent(host) {
+  const list = (readStore().recents || [])
+    .filter((r) => (r.host || r) !== host);
+  list.unshift({ host: host, at: Date.now() });
+  storeCache = Object.assign({}, readStore(), { recents: list.slice(0, 6), lastHost: host });
+  saveStore();
+  return storeCache.recents;
+}
+
+function clearRecents() {
+  storeCache = Object.assign({}, readStore(), { recents: [] });
+  saveStore();
+  return [];
+}
+
+// One instance only: connecting from a second copy would be confusing.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
+
+function isServerLogin(urlString) {  try {
     const u = new URL(urlString);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
     return u.pathname.replace(/\/+$/, '') === '/login';
@@ -65,12 +133,15 @@ function createWindow() {
   createSplash();
 
   mainWindow = new BrowserWindow({
-    width: 1100,
-    height: 750,
+    width: 1000,
+    height: 780,
+    minWidth: 720,
+    minHeight: 620,
     title: 'SciVerse Summit Delegate',
     icon: path.join(__dirname, '..', 'src', 'logo.png'),
     autoHideMenuBar: true,
     show: false,
+    backgroundColor: '#0b1120',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -116,6 +187,44 @@ function createWindow() {
 
 ipcMain.handle('app:version', async () => app.getVersion());
 
+/* ── Readiness probe for the chair's server ────────────── */
+ipcMain.handle('server:probe', async (_e, req) => {
+  const { host, port, path, timeout } = (req || {});
+  return probeServer(host, port, path || '/login', timeout);
+});
+
+/* ── Settings + recents ─────────────────────────────────── */
+ipcMain.handle('settings:get', async () => settings);
+
+ipcMain.handle('settings:set', async (_e, next) => {
+  if (next && typeof next === 'object') {
+    settings = Object.assign({}, SETTINGS_DEFAULTS, next);
+    saveStore();
+  }
+  return settings;
+});
+
+ipcMain.handle('recent:add', async (_e, host) => {
+  if (!host) return [];
+  return settings.remember ? addRecent(String(host)) : [];
+});
+
+ipcMain.handle('recent:list', async () => (settings.remember ? (readStore().recents || []) : []));
+ipcMain.handle('recent:clear', async () => clearRecents());
+ipcMain.handle('recent:last', async () => readStore().lastHost || '');
+
+/* ── Manual update check from the settings modal ───────── */
+ipcMain.handle('update:check', async () => {
+  if (!app.isPackaged) return 'dev-mode';
+  try {
+    autoUpdater.channel = 'delegate';
+    await autoUpdater.checkForUpdates();
+    return 'ok';
+  } catch (err) {
+    throw new Error(String((err && err.message) || err));
+  }
+});
+
 ipcMain.handle('update:download', async () => {
   autoUpdater.downloadUpdate().catch(() => {});
 });
@@ -124,17 +233,31 @@ ipcMain.handle('update:restart', async () => {
 });
 
 function wireUpdater(win) {
+  const send = (channel, payload) => {
+    if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
+  };
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
-  autoUpdater.on('checking-for-update', () => { if (win && !win.isDestroyed()) win.webContents.send('update:checking'); });
-  autoUpdater.on('update-available', (info) => { if (win && !win.isDestroyed()) win.webContents.send('update:available', info); });
-  autoUpdater.on('update-not-available', () => { if (win && !win.isDestroyed()) win.webContents.send('update:not-available'); });
-  autoUpdater.on('download-progress', (p) => { if (win && !win.isDestroyed()) win.webContents.send('update:progress', p); });
-  autoUpdater.on('update-downloaded', (info) => { if (win && !win.isDestroyed()) win.webContents.send('update:downloaded', info); });
-  autoUpdater.on('error', (err) => { if (win && !win.isDestroyed()) win.webContents.send('update:error', String((err && err.message) || err)); });
+  autoUpdater.on('checking-for-update', () => { send('update:checking'); send('update:manual', { state: 'checking' }); });
+  autoUpdater.on('update-available', (info) => {
+    send('update:available', info);
+    send('update:manual', { state: 'available', version: info && info.version });
+  });
+  autoUpdater.on('update-not-available', (info) => {
+    send('update:not-available');
+    send('update:manual', { state: 'not-available', current: (info && info.version) || app.getVersion() });
+  });
+  autoUpdater.on('download-progress', (p) => { send('update:progress', p); });
+  autoUpdater.on('update-downloaded', (info) => { send('update:downloaded', info); });
+  autoUpdater.on('error', (err) => {
+    const msg = String((err && err.message) || err);
+    send('update:error', msg);
+    send('update:manual', { state: 'error', message: msg });
+  });
 }
 
 app.whenReady().then(() => {
+  loadStore();
   try {
     loginOverrideJs = fs.readFileSync(
       path.join(__dirname, '..', 'src', 'login-override.js'),

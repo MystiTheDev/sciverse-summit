@@ -90,7 +90,7 @@ jobs:
         working-directory: summit-desktop/chair
         run: |
           npm ci
-          npx electron-builder --win nsis --publish never
+          npm run dist -- --win nsis --publish never
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
@@ -122,7 +122,7 @@ jobs:
         working-directory: summit-desktop/delegate
         run: |
           npm ci
-          npx electron-builder --win nsis --publish never
+          npm run dist -- --win nsis --publish never
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
@@ -169,7 +169,7 @@ jobs:
         working-directory: summit-desktop/chair
         run: |
           npm ci
-          npx electron-builder --linux AppImage --publish never
+          npm run dist -- --linux AppImage --publish never
       - name: Verify dist contents (fail loudly on missing feed)
         run: |
           ls -la summit-desktop/chair/dist/
@@ -204,7 +204,7 @@ jobs:
         working-directory: summit-desktop/delegate
         run: |
           npm ci
-          npx electron-builder --linux AppImage --publish never
+          npm run dist -- --linux AppImage --publish never
       - name: Verify dist contents (fail loudly on missing feed)
         run: |
           ls -la summit-desktop/delegate/dist/

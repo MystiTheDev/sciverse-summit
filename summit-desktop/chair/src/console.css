@@ -1,0 +1,110 @@
+/* Chair console — layout and components on top of the shared theme. */
+
+/* The legacy stylesheet (splash / update overlay / loader) is loaded after the
+   theme and sets a centred flex body, which would shrink the new full-height
+   shell. The shell owns the page layout now. */
+body { display: block; min-height: 100vh; }
+
+/* ── Status hero ────────────────────────────────────────── */
+.hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2px 0 0; }
+.hero__lamp {
+  position: relative; width: 68px; height: 68px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(100, 116, 139, 0.14); border: 1px solid rgba(148, 163, 184, 0.24);
+  transition: background .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.hero__lamp::after {
+  content: ''; position: absolute; inset: -9px; border-radius: 50%;
+  border: 2px solid transparent; opacity: 0;
+  transition: opacity .3s ease;
+}
+.hero__lamp i { font-size: 1.6rem; color: var(--sv-slate-400); transition: color .3s ease; }
+
+.hero[data-state='live'] .hero__lamp {
+  background: rgba(16, 185, 129, 0.16); border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 34px rgba(16, 185, 129, 0.30);
+}
+.hero[data-state='live'] .hero__lamp::after { opacity: 1; border-top-color: var(--sv-green); border-right-color: var(--sv-green); animation: sv-spin 1.5s linear infinite; }
+.hero[data-state='live'] .hero__lamp i { color: #6ee7b7; }
+
+.hero[data-state='starting'] .hero__lamp {
+  background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.26);
+}
+.hero[data-state='starting'] .hero__lamp::after { opacity: 1; border-top-color: var(--sv-amber); animation: sv-spin 1s linear infinite; }
+.hero[data-state='starting'] .hero__lamp i { color: #fcd34d; }
+
+.hero[data-state='error'] .hero__lamp { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.45); }
+.hero[data-state='error'] .hero__lamp i { color: #fca5a5; }
+
+@keyframes sv-spin { to { transform: rotate(360deg); } }
+
+.hero__title { font-size: 1.26rem; font-weight: 800; margin: 12px 0 3px; }
+.hero__meta { font-size: 0.84rem; color: var(--sv-slate-400); min-height: 1.2em; }
+.hero__meta .sv-mono { color: var(--sv-slate-300); }
+.hero__actions { margin-top: 16px; display: flex; flex-direction: column; gap: 9px; }
+
+/* ── Join address ───────────────────────────────────────── */
+.join__url {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.14), rgba(124, 58, 237, 0.14));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.join__url-value {
+  flex: 1; min-width: 0;
+  font-family: var(--sv-mono); font-size: 1.02rem; font-weight: 800; letter-spacing: 0.04em;
+  color: var(--sv-cyan-soft); user-select: all; word-break: break-all;
+}
+.join__empty { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 14px;
+  background: rgba(255,255,255,0.04); border: 1px dashed rgba(148,163,184,0.28); color: var(--sv-slate-400); font-size: 0.84rem; }
+.join__actions { display: flex; gap: 8px; margin-top: 12px; }
+.join__note { margin-top: 10px; font-size: 0.75rem; color: var(--sv-slate-400); line-height: 1.5; }
+
+/* ── System info ────────────────────────────────────────── */
+.sysinfo { display: flex; flex-direction: column; }
+.sysinfo__row { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.sysinfo__row + .sysinfo__row { border-top: 1px solid rgba(148, 163, 184, 0.1); }
+.sysinfo__key { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sv-slate-500); width: 96px; flex-shrink: 0; }
+.sysinfo__val { flex: 1; min-width: 0; font-size: 0.85rem; font-weight: 600; word-break: break-all; }
+.sysinfo__val.mono { font-family: var(--sv-mono); font-size: 0.72rem; color: var(--sv-slate-300); line-height: 1.45; }
+
+/* ── Console log ────────────────────────────────────────── */
+.log {
+  flex: 1; min-height: 0; margin: 0;
+  padding: 10px 4px 4px 0;
+  font-family: var(--sv-mono); font-size: 0.76rem; line-height: 1.55;
+  overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(148,163,184,0.4) transparent;
+  user-select: text;
+}
+.log::-webkit-scrollbar { width: 9px; }
+.log::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+.log__line { display: flex; gap: 10px; padding: 1px 0; }
+.log__time { color: var(--sv-slate-500); flex-shrink: 0; font-size: 0.72rem; }
+.log__msg { flex: 1; min-width: 0; color: var(--sv-slate-300); white-space: pre-wrap; word-break: break-word; }
+.log__line.lv-warn .log__msg { color: #fcd34d; }
+.log__line.lv-error .log__msg { color: #fca5a5; }
+.log__line.lv-good .log__msg { color: #6ee7b7; }
+.log__line.lv-app .log__msg { color: var(--sv-cyan-soft); }
+.log.no-wrap .log__msg { white-space: pre; }
+.log.small { font-size: 0.7rem; }
+.log.large { font-size: 0.84rem; }
+
+.log__jump {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  display: none; align-items: center; gap: 6px;
+  padding: 6px 13px; border-radius: 999px; font-size: 0.74rem; font-weight: 700;
+  background: rgba(124, 58, 237, 0.9); color: #fff; border: none; cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45); z-index: 4;
+}
+.log__jump.show { display: inline-flex; }
+.log__empty { padding: 18px 4px; color: var(--sv-slate-500); font-size: 0.8rem; text-align: center; }
+
+/* ── Update status inside settings ──────────────────────── */
+.upd-status { font-size: 0.8rem; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+.upd-status.ok { color: #6ee7b7; border-color: rgba(16,185,129,0.32); background: rgba(16,185,129,0.1); }
+.upd-status.err { color: #fca5a5; border-color: rgba(239,68,68,0.32); background: rgba(239,68,68,0.1); }
+.upd-status.busy { color: #fcd34d; border-color: rgba(245,158,11,0.32); background: rgba(245,158,11,0.1); }
+
+.danger-zone { border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 12px 14px; background: rgba(239, 68, 68, 0.06); }
+.danger-zone .sv-row + .sv-row { border-top-color: rgba(239, 68, 68, 0.18); }

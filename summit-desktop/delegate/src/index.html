@@ -4,9 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SciVerse Summit Delegate</title>
+<link rel="stylesheet" href="bootstrap-icons.css">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
+<div class="sv-ambient" aria-hidden="true">
+  <div class="sv-blob sv-blob-a"></div>
+  <div class="sv-blob sv-blob-b"></div>
+</div>
+
 <div id="updateOverlay" aria-hidden="true">
   <div class="update-floaters" aria-hidden="true">
     <span class="floater">◈</span><span class="floater">⬢</span><span class="floater">✦</span><span class="floater">⬣</span><span class="floater">◆</span><span class="floater">✧</span>
@@ -18,12 +26,10 @@
     <div class="update-bar"><span id="updateBar"></span></div>
     <div class="update-meta"><span id="updatePct">—</span><span id="updateSpeed"></span></div>
     <div class="update-tip" id="updateTip"></div>
-    <div class="update-actions" id="updateActions" style="display:none">
-      <button id="updateRestartBtn" class="primary">Restart to Update</button>
-      <button id="updateLaterBtn" class="ghost">Later</button>
-    </div>
+    <div class="update-actions" id="updateActions" style="display:none"></div>
   </div>
 </div>
+
 <div id="splash">
   <div class="splash-inner">
     <div class="splash-logo">S</div>
@@ -32,172 +38,172 @@
     <div class="splash-bar"><span></span></div>
   </div>
 </div>
-<div class="wrap">
-  <div class="card">
-    <div class="logo">S</div>
-    <h1>SciVerse Summit</h1>
-    <p class="sub">Delegate &mdash; connect to your chair&rsquo;s session.</p>
 
-    <div id="form">
-      <label for="host">Chair address (shown on the chair&rsquo;s screen)</label>
-      <input type="text" id="host" placeholder="e.g. 192.168.1.42">
-      <button id="connectBtn" class="primary" style="width:100%">Connect</button>
+<div class="sv-shell">
+  <header class="sv-header sv-glint">
+    <span class="sv-glow" aria-hidden="true"></span>
+    <div class="sv-brand">
+      <div class="sv-logo">S</div>
+      <div class="sv-brand-text">
+        <span class="sv-brand-name">SciVerse Summit</span>
+        <span class="sv-brand-sub">Delegate</span>
+      </div>
     </div>
+    <div class="sv-header-spacer"></div>
+    <span class="sv-version" id="appVersion">v—</span>
+    <button class="sv-btn sv-btn-icon" id="settingsBtn" title="Settings" aria-label="Settings"><i class="bi bi-gear"></i></button>
+  </header>
 
-    <div class="status" id="status" style="display:none">
-      <span class="dot starting"></span><span id="statusText">Waiting for the chair to start the session…</span>
+  <div class="sv-main single">
+    <div class="sv-col">
+
+      <!-- Connect / waiting -->
+      <section class="sv-panel sv-glint">
+        <span class="sv-glow" aria-hidden="true"></span>
+
+        <div id="formView">
+          <div class="connect__head">
+            <div class="connect__icon"><i class="bi bi-broadcast-pin"></i></div>
+            <div>
+              <div class="connect__title">Join a session</div>
+              <div class="connect__sub">Enter the address your chair shows on screen.</div>
+            </div>
+          </div>
+          <div class="connect__form">
+            <div class="sv-field">
+              <label class="sv-label" for="host">Chair address</label>
+              <input class="sv-input is-mono" type="text" id="host" placeholder="192.168.1.42" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="connect__actions">
+              <button class="sv-btn sv-btn-primary" id="connectBtn"><i class="bi bi-lightning-charge-fill"></i><span>Connect</span></button>
+            </div>
+            <div class="connect__error" id="connectError"></div>
+          </div>
+          <p class="sv-hint" style="margin-top:14px">
+            The port is always <span class="sv-mono">8080</span> &mdash; you only type the address.
+            You can leave this open; we&rsquo;ll take you in as soon as the chair starts.
+          </p>
+        </div>
+
+        <div class="connect__state" id="stateView" data-state="waiting">
+          <div class="connect__lamp"><i class="bi bi-hourglass-split" id="stateIcon"></i></div>
+          <div class="connect__headline" id="stateTitle">Waiting for the chair…</div>
+          <div class="connect__detail" id="stateDetail">Looking for <span class="connect__target" id="stateTarget">—</span></div>
+          <div class="connect__buttons">
+            <button class="sv-btn" id="cancelBtn"><i class="bi bi-arrow-left"></i><span>Back</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent chairs -->
+      <section class="sv-panel sv-glint" id="recentPanel" style="display:none">
+        <span class="sv-glow" aria-hidden="true"></span>
+        <div class="sv-panel-head">
+          <i class="bi bi-clock-history" style="color:var(--sv-violet-soft)"></i>
+          <span class="sv-panel-title">Recent chairs</span>
+          <span class="sv-spacer"></span>
+          <button class="sv-btn sv-btn-sm" id="clearRecentBtn">Clear</button>
+        </div>
+        <div class="recent__list" id="recentList"></div>
+      </section>
+
+      <p class="sv-tiny sv-muted" style="text-align:center">
+        Don't have the address? Ask your chair &mdash; it's shown on their console.
+      </p>
     </div>
-
-    <p class="hint">Leave this open — you&rsquo;ll be taken in automatically once the session server is up.</p>
   </div>
 </div>
+
+<!-- Settings modal -->
+<div class="sv-modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="sv-modal__panel">
+    <div class="sv-modal__head">
+      <div class="sv-modal__icon"><i class="bi bi-gear"></i></div>
+      <div>
+        <div class="sv-modal__title" id="settingsTitle">Settings</div>
+        <div class="sv-modal__sub">Delegate app preferences</div>
+      </div>
+      <div class="sv-header-spacer"></div>
+      <button class="sv-btn sv-btn-icon" data-close-modal aria-label="Close settings"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sv-modal__body sv-scroll">
+      <div class="sv-group">
+        <div class="sv-group__title">Updates</div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Check for updates</div>
+            <div class="sv-row__desc">Looks for a newer release on GitHub. You choose whether to install it.</div>
+          </div>
+          <div class="sv-row__control">
+            <button class="sv-btn sv-btn-sm sv-btn-primary" id="checkUpdateBtn">Check now</button>
+          </div>
+        </div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Status</div>
+            <div class="upd-status" id="updStatus">Not checked yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sv-group">
+        <div class="sv-group__title">Connection</div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Remember recent chairs</div>
+            <div class="sv-row__desc">Keeps the last few addresses so you can reconnect quickly.</div>
+          </div>
+          <div class="sv-row__control">
+            <label class="sv-toggle"><input type="checkbox" id="setRemember"><span class="sv-track"></span></label>
+          </div>
+        </div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Connect automatically on launch</div>
+            <div class="sv-row__desc">Joins your most recent chair without you retyping the address.</div>
+          </div>
+          <div class="sv-row__control">
+            <label class="sv-toggle"><input type="checkbox" id="setAutoConnect"><span class="sv-track"></span></label>
+          </div>
+        </div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Port</div>
+            <div class="sv-row__desc">Fixed at 8080 to match the chair app &mdash; nothing to type.</div>
+          </div>
+          <div class="sv-row__control"><span class="sv-pill"><span class="sv-dot"></span>8080</span></div>
+        </div>
+      </div>
+
+      <div class="sv-group">
+        <div class="sv-group__title">Application</div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Launch on Windows startup</div>
+            <div class="sv-row__desc">Start the app automatically when you log in.</div>
+          </div>
+          <div class="sv-row__control">
+            <label class="sv-toggle"><input type="checkbox" id="setLaunchAtLogin"><span class="sv-track"></span></label>
+          </div>
+        </div>
+        <div class="sv-row">
+          <div class="sv-row__text">
+            <div class="sv-row__label">Sparkle effects</div>
+            <div class="sv-row__desc">Turn off for less motion and a calmer interface.</div>
+          </div>
+          <div class="sv-row__control">
+            <label class="sv-toggle"><input type="checkbox" id="setGlint"><span class="sv-track"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sv-modal__foot">
+      <button class="sv-btn" data-close-modal>Close</button>
+    </div>
+  </div>
+</div>
+
 <script src="update-tips.js"></script>
-<script>
-// Update overlay — interesting download + ready states, floating icons, tip rotator.
-(function () {
-  const api0 = window.summitAPI;
-  if (!api0) return;
-  const overlay = document.getElementById('updateOverlay');
-  const title = document.getElementById('updateTitle');
-  const sub = document.getElementById('updateSub');
-  const bar = document.getElementById('updateBar');
-  const pct = document.getElementById('updatePct');
-  const speed = document.getElementById('updateSpeed');
-  const tipEl = document.getElementById('updateTip');
-  const actions = document.getElementById('updateActions');
-  const restartBtn = document.getElementById('updateRestartBtn');
-  const laterBtn = document.getElementById('updateLaterBtn');
-  let tipTimer = null;
-  let tipIdx = 0;
-  function tips() { return (typeof UPDATE_TIPS !== 'undefined' && Array.isArray(UPDATE_TIPS) && UPDATE_TIPS.length) ? UPDATE_TIPS : ["Tip: Updates install on restart."]; }
-  function showTip() {
-    const arr = tips();
-    tipEl.style.opacity = '0';
-    setTimeout(() => {
-      tipEl.textContent = arr[tipIdx % arr.length];
-      tipEl.style.opacity = '1';
-      tipIdx++;
-    }, 320);
-  }
-  function startTips() {
-    tipIdx = Math.floor(Math.random() * tips().length);
-    showTip();
-    tipTimer = setInterval(showTip, 3200);
-  }
-  function stopTips() { if (tipTimer) clearInterval(tipTimer); tipTimer = null; }
-  function open() { overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false'); }
-  function fmtSpeed(bps) {
-    if (!bps || bps <= 0) return '';
-    const kb = bps / 1024;
-    return kb > 1024 ? (kb / 1024).toFixed(1) + ' MB/s' : Math.round(kb) + ' KB/s';
-  }
-  if (api0.onUpdateAvailable) api0.onUpdateAvailable((info) => {
-    open(); stopTips();
-    const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
-    title.textContent = 'Update available' + ver;
-    sub.textContent = 'A new version is ready to download. Want to update now?';
-    bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
-    tipEl.textContent = 'Tip: You can continue working — download starts only if you click Download.';
-    actions.innerHTML = '<button id="updDownloadBtn" class="primary">Download Update</button><button id="updLaterBtn" class="ghost">Later</button>';
-    actions.style.display = 'flex';
-    const dl = document.getElementById('updDownloadBtn');
-    const later = document.getElementById('updLaterBtn');
-    if (dl) dl.addEventListener('click', () => {
-      title.textContent = 'Downloading update…';
-      sub.textContent = 'Hang tight — almost there.';
-      bar.style.width = '6%'; pct.textContent = '6%';
-      actions.style.display = 'none';
-      startTips();
-      if (api0.downloadUpdate) api0.downloadUpdate();
-    });
-    if (later) later.addEventListener('click', () => { overlay.classList.remove('open'); stopTips(); });
-  });
-  if (api0.onUpdateProgress) api0.onUpdateProgress((p) => {
-    open();
-    const n = Math.max(0, Math.min(100, Math.round(p.percent || 0)));
-    bar.style.width = n + '%'; pct.textContent = n + '%';
-    speed.textContent = fmtSpeed(p.bytesPerSecond);
-    title.textContent = 'Downloading update…';
-    sub.textContent = 'Hang tight — almost there.';
-    actions.style.display = 'none';
-    if (!tipTimer) startTips();
-  });
-  if (api0.onUpdateDownloaded) api0.onUpdateDownloaded((info) => {
-    open(); stopTips();
-    const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
-    bar.style.width = '100%'; pct.textContent = '100%'; speed.textContent = '';
-    title.textContent = 'Update ready' + ver;
-    sub.textContent = 'SciVerse Summit ' + ver.trim() + ' is ready — restart to apply it.';
-    actions.innerHTML = '<button id="updateRestartBtn" class="primary">Restart to Update</button><button id="updateLaterBtn2" class="ghost">Later</button>';
-    actions.style.display = 'flex';
-    tipEl.textContent = 'Tip: Click Restart to Update when you are ready.';
-    const rb = document.getElementById('updateRestartBtn');
-    const lb = document.getElementById('updateLaterBtn2');
-    if (rb) rb.addEventListener('click', () => { if (api0.restartToUpdate) api0.restartToUpdate(); });
-    if (lb) lb.addEventListener('click', () => { overlay.classList.remove('open'); });
-  });
-  if (api0.onUpdateError) api0.onUpdateError((msg) => {
-    bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
-    title.textContent = 'Update check failed';
-    sub.textContent = String(msg || 'Will retry next launch. Your current version keeps working.');
-    stopTips(); tipEl.textContent = '';
-    actions.style.display = 'none';
-    setTimeout(() => overlay.classList.remove('open'), 4200);
-  });
-  // Fallback wiring for pre-rendered buttons
-  if (restartBtn) restartBtn.addEventListener('click', () => { if (api0.restartToUpdate) api0.restartToUpdate(); });
-  if (laterBtn) laterBtn.addEventListener('click', () => { overlay.classList.remove('open'); });
-})();
-</script>
-<script>
-// In-app splash: follows the native splash window, holds ~20s so the handoff
-// reads as one continuous loading sequence (minimum 20s once the page loads).
-(function () {
-  const started = Date.now();
-  function hide() {
-    const wait = Math.max(0, 20000 - (Date.now() - started));
-    setTimeout(() => {
-      const el = document.getElementById('splash');
-      if (!el) return;
-      el.classList.add('hidden');
-      setTimeout(() => el.remove(), 500);
-    }, wait);
-  }
-  if (document.readyState === 'complete') hide();
-  else window.addEventListener('load', hide);
-  setTimeout(hide, 25000); // failsafe: never trap the user behind the splash
-})();
-const hostInput = document.getElementById('host');
-const connectBtn = document.getElementById('connectBtn');
-const form = document.getElementById('form');
-const status = document.getElementById('status');
-const statusText = document.getElementById('statusText');
-hostInput.value = localStorage.getItem('sv_chair_host') || '';
-
-async function serverUp(base) {
-  try { await fetch(base + '/login', { mode: 'no-cors' }); return true; }
-  catch { return false; }
-}
-
-connectBtn.addEventListener('click', async () => {
-  const host = hostInput.value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-  if (!host) { hostInput.focus(); return; }
-  localStorage.setItem('sv_chair_host', host);
-  const base = 'http://' + host + ':8080';
-  form.style.display = 'none';
-  status.style.display = 'flex';
-  // Poll until the chair starts the server (no timeout — committee sessions
-  // start when they start). Errors are silent retries.
-  for (;;) {
-    if (await serverUp(base)) {
-      statusText.textContent = 'Session found — joining…';
-      window.location.href = base + '/delegate';
-      return;
-    }
-    statusText.textContent = 'Waiting for the chair to start the session… (retrying)';
-    await new Promise(r => setTimeout(r, 2000));
-  }
-});
-</script>
+<script src="app.js"></script>
 </body>
 </html>
