@@ -12,7 +12,8 @@
   "scripts": {
     "theme": "node scripts/sync-theme.js",
     "start": "node scripts/sync-theme.js && electron .",
-    "dist": "node scripts/sync-theme.js && electron-builder --win nsis"
+    "dist": "node scripts/sync-theme.js && electron-builder --win nsis",
+    "dist:linux": "node scripts/sync-theme.js && electron-builder --linux AppImage"
   },
   "dependencies": {
     "electron-updater": "^6.0.0"
