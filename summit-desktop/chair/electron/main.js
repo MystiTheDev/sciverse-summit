@@ -13,7 +13,7 @@
  * application.properties: jdbc:h2:file:./data/presentationdb;AUTO_SERVER=TRUE).
  */
 
-const { app, BrowserWindow, ipcMain, shell, Menu, Tray, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Menu, Tray, nativeImage, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const dgram = require('dgram');
@@ -200,12 +200,15 @@ function createWindow() {
   });
 
   // Closing the window would stop a live session, so with "minimise to tray"
-  // on it hides to the tray instead. Tray off => a real close.
+  // on it hides to the tray instead. Tray off => a real close. If the tray
+  // could not be created (no usable icon), fall back to closing for real --
+  // hiding a window with no tray to restore it from would strand the user.
   mainWindow.on('close', (e) => {
-    if (!quitting && settings.tray) {
+    if (!quitting && settings.tray && tray) {
       e.preventDefault();
       mainWindow.hide();
       if (tray && process.platform === 'darwin') mainWindow.show();
+      notifyMinimisedToTray();
     }
   });
 
@@ -287,6 +290,28 @@ function showMainWindow() {
   if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.show();
   mainWindow.focus();
+}
+
+/* Closing the window looks like quitting, but the app is still there and a
+ * live session keeps running. Say so once, otherwise people assume the server
+ * died and try to restart it. Once per launch: it teaches the behaviour, then
+ * it is just noise. */
+let trayNoticeShown = false;
+function notifyMinimisedToTray() {
+  if (trayNoticeShown) return;
+  trayNoticeShown = true;
+  if (!tray) return;
+  if (!Notification || !Notification.isSupported()) return;
+
+  const live = !!serverProc;
+  const notice = new Notification({
+    title: 'Still running in the tray',
+    body: live
+      ? 'Your session server is still running, so your delegates stay connected. Click here to reopen the console, or right-click the tray icon to stop the server.'
+      : 'The console stays open in the background. Click here to bring it back.',
+  });
+  notice.on('click', () => showMainWindow());
+  notice.show();
 }
 
 function stopServerProc() {

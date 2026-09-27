@@ -215,6 +215,7 @@
   const headerPillText = $('headerPillText');
   const startBtn = $('startBtn');
   const openBtn = $('openBtn');
+  const stopBtn = $('stopBtn');
   const copyBtn = $('copyBtn');
   const showBtn = $('showBtn');
   const joinBox = $('joinBox');
@@ -247,6 +248,14 @@
     headerPill.className = 'sv-pill' + (state === 'idle' ? '' : ' is-' + conf[1]);
     headerPillText.textContent = conf[0];
     heroIcon.className = 'bi ' + conf[2];
+
+    // Stop is only meaningful while a process exists. Showing it on a stopped
+    // or failed server would just be a button that does nothing. While a
+    // process exists, Start is swapped out rather than left disabled, so the
+    // panel never shows two competing actions.
+    const canStop = state === 'starting' || state === 'live';
+    stopBtn.style.display = canStop ? '' : 'none';
+    startBtn.style.display = canStop ? 'none' : '';
   }
 
   function startTicker() {
@@ -454,6 +463,32 @@
   });
 
   openBtn.addEventListener('click', () => { window.location.href = BASE + '/'; });
+
+  stopBtn.addEventListener('click', async () => {
+    if (!confirm('Stop the session server?\n\nEvery delegate will be disconnected and anything not yet saved is lost.')) return;
+    stopBtn.disabled = true;
+    stopTicker();
+    startedAt = null;
+    setState('starting', 'Stopping server…', 'Waiting for the JVM to exit');
+    append('Stopping the session server (requested from the console)…', 'lv-app');
+    try {
+      await api.stopServer();
+      // server:exited normally resets the hero; if that event somehow never
+      // arrives, do not leave the console stuck on "Stopping".
+      setTimeout(() => {
+        if (hero.getAttribute('data-state') === 'starting') {
+          setState('idle', 'Server stopped', 'Start it again when you are ready');
+          startBtn.disabled = false;
+          openBtn.disabled = true;
+        }
+      }, 4000);
+    } catch (e) {
+      setState('error', 'Could not stop the server', '');
+      append('ERROR: ' + e.message, 'lv-error');
+    } finally {
+      stopBtn.disabled = false;
+    }
+  });
 
   copyBtn.addEventListener('click', async () => {
     const url = joinUrl.textContent;
