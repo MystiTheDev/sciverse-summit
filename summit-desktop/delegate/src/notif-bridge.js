@@ -37,20 +37,39 @@
     }
   } catch (e) { /* private mode or storage disabled */ }
 
+  // Re-read the shared ledger on a miss. The script is injected on every page
+  // load, so more than one instance can be alive at once; each holds its own
+  // in-memory copy, and without re-reading, a second instance would re-deliver
+  // a notification the first had already sent (visible as duplicate desktop
+  // toasts).
+  function rehydrate() {
+    try {
+      var stored = window.sessionStorage.getItem(SEEN_KEY);
+      if (stored) {
+        var parsed = JSON.parse(stored);
+        for (var k in parsed) if (Object.prototype.hasOwnProperty.call(parsed, k)) seen[k] = true;
+      }
+    } catch (e) { /* private mode or storage disabled */ }
+  }
+
   function remember(id) {
     seen[id] = true;
     try {
       // Keep the ledger bounded: only recent ids matter.
       var keys = Object.keys(seen);
       if (keys.length > 500) {
-        keys.slice(0, keys.length - 500).forEach(function (old) { delete seen[old]; });
+        keys.slice(0, keys.length - 500).forEach(function (old) { delete seen[old]; }
+        );
       }
       window.sessionStorage.setItem(SEEN_KEY, JSON.stringify(seen));
     } catch (e) { /* non-fatal */ }
   }
 
   function alreadySeen(id) {
-    return id != null && seen[id] === true;
+    if (id == null) return false;
+    if (seen[id] === true) return true;
+    rehydrate();
+    return seen[id] === true;
   }
 
   function currentUser() {
