@@ -83,7 +83,13 @@ const isHtml = (l) => /<\/?(details|summary|img|br|div|span|p|table|tr|td|b|i|u|
 const isBullet = (l) => /^\s*([-*+]|\d+[.)])\s+/.test(l);
 const isHeading = (l) => /^#{1,6}\s/.test(l);
 const isQuote = (l) => /^>\s?/.test(l);
-const isBlank = (l) => !l.trim();
+const bulletDepth = (l) => {
+  const lead = (/^[ \t]*/.exec(l)[0]);
+  if (/\t/.test(lead)) return { tabs: true, depth: 0 };
+  return { tabs: false, depth: Math.floor(lead.length / 2) };
+};
+
+const MAX_DEPTH = 4; // must match renderMarkdown's cap
 
 lines.forEach((l, i) => {
   const n = i + 1;
@@ -92,12 +98,17 @@ lines.forEach((l, i) => {
   if (isFence(l)) add(problems, n, 'code fence — renders as stray backticks. Use inline `code` on one line.');
   if (isRule(l)) add(problems, n, 'horizontal rule — renders as literal dashes. Delete the line.');
   if (isHtml(l)) add(problems, n, 'raw HTML — shown escaped as source text. Use plain markdown.');
-  // A bullet nested under another bullet silently loses its level.
-  if (/^\s{2,}[-*+]\s+/.test(l) && lines.slice(0, i).some(isBullet)) {
-    add(problems, n, 'nested bullet — flattened, the sub-level is lost. Make it a sibling bullet.');
+
+  // Nesting IS supported now, so only flag the things it cannot express.
+  if (isBullet(l)) {
+    const { tabs, depth } = bulletDepth(l);
+    if (tabs) add(problems, n, 'tab indentation — use 2 spaces per level.');
+    const lead = (/^[ \t]*/.exec(l)[0]).length;
+    if (lead % 2 !== 0) add(warnings, n, 'indent of ' + lead + ' spaces — nesting is 2 spaces per level.');
+    if (depth >= MAX_DEPTH) add(warnings, n, 'deeper than ' + MAX_DEPTH + ' levels — anything past that is flattened.');
   }
-  if (isHeading(l) && /^#{5,6}\s/.test(l)) add(warnings, n, 'h5/h6 is rendered as h4 — use ## instead.');
-  if (/^\d+[.)]\s+/.test(l)) add(warnings, n, 'ordered list renders as bullets, numbers dropped. Prefer "-".');
+  if (isHeading(l) && /^#{5,6}\s/.test(l)) add(warnings, n, 'h5/h6 renders as h4 — use ## or ### instead.');
+  if (/^\s*\d+[.)]\s+/.test(l)) add(warnings, n, 'ordered list renders as bullets, numbers dropped. Prefer "-".');
   if (l.length > 240) add(warnings, n, 'very long line (' + l.length + ' chars) — these get scanned, not read.');
 });
 

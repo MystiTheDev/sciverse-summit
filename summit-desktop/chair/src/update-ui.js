@@ -87,14 +87,44 @@
   function renderMarkdown(md) {
     var lines = String(md == null ? '' : md).split('\n');
     var out = [];
-    var list = null;
     var para = [];
+
+    // One entry per currently-open <ul>, so nesting can be closed back out to
+    // the right level. `liOpen` records whether that level has an <li> still
+    // awaiting its closing tag, which is what lets a nested <ul> sit inside
+    // its parent <li> rather than beside it.
+    var stack = [];
 
     function flushPara() {
       if (para.length) { out.push('<p>' + inline(para.join(' ')) + '</p>'); para = []; }
     }
-    function flushList() {
-      if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; }
+    function closeListsTo(n) {
+      while (stack.length > n) {
+        var top = stack.pop();
+        if (top.liOpen) { out.push('</li>'); top.liOpen = false; }
+        out.push('</ul>');
+      }
+    }
+    function flushList() { closeListsTo(0); }
+
+    // Two spaces per level, and capped so a pathological indent cannot
+    // produce unbounded nesting.
+    var MAX_DEPTH = 4;
+    function depthOf(line) {
+      var lead = (/^[ \t]*/.exec(line)[0]).replace(/\t/g, '  ').length;
+      return Math.min(Math.floor(lead / 2), MAX_DEPTH);
+    }
+
+    function pushBullet(depth, text) {
+      flushPara();
+      var target = depth + 1;
+      closeListsTo(target);
+      while (stack.length < target) { out.push('<ul>'); stack.push({ liOpen: false }); }
+      // A sibling bullet closes the previous <li> before starting this one.
+      var top = stack[stack.length - 1];
+      if (top.liOpen) { out.push('</li>'); top.liOpen = false; }
+      out.push('<li>' + inline(text));
+      top.liOpen = true;
     }
 
     for (var i = 0; i < lines.length; i++) {
@@ -119,19 +149,16 @@
         continue;
       }
 
+      // Depth comes from the raw line, so indented bullets keep their level.
       var b = /^[-*+]\s+(.*)$/.exec(t);
       if (b) {
-        flushPara();
-        if (!list) list = [];
-        list.push('<li>' + inline(b[1]) + '</li>');
+        pushBullet(depthOf(line), b[1]);
         continue;
       }
 
       var numbered = /^\d+[.)]\s+(.*)$/.exec(t);
       if (numbered) {
-        flushPara();
-        if (!list) list = [];
-        list.push('<li>' + inline(numbered[1]) + '</li>');
+        pushBullet(depthOf(line), numbered[1]);
         continue;
       }
 

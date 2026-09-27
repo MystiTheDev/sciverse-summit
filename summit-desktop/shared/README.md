@@ -84,9 +84,15 @@ type: upgrade
 
 `type: update` (or omitting the line entirely) is a routine update. The first
 line is consumed as a marker; **everything after it is the changelog**, rendered
-from a safe subset of markdown (headings, lists, bold/italic, inline code,
-links, blockquotes). All input is HTML-escaped before formatting is applied, so
-release notes can never inject markup.
+from a safe subset of markdown (headings, nested lists, bold/italic, inline
+code, links, blockquotes). All input is HTML-escaped before formatting is
+applied, so release notes can never inject markup.
+
+The style follows the Fisch update logs: icon per section, `###` sub-headings
+per item, terse scannable bullets, and `old → **new**` for anything that
+changed value. `shared/RELEASE-NOTES.md` is the reusable template, and
+`shared/check-release-notes.js` validates a draft against the real renderer so
+an unsupported construct cannot ship as broken text.
 
 | | routine update | major upgrade |
 | --- | --- | --- |

@@ -26,6 +26,12 @@
 .sv-notes ul { margin: 0 0 8px; padding-left: 18px; }
 .sv-notes li { font-size: 0.82rem; line-height: 1.55; color: var(--sv-slate-300); margin-bottom: 3px; }
 .sv-notes li::marker { color: var(--sv-cyan); }
+/* Nested bullets, for the "item then its stat changes" pattern that release
+ * notes use a lot. Indented and dimmed so the hierarchy is readable. */
+.sv-notes ul ul { margin: 4px 0 6px; padding-left: 16px; }
+.sv-notes ul ul > li { color: var(--sv-slate-400); font-size: 0.8rem; margin-bottom: 2px; }
+.sv-notes ul ul > li::marker { color: var(--sv-violet-soft); }
+.sv-notes ul ul ul { border-left: 1px solid rgba(148, 163, 184, 0.22); }
 .sv-notes code {
   font-family: var(--sv-mono); font-size: 0.76rem;
   background: rgba(6, 182, 212, 0.12); color: var(--sv-cyan-soft);
