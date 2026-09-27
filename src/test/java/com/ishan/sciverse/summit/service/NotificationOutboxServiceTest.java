@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -33,6 +34,9 @@ class NotificationOutboxServiceTest {
 
     @Mock
     private NotificationMetrics metrics;
+
+    @Spy
+    private NotificationPayloads payloads = new NotificationPayloads();
 
     @InjectMocks
     private NotificationOutboxService outboxService;
@@ -76,6 +80,50 @@ class NotificationOutboxServiceTest {
         outboxService.retryFailedNotifications();
 
         verify(metrics).incrementRetried();
+        assertEquals("SENT", n.getStatus());
+        assertNull(n.getNextRetryAt());
+    }
+
+    @Test
+    void retryFailedNotifications_actuallyDeliversToTheRecipient() {
+        Notification n = new Notification();
+        n.setId(1L);
+        n.setUser(testUser);
+        n.setStatus("FAILED");
+        n.setRetryCount(0);
+        n.setNextRetryAt(LocalDateTime.now().minusSeconds(1));
+
+        when(notificationRepository.findByStatusAndNextRetryAtBefore(eq("FAILED"), any(LocalDateTime.class)))
+                .thenReturn(List.of(n));
+        when(notificationRepository.save(any(Notification.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        outboxService.retryFailedNotifications();
+
+        // The old implementation published an empty global hint and never
+        // delivered anything; the retry must now reach the addressee.
+        verify(liveEventService).publishToUser(eq("testuser"), eq("notif.changed"), anyString());
+        verify(liveEventService, never()).publish(eq("notif.changed"), eq(""));
+    }
+
+    @Test
+    void retryFailedNotifications_deliveryFailure_keepsEntryRetryable() {
+        Notification n = new Notification();
+        n.setId(1L);
+        n.setUser(testUser);
+        n.setStatus("FAILED");
+        n.setRetryCount(0);
+        n.setNextRetryAt(LocalDateTime.now().minusSeconds(1));
+
+        when(notificationRepository.findByStatusAndNextRetryAtBefore(eq("FAILED"), any(LocalDateTime.class)))
+                .thenReturn(List.of(n));
+        when(notificationRepository.save(any(Notification.class)))
+                .thenThrow(new RuntimeException("DB still down"));
+
+        outboxService.retryFailedNotifications();
+
+        assertEquals("FAILED", n.getStatus(), "a failed attempt must stay retryable");
+        assertNotNull(n.getNextRetryAt(), "a failed attempt must schedule a backoff");
+        verify(metrics, never()).incrementRetried();
     }
 
     @Test

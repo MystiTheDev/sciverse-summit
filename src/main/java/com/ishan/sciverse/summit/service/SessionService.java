@@ -55,15 +55,24 @@ public class SessionService {
 
     private static final String JOIN_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
-    /** Notify every joined delegate that the session has ended, then remove all memberships. */
-    private void notifyAndKickDelegates(Session session) {
+    /**
+     * Tells every joined delegate what happened, then removes all memberships.
+     *
+     * <p>This used to always say the session "has ended", which was wrong for
+     * the delete paths: nothing ended, the chair deleted it. Delegates get the
+     * accurate wording instead. There is deliberately no deep link either way
+     * — the session is gone, so there is nowhere to navigate to.
+     */
+    private void notifyAndKickDelegates(Session session, boolean deleted) {
         List<DelegateMembership> memberships = membershipRepository.findBySession(session);
         for (DelegateMembership m : memberships) {
             if (m.getUser() != null) {
                 notificationService.notifyUser(
                         m.getUser(),
-                        "Session Ended",
-                        "The chair has ended the session \"" + session.getName() + "\".",
+                        deleted ? "Session Deleted" : "Session Ended",
+                        deleted
+                                ? "The chair deleted the session \"" + session.getName() + "\"."
+                                : "The chair has ended the session \"" + session.getName() + "\".",
                         "SESSION_ENDED",
                         null);
             }
@@ -153,7 +162,7 @@ public class SessionService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         sessionRepository.findById(sessionId).ifPresent(session -> {
             if (session.getUser() != null && username.equals(session.getUser().getUsername())) {
-                notifyAndKickDelegates(session);
+                notifyAndKickDelegates(session, false);
                 session.setActive(false);
                 if (ebReview != null && !ebReview.isBlank()) {
                     session.setEbReview(ebReview.trim());
@@ -191,7 +200,7 @@ public class SessionService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<Session> userSessions = sessionRepository.findByUser(user);
         for (Session session : userSessions) {
-            notifyAndKickDelegates(session);
+            notifyAndKickDelegates(session, true);
             purgeSessionChildren(session);
         }
         sessionRepository.deleteAll(userSessions);
@@ -206,7 +215,7 @@ public class SessionService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         sessionRepository.findById(sessionId).ifPresent(session -> {
             if (session.getUser().getId().equals(user.getId())) {
-                notifyAndKickDelegates(session);
+                notifyAndKickDelegates(session, true);
                 purgeSessionChildren(session);
                 auditService.log("SESSION_DELETED", "SESSION", sessionId, sessionId,
                         "Deleted session \"" + session.getName() + "\".");

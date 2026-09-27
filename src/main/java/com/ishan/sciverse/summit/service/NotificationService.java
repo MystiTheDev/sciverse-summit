@@ -15,14 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -57,22 +53,27 @@ public class NotificationService {
     @Autowired
     private NotificationMetrics metrics;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private NotificationPayloads payloads;
 
     private String notificationPayload(Notification n) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", n.getId());
-        map.put("userId", n.getUser() != null ? n.getUser().getUsername() : "");
-        map.put("title", n.getTitle() != null ? n.getTitle() : "");
-        map.put("message", n.getMessage() != null ? n.getMessage() : "");
-        map.put("type", n.getType() != null ? n.getType() : "GENERAL");
-        map.put("link", n.getLink() != null ? n.getLink() : "");
-        try {
-            return objectMapper.writeValueAsString(map);
-        } catch (Exception e) {
-            log.warn("Failed to serialize notification payload: {}", e.getMessage());
-            return "";
+        return payloads.build(n);
+    }
+
+    /**
+     * Delivers a saved notification to its addressee's open event streams and
+     * marks it SENT. Routing is per-user: before this, the payload (including
+     * the recipient's id, title and message) was pushed to every connected
+     * browser.
+     */
+    private void deliver(Notification n) {
+        if (n == null || n.getUser() == null) {
+            return;
         }
+        liveEventService.publishToUser(n.getUser().getUsername(), "notif.changed", notificationPayload(n));
+        n.setStatus("SENT");
+        n.setNextRetryAt(null);
+        notificationRepository.save(n);
     }
 
     public Notification notifyUserQuietly(User user, String title, String message, String type, String link) {
@@ -126,11 +127,11 @@ public class NotificationService {
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
-                        liveEventService.publish("notif.changed", notificationPayload(saved));
+                        deliver(saved);
                     }
                 });
             } else {
-                liveEventService.publish("notif.changed", notificationPayload(saved));
+                deliver(saved);
             }
 
             log.info("Notification created: id={}, user={}, type={}, sse_fired={}", saved.getId(), user.getUsername(), type, TransactionSynchronizationManager.isSynchronizationActive() ? "afterCommit" : "immediate");
@@ -176,11 +177,11 @@ public class NotificationService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    liveEventService.publish("notif.changed", saved.isEmpty() ? "" : notificationPayload(saved.get(0)));
+                    saved.forEach(NotificationService.this::deliver);
                 }
             });
         } else {
-            liveEventService.publish("notif.changed", saved.isEmpty() ? "" : notificationPayload(saved.get(0)));
+            saved.forEach(NotificationService.this::deliver);
         }
 
         log.info("Batch notification created: count={}, session={}, type={}", saved.size(), session.getId(), type);
@@ -202,26 +203,25 @@ public class NotificationService {
                 .orElse(0L);
     }
 
-    public Optional<Notification> getById(Long id) {
-        return notificationRepository.findById(id);
-    }
-
-    public void markRead(Long id, String username) {
-        notificationRepository.findById(id).ifPresent(n -> {
-            if (n.getUser() != null && n.getUser().getUsername().equalsIgnoreCase(username)) {
-                n.setRead(true);
-                notificationRepository.save(n);
-            }
-        });
-    }
-
-    public void markAllRead(String username) {
-        userRepository.findByUsername(username).ifPresent(u ->
-                notificationRepository.findByUserOrderByCreatedAtDesc(u)
-                        .forEach(n -> {
-                            n.setRead(true);
-                            notificationRepository.save(n);
-                        }));
+    /**
+     * Marks one notification read.
+     *
+     * @return true when the notification existed, belonged to {@code username}
+     *         and was not already read; false otherwise, so the controller can
+     *         answer 404 instead of pretending the call succeeded.
+     */
+    public boolean markRead(Long id, String username) {
+        Notification n = notificationRepository.findById(id).orElse(null);
+        if (n == null || n.getUser() == null
+                || !n.getUser().getUsername().equalsIgnoreCase(username)) {
+            return false;
+        }
+        if (n.isRead()) {
+            return true;
+        }
+        n.setRead(true);
+        notificationRepository.save(n);
+        return true;
     }
 
     @Transactional

@@ -2,6 +2,7 @@ package com.ishan.sciverse.summit.repository;
 
 import com.ishan.sciverse.summit.entity.Notification;
 import com.ishan.sciverse.summit.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,16 +29,21 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     /** Outbox: find failed notifications ready for retry. */
     List<Notification> findByStatusAndNextRetryAtBefore(String status, LocalDateTime threshold);
 
-    /** Outbox: count notifications in a given status for a user. */
-    long countByUserAndStatus(User user, String status);
-
     /** Cleanup: delete notifications older than the given date. */
     @Modifying
     @Transactional
     @Query("DELETE FROM Notification n WHERE n.createdAt < :cutoff")
     long deleteByCreatedAtBefore(@Param("cutoff") LocalDateTime cutoff);
 
-    /** Cleanup: find oldest notifications for a user beyond the max count. */
-    @Query("SELECT n FROM Notification n WHERE n.user = :user ORDER BY n.createdAt DESC")
-    List<Notification> findOldestForUser(@Param("user") User user, org.springframework.data.domain.Pageable pageable);
+    /**
+     * Cleanup: the oldest notifications for a user, so trimming to
+     * {@code notification.max-per-user} discards the stalest rows.
+     *
+     * <p>Must stay {@code ASC}. This previously read {@code DESC}, which made
+     * the per-user trim delete each user's <em>newest</em> notifications and
+     * keep the oldest — the exact opposite of the intent, and a silent loss of
+     * recent alerts.
+     */
+    @Query("SELECT n FROM Notification n WHERE n.user = :user ORDER BY n.createdAt ASC")
+    List<Notification> findOldestForUser(@Param("user") User user, Pageable pageable);
 }

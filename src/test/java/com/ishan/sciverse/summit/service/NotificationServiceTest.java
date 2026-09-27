@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -41,6 +42,9 @@ class NotificationServiceTest {
 
     @Mock
     private NotificationMetrics metrics;
+
+    @Spy
+    private NotificationPayloads payloads = new NotificationPayloads();
 
     @InjectMocks
     private NotificationService notificationService;
@@ -75,7 +79,10 @@ class NotificationServiceTest {
         assertEquals("GENERAL", result.getType());
         assertEquals("/test", result.getLink());
         assertFalse(result.isRead());
-        verify(notificationRepository).save(any(Notification.class));
+        // Saved twice on purpose: once to persist the row, then again by
+        // deliver() to record SENT. notifyUser is not itself transactional, so
+        // the entity is detached and the status change needs an explicit write.
+        verify(notificationRepository, atLeastOnce()).save(any(Notification.class));
         verify(metrics).incrementCreated();
     }
 
@@ -183,8 +190,9 @@ class NotificationServiceTest {
 
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(n));
 
-        notificationService.markRead(1L, "testuser");
+        boolean result = notificationService.markRead(1L, "testuser");
 
+        assertFalse(result, "a notification owned by someone else is not markable");
         assertFalse(n.isRead());
         verify(notificationRepository, never()).save(any());
     }
@@ -208,7 +216,7 @@ class NotificationServiceTest {
     }
 
     @Test
-    void notifySessionDelegates_batchOnlyOneSseEvent() {
+    void notifySessionDelegates_routesOneEventPerDelegate() {
         User user1 = new User();
         user1.setId(1L);
         user1.setUsername("user1");
@@ -235,5 +243,39 @@ class NotificationServiceTest {
         assertEquals(2, count);
         verify(notificationRepository).saveAll(any());
         verify(metrics, times(2)).incrementCreated();
+
+        // One event per delegate, each addressed to its own recipient --
+        // never a single broadcast carrying user1's payload to everyone.
+        verify(liveEventService).publishToUser(eq("user1"), eq("notif.changed"), anyString());
+        verify(liveEventService).publishToUser(eq("user2"), eq("notif.changed"), anyString());
+        verify(liveEventService, never()).publish(eq("notif.changed"), anyString());
+    }
+
+    @Test
+    void notifyUser_routesEventToRecipientOnly() {
+        when(notificationRepository.save(any())).thenAnswer(invocation -> {
+            Notification n = invocation.getArgument(0);
+            n.setId(42L);
+            return n;
+        });
+
+        notificationService.notifyUser(testUser, "Title", "Msg", "GENERAL", null);
+
+        verify(liveEventService).publishToUser(eq("testuser"), eq("notif.changed"), anyString());
+        verify(liveEventService, never()).publish(anyString(), anyString());
+    }
+
+    @Test
+    void notifyUser_marksDelivered_asSent() {
+        when(notificationRepository.save(any())).thenAnswer(invocation -> {
+            Notification n = invocation.getArgument(0);
+            n.setId(42L);
+            return n;
+        });
+
+        Notification result = notificationService.notifyUser(testUser, "Title", "Msg", "GENERAL", null);
+
+        assertEquals("SENT", result.getStatus(),
+                "a delivered notification must not stay PENDING");
     }
 }

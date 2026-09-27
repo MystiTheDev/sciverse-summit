@@ -3,7 +3,6 @@ package com.ishan.sciverse.summit.service;
 import com.ishan.sciverse.summit.entity.Notification;
 import com.ishan.sciverse.summit.entity.User;
 import com.ishan.sciverse.summit.repository.NotificationRepository;
-import com.ishan.sciverse.summit.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Retry queue for notifications that could not be persisted on the first
+ * attempt.
+ *
+ * <p>Previously the "retry" did no delivery at all: it flipped
+ * {@code FAILED -> SENT} and published an empty-payload refresh hint, so an
+ * entry could be marked delivered without ever reaching its recipient. Now the
+ * attempt actually re-saves the row and pushes the real payload to the
+ * addressee, and only a genuine failure keeps the entry retryable.
+ *
+ * <p>Outbox rows are created with {@code read = true} on purpose: a failed
+ * first attempt should not light up the unread badge for something the user
+ * may never have seen.
+ */
 @Service
 public class NotificationOutboxService {
 
@@ -25,10 +38,10 @@ public class NotificationOutboxService {
     private NotificationRepository notificationRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private LiveEventService liveEventService;
 
     @Autowired
-    private LiveEventService liveEventService;
+    private NotificationPayloads payloads;
 
     @Autowired
     private NotificationMetrics metrics;
@@ -63,33 +76,47 @@ public class NotificationOutboxService {
         List<Notification> retryable = notificationRepository.findByStatusAndNextRetryAtBefore("FAILED", now);
 
         for (Notification n : retryable) {
+            String who = n.getUser() != null ? n.getUser().getUsername() : "<no user>";
             try {
                 if (n.getRetryCount() >= maxRetries) {
                     n.setStatus("DEAD_LETTER");
                     n.setNextRetryAt(null);
                     notificationRepository.save(n);
                     log.warn("Notification moved to dead letter: id={}, user={}, retries={}",
-                            n.getId(), n.getUser().getUsername(), n.getRetryCount());
+                            n.getId(), who, n.getRetryCount());
                     continue;
                 }
 
                 n.setStatus("RETRYING");
                 n.setRetryCount(n.getRetryCount() + 1);
-                int backoffIndex = Math.min(n.getRetryCount() - 1, BACKOFF_MS.length - 1);
-                long jitter = ThreadLocalRandom.current().nextLong(0, BACKOFF_MS[backoffIndex] / 10);
-                n.setNextRetryAt(LocalDateTime.now().plus(Duration.ofMillis(BACKOFF_MS[backoffIndex] + jitter)));
-                notificationRepository.save(n);
 
-                liveEventService.publish("notif.changed", "");
-                n.setStatus("SENT");
-                n.setNextRetryAt(null);
-                notificationRepository.save(n);
+                // Real delivery attempt: persist, then push to the addressee.
+                // Per-user routing means no other browser sees this payload.
+                Notification saved = notificationRepository.save(n);
+                if (saved.getUser() != null) {
+                    liveEventService.publishToUser(saved.getUser().getUsername(), "notif.changed", payloads.build(saved));
+                }
+
+                saved.setStatus("SENT");
+                saved.setNextRetryAt(null);
+                notificationRepository.save(saved);
                 metrics.incrementRetried();
-                log.debug("Retry succeeded: id={}, attempt={}", n.getId(), n.getRetryCount());
+                log.debug("Retry delivered: id={}, user={}, attempt={}", saved.getId(), who, saved.getRetryCount());
+
             } catch (Exception e) {
-                log.error("Retry failed: id={}, attempt={}, error={}", n.getId(), n.getRetryCount(), e.getMessage());
+                // Still failing: keep it retryable and back off before the next try.
+                int backoffIndex = Math.min(Math.max(n.getRetryCount() - 1, 0), BACKOFF_MS.length - 1);
+                long jitter = ThreadLocalRandom.current().nextLong(0, Math.max(1, BACKOFF_MS[backoffIndex] / 10));
                 n.setStatus("FAILED");
-                notificationRepository.save(n);
+                n.setNextRetryAt(LocalDateTime.now().plus(Duration.ofMillis(BACKOFF_MS[backoffIndex] + jitter)));
+                try {
+                    notificationRepository.save(n);
+                } catch (Exception ignored) {
+                    // Nothing more we can do for this row; it will be retried
+                    // from the persisted FAILED state on the next tick.
+                }
+                log.error("Retry failed: id={}, user={}, attempt={}, error={}",
+                        n.getId(), who, n.getRetryCount(), e.getMessage());
             }
         }
     }

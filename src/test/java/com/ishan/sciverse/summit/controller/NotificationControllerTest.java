@@ -3,53 +3,37 @@ package com.ishan.sciverse.summit.controller;
 import com.ishan.sciverse.summit.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.security.Principal;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class NotificationControllerTest {
 
     private MockMvc mockMvc;
     private NotificationService notificationService;
 
+    private static Principal as(String name) {
+        return () -> name;
+    }
+
     @BeforeEach
     void setUp() {
         notificationService = mock(NotificationService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new NotificationController()).build();
-        // Inject mock via reflection since NotificationController uses @Autowired
-        try {
-            var field = NotificationController.class.getDeclaredField("notificationService");
-            field.setAccessible(true);
-            field.set(new NotificationController(), notificationService);
-        } catch (Exception e) {
-            // If injection fails, create controller with mock
-            NotificationController controller = new NotificationController();
-            try {
-                var field = NotificationController.class.getDeclaredField("notificationService");
-                field.setAccessible(true);
-                // Use the controller instance that MockMvc is using
-            } catch (Exception ignored) {}
-        }
-        // Rebuild with the controller that has the mock
         NotificationController controller = new NotificationController();
-        try {
-            var field = NotificationController.class.getDeclaredField("notificationService");
-            field.setAccessible(true);
-            field.set(controller, notificationService);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        ReflectionTestUtils.setField(controller, "notificationService", notificationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -61,39 +45,79 @@ class NotificationControllerTest {
                 .andExpect(jsonPath("$.items").isEmpty());
     }
 
-    @Test
-    void markRead_succeeds() throws Exception {
-        doNothing().when(notificationService).markRead(anyLong(), anyString());
+    // ---- mutations now report honestly instead of always answering "ok" ----
 
-        mockMvc.perform(post("/api/notifications/read").param("id", "1"))
+    @Test
+    void markRead_owned_succeeds() throws Exception {
+        when(notificationService.markRead(anyLong(), anyString())).thenReturn(true);
+
+        mockMvc.perform(post("/api/notifications/read").param("id", "1").principal(as("alice")))
                 .andExpect(status().isOk())
                 .andExpect(content().string("ok"));
     }
 
     @Test
-    void markAllRead_succeeds() throws Exception {
-        doNothing().when(notificationService).markAllRead(anyString());
+    void markRead_notOwner_returns404() throws Exception {
+        when(notificationService.markRead(anyLong(), anyString())).thenReturn(false);
 
-        mockMvc.perform(post("/api/notifications/read-all"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("ok"));
+        mockMvc.perform(post("/api/notifications/read").param("id", "1").principal(as("mallory")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void markRead_unauthenticated_returns401_andMutatesNothing() throws Exception {
+        mockMvc.perform(post("/api/notifications/read").param("id", "1"))
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(notificationService);
     }
 
     @Test
     void clearAll_succeeds() throws Exception {
         when(notificationService.clearAll(anyString())).thenReturn(5L);
 
-        mockMvc.perform(post("/api/notifications/clear-all"))
+        mockMvc.perform(post("/api/notifications/clear-all").principal(as("alice")))
                 .andExpect(status().isOk())
                 .andExpect(content().string("ok"));
+    }
+
+    @Test
+    void clearAll_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(post("/api/notifications/clear-all"))
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(notificationService);
     }
 
     @Test
     void deleteOne_succeeds() throws Exception {
         when(notificationService.deleteOne(anyLong(), anyString())).thenReturn(true);
 
-        mockMvc.perform(post("/api/notifications/delete").param("id", "1"))
+        mockMvc.perform(post("/api/notifications/delete").param("id", "1").principal(as("alice")))
                 .andExpect(status().isOk())
                 .andExpect(content().string("ok"));
+    }
+
+    @Test
+    void deleteOne_notOwner_returns404() throws Exception {
+        when(notificationService.deleteOne(anyLong(), anyString())).thenReturn(false);
+
+        mockMvc.perform(post("/api/notifications/delete").param("id", "1").principal(as("mallory")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteOne_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(post("/api/notifications/delete").param("id", "1"))
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(notificationService);
+    }
+
+    /**
+     * The endpoint had no client callers at all, so it was removed rather than
+     * left as an unused surface. This pins that decision.
+     */
+    @Test
+    void readAllEndpoint_isGone() throws Exception {
+        mockMvc.perform(post("/api/notifications/read-all").principal(as("alice")))
+                .andExpect(status().isNotFound());
     }
 }

@@ -1,5 +1,6 @@
 package com.ishan.sciverse.summit.service;
 
+import com.ishan.sciverse.summit.entity.Notification;
 import com.ishan.sciverse.summit.entity.User;
 import com.ishan.sciverse.summit.repository.NotificationRepository;
 import com.ishan.sciverse.summit.repository.UserRepository;
@@ -54,13 +55,17 @@ public class NotificationCleanupService {
         List<User> allUsers = userRepository.findAll();
         int trimmed = 0;
         for (User user : allUsers) {
-            long count = notificationRepository.countByUserAndReadFalse(user);
-            long total = notificationRepository.findByUserOrderByCreatedAtDesc(user).size();
+            int total = notificationRepository.findByUserOrderByCreatedAtDesc(user).size();
             if (total > maxPerUser) {
-                List<com.ishan.sciverse.summit.entity.Notification> oldest =
-                        notificationRepository.findOldestForUser(user, PageRequest.of(0, (int)(total - maxPerUser)));
+                int excess = total - maxPerUser;
+                // findOldestForUser is ordered ASC, so these are the stalest
+                // rows and therefore the ones we are willing to lose.
+                List<Notification> oldest = notificationRepository.findOldestForUser(user, PageRequest.of(0, excess));
                 notificationRepository.deleteAll(oldest);
                 trimmed += oldest.size();
+                for (int i = 0; i < oldest.size(); i++) {
+                    metrics.incrementCleaned();
+                }
             }
         }
         if (trimmed > 0) {
