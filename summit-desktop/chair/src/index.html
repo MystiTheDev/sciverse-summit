@@ -26,6 +26,13 @@
     <p class="update-sub" id="updateSub">This will only take a moment.</p>
     <div class="update-bar"><span id="updateBar"></span></div>
     <div class="update-meta"><span id="updatePct">—</span><span id="updateSpeed"></span></div>
+    <div class="sv-gate" id="updateServerWarning">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span><strong>A session server is running.</strong> Restarting ends the session and disconnects every delegate. Press <strong>Stop</strong> first.</span>
+      <button class="sv-upgrade__console" id="updBackToConsole" type="button">
+        <i class="bi bi-arrow-left"></i><span>Back to console</span>
+      </button>
+    </div>
     <div class="sv-notes" id="updateNotes"></div>
     <div class="update-tip" id="updateTip"></div>
     <div class="update-actions" id="updateActions" style="display:none"></div>

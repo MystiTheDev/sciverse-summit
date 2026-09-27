@@ -253,20 +253,32 @@
 
   /* ── Server-running guard (chair only) ─────────────────── */
 
+  // Restarting the app ends the session and disconnects every delegate, so
+  // every control that can lead to a restart is gated — both the major-upgrade
+  // panel and the routine overlay's "Restart to Update". Downloading is left
+  // ungated on purpose: it is harmless, and pre-fetching the installer is
+  // convenient while a session is live.
+  var GATED = [
+    { btn: 'upgUpgradeBtn', warn: 'upgradeServerWarning', back: 'upgBackToConsole', what: 'updating' },
+    { btn: 'updateRestartBtn', warn: 'updateServerWarning', back: 'updBackToConsole', what: 'restarting' },
+  ];
+
   function applyServerGuard() {
-    var warn = $('upgradeServerWarning');
-    var btn = $('upgUpgradeBtn');
-    if (!warn || !btn) return;
-    if (ctx.serverRunning) {
-      warn.classList.add('show');
-      btn.disabled = true;
-      btn.title = 'Stop the session server before updating';
-      var toConsole = $('upgBackToConsole');
-      if (toConsole && typeof ctx.backToConsole === 'function') toConsole.classList.add('show');
-    } else {
-      warn.classList.remove('show');
-      btn.disabled = false;
-      btn.title = '';
+    var running = !!ctx.serverRunning;
+    var canGoBack = typeof ctx.backToConsole === 'function';
+
+    for (var i = 0; i < GATED.length; i++) {
+      var g = GATED[i];
+      var btn = $(g.btn);
+      var warn = $(g.warn);
+      var back = $(g.back);
+
+      if (btn) {
+        btn.disabled = running;
+        btn.title = running ? 'Stop the session server before ' + g.what : '';
+      }
+      if (warn) warn.classList[running ? 'add' : 'remove']('show');
+      if (back && canGoBack) back.classList[running ? 'add' : 'remove']('show');
     }
   }
 
@@ -276,6 +288,28 @@
       ctx.serverRunning = !!running;
       applyServerGuard();
     }).catch(function () { applyServerGuard(); });
+  }
+
+  /**
+   * Last line of defence. The disabled attribute can go stale — the server may
+   * start after the panel was drawn, and the app emits no event for that — so
+   * re-verify immediately before acting, and refuse if a session is live.
+   * @returns {Promise<boolean>} true when it is safe to proceed
+   */
+  function confirmNoLiveSession() {
+    if (typeof ctx.isServerRunning !== 'function') return Promise.resolve(true);
+    return Promise.resolve(ctx.isServerRunning()).then(function (running) {
+      ctx.serverRunning = !!running;
+      applyServerGuard();
+      if (running) {
+        UI.showAll();
+        return false;
+      }
+      return true;
+    }).catch(function () {
+      // Status check failed: do not block the user on a transient error.
+      return true;
+    });
   }
 
   /* ── Public surface ───────────────────────────────────── */
@@ -321,23 +355,24 @@
         api.onUpdateError(function (msg) { UI.onError(msg); });
       }
 
-      var restart = $('updateRestartBtn');
-      if (restart && restart.dataset.wired !== '1') {
-        restart.dataset.wired = '1';
-        restart.addEventListener('click', function () { if (api.restartToUpdate) api.restartToUpdate(); });
-      }
+      // updateRestartBtn / updateDismissBtn are created by onDownloaded, so
+      // they do not exist yet — wiring them here silently did nothing.
+      // They are wired in onDownloaded instead, where they are actually made.
       var dismiss = $('updateDismissBtn');
       if (dismiss && dismiss.dataset.wired !== '1') {
         dismiss.dataset.wired = '1';
         dismiss.addEventListener('click', function () { hideOverlay(); });
       }
-      var toConsole = $('upgBackToConsole');
-      if (toConsole && toConsole.dataset.wired !== '1') {
-        toConsole.dataset.wired = '1';
-        toConsole.addEventListener('click', function () {
-          if (typeof ctx.backToConsole === 'function') ctx.backToConsole();
-        });
-      }
+      // Both back-to-console affordances live in static markup.
+      ['upgBackToConsole', 'updBackToConsole'].forEach(function (id) {
+        var link = $(id);
+        if (link && link.dataset.wired !== '1') {
+          link.dataset.wired = '1';
+          link.addEventListener('click', function () {
+            if (typeof ctx.backToConsole === 'function') ctx.backToConsole();
+          });
+        }
+      });
       var upgLater = $('upgLaterBtn');
       if (upgLater && upgLater.dataset.wired !== '1') {
         upgLater.dataset.wired = '1';
@@ -349,8 +384,12 @@
         upgApply.dataset.wired = '1';
         upgApply.addEventListener('click', function () {
           if (upgApply.disabled) return;
-          hideUpgrade();
-          UI.onDownloadRequested();
+          // Re-verify: the button may predate the server being started.
+          confirmNoLiveSession().then(function (ok) {
+            if (!ok) return;
+            hideUpgrade();
+            UI.onDownloadRequested();
+          });
         });
       }
     },
@@ -405,6 +444,8 @@
         });
       }
       showOverlay();
+      // Keep the gate in step with the server, on both update paths.
+      refreshServerState();
     },
 
     showUpgradeScreen: function (ver, body) {
@@ -464,7 +505,22 @@
         actions.innerHTML = '<button id="updateRestartBtn" class="primary">Restart to Update</button>'
           + '<button id="updateDismissBtn" class="ghost">Later</button>';
         actions.style.display = 'flex';
+        // Wire here, not in attach(): these elements are created just above.
+        var restart = $('updateRestartBtn');
+        if (restart) {
+          restart.addEventListener('click', function () {
+            if (restart.disabled) return;
+            confirmNoLiveSession().then(function (ok) {
+              if (!ok) return;
+              if (api.restartToUpdate) api.restartToUpdate();
+            });
+          });
+        }
+        var later = $('updateDismissBtn');
+        if (later) later.addEventListener('click', function () { hideOverlay(); });
       }
+      // A session may have been started while the download ran.
+      refreshServerState();
     },
 
     onError: function (msg) {
@@ -484,6 +540,7 @@
 
     /** Re-evaluate the upgrade gate, e.g. after the server is stopped. */
     refresh: refreshServerState,
+    showAll: function () { showOverlay(); showUpgrade(); applyServerGuard(); },
     hideAll: function () { hideOverlay(); hideUpgrade(); },
   };
 

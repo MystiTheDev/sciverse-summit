@@ -91,7 +91,9 @@
 .sv-upgrade__foot .sv-spacer { flex: 1; }
 .sv-upgrade__note { font-size: 0.76rem; color: var(--sv-slate-400); }
 
-.sv-upgrade__warn {
+/* The server-running gate. Shared by the routine overlay and the
+ * major-upgrade panel so the two can never drift apart. */
+.sv-gate, .sv-upgrade__warn {
   display: none; align-items: flex-start; gap: 10px;
   margin: 0 0 14px; padding: 12px 14px;
   border-radius: 12px; font-size: 0.8rem; line-height: 1.5;
@@ -99,9 +101,13 @@
   border: 1px solid rgba(245, 158, 11, 0.4);
   color: #fcd34d;
 }
-.sv-upgrade__warn.show { display: flex; }
-.sv-upgrade__warn i { margin-top: 2px; }
-.sv-upgrade__warn strong { color: #fde68a; }
+.sv-gate.show, .sv-upgrade__warn.show { display: flex; }
+.sv-gate i, .sv-upgrade__warn i { margin-top: 2px; }
+.sv-gate strong, .sv-upgrade__warn strong { color: #fde68a; }
+/* Inside the compact overlay the gate also carries a back-to-console link, so
+ * it wraps to a column rather than squeezing the text. */
+.sv-gate { flex-wrap: wrap; margin: 12px 0 2px; }
+.sv-gate .sv-upgrade__console { margin-left: 22px; }
 
 .sv-upgrade__console {
   display: none; align-items: center; gap: 6px;
