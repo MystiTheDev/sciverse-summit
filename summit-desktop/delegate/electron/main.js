@@ -17,7 +17,7 @@ const { createNotificationService } = require('./notifications');
 
 // Windows taskbar groups icons by AppUserModelId — must match build.appId,
 // or the taskbar (and notifications) fall back to the stock Electron icon.
-app.setAppUserModelId('com.sciverse.summit.delegate');
+app.setAppUserModelId('SciVerse Summit');
 
 let mainWindow = null;
 let splashWindow = null;
