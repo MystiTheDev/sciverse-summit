@@ -13,6 +13,7 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 const { probeServer } = require('./probe');
+const { createNotificationService } = require('./notifications');
 
 // Windows taskbar groups icons by AppUserModelId — must match build.appId,
 // or the taskbar (and notifications) fall back to the stock Electron icon.
@@ -29,6 +30,7 @@ const SETTINGS_DEFAULTS = {
   autoConnect: false,
   launchAtLogin: false,
   glint: true,
+  desktopNotifications: true,
 };
 let settings = Object.assign({}, SETTINGS_DEFAULTS);
 let storeCache = null;
@@ -120,7 +122,39 @@ if (!app.requestSingleInstanceLock()) {
   });
 }
 
-function isServerLogin(urlString) {  try {
+/* ── Native notifications ───────────────────────────────── */
+const notifier = createNotificationService({
+  isEnabled: () => !!settings.desktopNotifications,
+  getWindow: () => mainWindow,
+});
+
+/**
+ * True for pages served over http(s), i.e. anything belonging to the chair's
+ * session server: the login screen, the delegate portal, and the chair's own
+ * pages. The delegate's connect screen and settings are loaded from file://,
+ * so they never match and the bridge stays off our own UI. New windows are
+ * handed to the system browser by setWindowOpenHandler, so in-window
+ * navigation stays on the session server.
+ */
+function isSessionServerPage(urlString) {
+  try {
+    const u = new URL(urlString);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+// Shared notification bridge, injected into every session-server page.
+let notifBridgeJs = '';
+try {
+  notifBridgeJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'notif-bridge.js'), 'utf8');
+} catch (err) {
+  console.error('Could not load notif-bridge.js:', err.message);
+}
+
+function isServerLogin(urlString) {
+  try {
     const u = new URL(urlString);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
     return u.pathname.replace(/\/+$/, '') === '/login';
@@ -170,6 +204,9 @@ function createWindow() {
     if (isServerLogin(url) && loginOverrideJs) {
       mainWindow.webContents.executeJavaScript(loginOverrideJs).catch(() => {});
     }
+    if (isSessionServerPage(url) && notifBridgeJs) {
+      mainWindow.webContents.executeJavaScript(notifBridgeJs).catch(() => {});
+    }
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -178,6 +215,10 @@ function createWindow() {
       return { action: 'deny' };
     }
     return { action: 'allow' };
+  });
+
+  mainWindow.on('focus', () => {
+    notifier.clearBadge();
   });
 
   mainWindow.on('closed', () => {
@@ -212,6 +253,23 @@ ipcMain.handle('recent:add', async (_e, host) => {
 ipcMain.handle('recent:list', async () => (settings.remember ? (readStore().recents || []) : []));
 ipcMain.handle('recent:clear', async () => clearRecents());
 ipcMain.handle('recent:last', async () => readStore().lastHost || '');
+
+/* ── Native notification bridge ─────────────────────────── */
+ipcMain.handle('notif:show', async (_e, payload) => notifier.show(payload || {}));
+
+ipcMain.handle('notif:enabled', async () => !!settings.desktopNotifications);
+
+ipcMain.handle('notif:set-enabled', async (_e, value) => {
+  settings.desktopNotifications = !!(value && value.enabled);
+  saveStore();
+  if (!settings.desktopNotifications) notifier.clearBadge();
+  return settings.desktopNotifications;
+});
+
+ipcMain.handle('notif:clear-badge', async () => {
+  notifier.clearBadge();
+  return true;
+});
 
 /* ── Manual update check from the settings modal ───────── */
 ipcMain.handle('update:check', async () => {

@@ -283,6 +283,7 @@
     logSize: 'medium',
     logWrap: true,
     clearOnStart: true,
+    desktopNotifications: true,
   };
   let settings = Object.assign({}, DEFAULTS);
   let updStatus = $('updStatus');
@@ -300,6 +301,7 @@
     $('setLogSize').value = settings.logSize;
     $('setLogWrap').checked = !!settings.logWrap;
     $('setClearOnStart').checked = !!settings.clearOnStart;
+    $('setDesktopNotif').checked = !!settings.desktopNotifications;
 
     logEl.classList.remove('small', 'large');
     if (settings.logSize === 'small') logEl.classList.add('small');
@@ -315,11 +317,12 @@
     settings.logSize = $('setLogSize').value;
     settings.logWrap = $('setLogWrap').checked;
     settings.clearOnStart = $('setClearOnStart').checked;
+    settings.desktopNotifications = $('setDesktopNotif').checked;
     applySettings();
     if (api && api.setSettings) { try { await api.setSettings(settings); } catch (e) { /* non-fatal */ } }
   }
 
-  ['setAutoStart', 'setLaunchAtLogin', 'setTray', 'setRememberBounds', 'setLogSize', 'setLogWrap', 'setClearOnStart']
+  ['setAutoStart', 'setLaunchAtLogin', 'setTray', 'setRememberBounds', 'setLogSize', 'setLogWrap', 'setClearOnStart', 'setDesktopNotif']
     .forEach((id) => { const el = $(id); if (el) el.addEventListener('change', saveSettings); });
 
   function openModal() { modal.classList.add('open'); }

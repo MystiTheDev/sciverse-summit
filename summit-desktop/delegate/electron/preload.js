@@ -13,6 +13,11 @@ contextBridge.exposeInMainWorld('summitAPI', {
   clearRecent: () => ipcRenderer.invoke('recent:clear'),
   getLastHost: () => ipcRenderer.invoke('recent:last'),
   probeServer: (host, port, path, timeout) => ipcRenderer.invoke('server:probe', { host: host, port: port, path: path, timeout: timeout }),
+  // Used by src/notif-bridge.js, injected into every server page.
+  showDesktopNotification: (n) => ipcRenderer.invoke('notif:show', n),
+  desktopNotificationsEnabled: () => ipcRenderer.invoke('notif:enabled'),
+  setDesktopNotificationsEnabled: (enabled) => ipcRenderer.invoke('notif:set-enabled', { enabled: enabled }),
+  clearNotificationBadge: () => ipcRenderer.invoke('notif:clear-badge'),
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
   onManualUpdateResult: (cb) => { const l = (_e, r) => cb(r); ipcRenderer.on('update:manual', l); return () => ipcRenderer.removeListener('update:manual', l); },
   onUpdateChecking: (cb) => { const l = () => cb(); ipcRenderer.on('update:checking', l); return () => ipcRenderer.removeListener('update:checking', l); },

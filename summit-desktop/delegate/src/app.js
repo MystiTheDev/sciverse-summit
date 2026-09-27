@@ -123,6 +123,7 @@
     autoConnect: false,
     launchAtLogin: false,
     glint: true,
+    desktopNotifications: true,
   };
   let settings = Object.assign({}, DEFAULTS);
   const updStatus = $('updStatus');
@@ -137,6 +138,7 @@
     $('setAutoConnect').checked = !!settings.autoConnect;
     $('setLaunchAtLogin').checked = !!settings.launchAtLogin;
     $('setGlint').checked = !!settings.glint;
+    $('setDesktopNotif').checked = !!settings.desktopNotifications;
     document.body.classList.toggle('sv-no-glint', !settings.glint);
   }
 
@@ -145,12 +147,13 @@
     settings.autoConnect = $('setAutoConnect').checked;
     settings.launchAtLogin = $('setLaunchAtLogin').checked;
     settings.glint = $('setGlint').checked;
+    settings.desktopNotifications = $('setDesktopNotif').checked;
     applySettings();
     if (api && api.setSettings) { try { await api.setSettings(settings); } catch (e) { /* non-fatal */ } }
     renderRecent();
   }
 
-  ['setRemember', 'setAutoConnect', 'setLaunchAtLogin', 'setGlint']
+  ['setRemember', 'setAutoConnect', 'setLaunchAtLogin', 'setGlint', 'setDesktopNotif']
     .forEach((id) => { const el = $(id); if (el) el.addEventListener('change', saveSettings); });
 
   function openModal() { modal.classList.add('open'); }

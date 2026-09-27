@@ -20,6 +20,7 @@ const dgram = require('dgram');
 const { spawn } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 const { probeServer } = require('./probe');
+const { createNotificationService } = require('./notifications');
 
 const PORT = 8080;
 
@@ -51,6 +52,7 @@ const SETTINGS_DEFAULTS = {
   logSize: 'medium',
   logWrap: true,
   clearOnStart: true,
+  desktopNotifications: true,
 };
 let settings = Object.assign({}, SETTINGS_DEFAULTS);
 
@@ -191,8 +193,17 @@ function createWindow() {
     try {
       if (isLocalServerPage(mainWindow.webContents.getURL())) {
         mainWindow.webContents.executeJavaScript(CONSOLE_BTN_JS).catch(() => {});
+        if (notifBridgeJs) {
+          mainWindow.webContents.executeJavaScript(notifBridgeJs).catch(() => {});
+        }
       }
     } catch { /* navigation race — next load retries */ }
+  });
+
+  // The in-app bell carries the unread list, so once the window is actually
+  // being looked at, the taskbar count has done its job.
+  mainWindow.on('focus', () => {
+    notifier.clearBadge();
   });
 
   mainWindow.on('closed', () => {
@@ -252,6 +263,12 @@ function readBounds() {
 function writeBounds(b) {
   try { fs.writeFileSync(boundsFile(), JSON.stringify(b)); } catch (e) { /* non-fatal */ }
 }
+
+/* ── Native notifications ───────────────────────────────── */
+const notifier = createNotificationService({
+  isEnabled: () => !!settings.desktopNotifications,
+  getWindow: () => mainWindow,
+});
 
 /* ── Tray ───────────────────────────────────────────────── */
 function createTray() {
@@ -395,6 +412,15 @@ function isLocalServerPage(urlString) {
   }
 }
 
+// Shared notification bridge, injected into every server page. Idempotent:
+// the script guards itself, so re-injecting on each load is harmless.
+let notifBridgeJs = '';
+try {
+  notifBridgeJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'notif-bridge.js'), 'utf8');
+} catch (err) {
+  console.error('Could not load notif-bridge.js:', err.message);
+}
+
 // Floating "Back to Console" button, injected into server pages only.
 // Same no-touch approach as the delegate login override: the jar's
 // templates are never modified.
@@ -524,6 +550,23 @@ ipcMain.handle('data:reset', async () => {
   } catch (e) {
     return { ok: false, reason: e.message };
   }
+});
+
+/* ── Native notification bridge ─────────────────────────── */
+ipcMain.handle('notif:show', async (_e, payload) => notifier.show(payload || {}));
+
+ipcMain.handle('notif:enabled', async () => !!settings.desktopNotifications);
+
+ipcMain.handle('notif:set-enabled', async (_e, value) => {
+  settings.desktopNotifications = !!(value && value.enabled);
+  saveSettings();
+  if (!settings.desktopNotifications) notifier.clearBadge();
+  return settings.desktopNotifications;
+});
+
+ipcMain.handle('notif:clear-badge', async () => {
+  notifier.clearBadge();
+  return true;
 });
 
 /* ── Manual update check from the settings modal ───────── */
