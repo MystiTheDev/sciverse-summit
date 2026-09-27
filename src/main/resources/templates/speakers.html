@@ -127,6 +127,9 @@
             background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.06) 45%, transparent 75%);
             pointer-events: none;
         }
+        /* The queue card hosts an absolutely-positioned picker. Keep its panel
+           outside the card bounds instead of clipping the open dropdown. */
+        .glass-card.queue-card { overflow: visible; }
         body.dark-mode .glass-card {
             background: linear-gradient(160deg, rgba(30,41,59,0.78), rgba(15,23,42,0.66));
             border-color: rgba(255,255,255,0.1);
@@ -831,50 +834,245 @@
         }
         .card-panel::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.8); }
 
-        /* Custom glass queue picker (replaces the native select) */
-        .svq-select { position: relative; flex: 1; min-width: 0; }
-        .svq-trigger {
-            width: 100%; display: flex; align-items: center; justify-content: space-between;
-            gap: 10px; padding: 12px 16px; font-size: 1.05rem;
-            border-radius: 12px 0 0 12px;
-            background: rgba(255,255,255,0.65); border: 1px solid rgba(148,163,184,0.4);
-            border-right: none; color: #1e293b; cursor: pointer;
+        /* Custom glass queue picker (accessible, searchable, and not clipped by the card) */
+        /* The picker must sit above the queue panel below it, including its
+           own opaque surface, so underlying text cannot paint over it. */
+        .queue-picker-row {
+            position: relative;
+            z-index: 2100;
         }
-        .svq-trigger.has-value { font-weight: 600; }
-        .svq-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .svq-trigger-text.placeholder { color: #94a3b8; font-weight: 400; }
-        .svq-chevron { transition: transform .2s; color: #06b6d4; flex-shrink: 0; }
+        .svq-select {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            z-index: 3;
+        }
+        .svq-select.open { z-index: 2050; }
+        .svq-trigger {
+            width: 100%;
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            font-size: 0.95rem;
+            text-align: left;
+            border-radius: 12px 0 0 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.86), rgba(248,250,252,0.68));
+            border: 1px solid rgba(148,163,184,0.42);
+            border-right: none;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+            transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+        }
+        .svq-trigger:hover,
+        .svq-select.open .svq-trigger {
+            background: rgba(255,255,255,0.96);
+            border-color: rgba(6,182,212,0.58);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+        .svq-trigger:focus-visible {
+            outline: 2px solid #7c3aed;
+            outline-offset: 2px;
+        }
+        .svq-trigger-leading {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            border-radius: 9px;
+            color: #0891b2;
+            background: rgba(6,182,212,0.12);
+            font-size: 0.88rem;
+        }
+        .svq-trigger.has-value .svq-trigger-leading {
+            color: #fff;
+            background: linear-gradient(135deg, #06b6d4, #7c3aed);
+        }
+        .svq-trigger-text {
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .svq-trigger.has-value .svq-trigger-text { font-weight: 700; }
+        .svq-trigger-text.svq-placeholder { color: #94a3b8; font-weight: 400; }
+        .svq-chevron {
+            color: #0891b2;
+            flex-shrink: 0;
+            transition: transform .2s ease;
+        }
         .svq-select.open .svq-chevron { transform: rotate(180deg); }
         .svq-panel {
-            position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 2000;
-            max-height: 260px; overflow-y: auto; border-radius: 16px; padding: 6px;
-            background: rgba(255,255,255,0.92); border: 1px solid rgba(148,163,184,0.35);
-            box-shadow: 0 20px 44px rgba(15,23,42,0.22);
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            z-index: 2050;
+            max-height: min(360px, 55vh);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: 16px;
+            padding: 8px;
+            /* Keep the picker fully readable over the queue card; no page content should show through. */
+            background: #f8fafc;
+            border: 1px solid rgba(100,116,139,0.32);
+            box-shadow: 0 20px 44px rgba(15,23,42,0.24), inset 0 1px 0 rgba(255,255,255,0.9);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
         }
-        .svq-option {
-            display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
-            border: none; background: none; padding: 10px 12px; border-radius: 10px;
-            font-size: 0.95rem; color: #1e293b; cursor: pointer;
+        .svq-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 5px 8px 9px;
+            border-bottom: 1px solid rgba(148,163,184,0.2);
         }
-        .svq-option:hover { background: rgba(6,182,212,0.12); }
-        .svq-option.selected { font-weight: 700; }
-        .svq-option .tick { margin-left: auto; color: #06b6d4; visibility: hidden; }
+        .svq-panel-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #334155;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .svq-panel-title i { color: #7c3aed; }
+        .svq-result-count {
+            min-width: 24px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(124,58,237,0.1);
+            color: #7c3aed;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-align: center;
+        }
+        .svq-search-wrap {
+            position: relative;
+            display: block;
+            margin: 9px 2px 7px;
+        }
+        .svq-search-wrap > i {
+            position: absolute;
+            top: 50%;
+            left: 11px;
+            color: #94a3b8;
+            font-size: 0.78rem;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        .svq-search {
+            width: 100%;
+            height: 36px;
+            padding: 7px 11px 7px 32px;
+            border: 1px solid rgba(148,163,184,0.3);
+            border-radius: 10px;
+            outline: none;
+            background: #ffffff;
+            color: #1e293b;
+            font-size: 0.82rem;
+        }
+        .svq-search::placeholder { color: #94a3b8; }
+        .svq-search:focus {
+            border-color: rgba(6,182,212,0.6);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+        }
+        .svq-options {
+            min-height: 34px;
+            overflow-y: auto;
+            padding: 1px 1px 2px;
+        }
+        .svq-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 40px;
+            text-align: left;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 8px 10px;
+            border-radius: 10px;
+            color: #1e293b;
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: background .12s ease, border-color .12s ease, color .12s ease;
+        }
+        .svq-option:hover,
+        .svq-option:focus-visible {
+            background: rgba(6,182,212,0.12);
+            border-color: rgba(6,182,212,0.16);
+            outline: none;
+        }
+        .svq-option.selected {
+            background: linear-gradient(90deg, rgba(6,182,212,0.14), rgba(124,58,237,0.1));
+            border-color: rgba(124,58,237,0.22);
+            font-weight: 700;
+        }
+        .svq-option-avatar {
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(124,58,237,0.14));
+            color: #0e7490;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        .svq-option-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .svq-option .tick { color: #7c3aed; visibility: hidden; }
         .svq-option.selected .tick { visibility: visible; }
-        .svq-empty { padding: 12px; font-size: 0.88rem; color: #94a3b8; text-align: center; }
+        .svq-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 54px;
+            padding: 12px;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            text-align: center;
+        }
+        .svq-empty[hidden] { display: none; }
         body.dark-mode .svq-trigger {
-            background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);
+            background: linear-gradient(135deg, rgba(30,41,59,0.88), rgba(15,23,42,0.78));
+            border-color: rgba(255,255,255,0.15);
             color: rgba(255,255,255,0.9);
         }
-        body.dark-mode .svq-trigger-text.placeholder { color: rgba(255,255,255,0.35); }
-        body.dark-mode .svq-panel {
-            background: rgba(15,23,42,0.94); border-color: rgba(255,255,255,0.14);
-            box-shadow: 0 20px 44px rgba(0,0,0,0.5);
+        body.dark-mode .svq-trigger:hover,
+        body.dark-mode .svq-select.open .svq-trigger {
+            background: rgba(30,41,59,0.96);
+            border-color: rgba(6,182,212,0.55);
         }
+        body.dark-mode .svq-trigger-text.svq-placeholder { color: rgba(255,255,255,0.4); }
+        body.dark-mode .svq-panel {
+            background: #0b1220;
+            border-color: rgba(255,255,255,0.18);
+            box-shadow: 0 20px 48px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        body.dark-mode .svq-panel-head { border-bottom-color: rgba(255,255,255,0.1); }
+        body.dark-mode .svq-panel-title { color: #cbd5e1; }
+        body.dark-mode .svq-search { background: #172033; border-color: rgba(255,255,255,0.18); color: #f1f5f9; }
+        body.dark-mode .svq-search::placeholder { color: rgba(255,255,255,0.35); }
         body.dark-mode .svq-option { color: #e2e8f0; }
-        body.dark-mode .svq-option:hover { background: rgba(6,182,212,0.18); }
+        body.dark-mode .svq-option:hover,
+        body.dark-mode .svq-option:focus-visible { background: rgba(6,182,212,0.18); border-color: rgba(6,182,212,0.24); }
+        body.dark-mode .svq-option.selected { background: linear-gradient(90deg, rgba(6,182,212,0.22), rgba(124,58,237,0.2)); border-color: rgba(124,58,237,0.38); }
+        body.dark-mode .svq-option-avatar { background: rgba(6,182,212,0.2); color: #67e8f9; }
         body.dark-mode .svq-empty { color: rgba(255,255,255,0.45); }
+        @media (prefers-reduced-motion: reduce) {
+            .svq-trigger, .svq-option { transition: none; }
+        }
 
         /* Phase 1: anime.js owns hover/press motion — CSS keeps color/shadow only
            (a CSS transform transition would fight anime's per-frame transforms). */
@@ -920,6 +1118,7 @@
             box-shadow: 0 24px 60px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.10);
         }
         body.liquid-glass .glass-card > * { position: relative; z-index: 1; }
+        body.liquid-glass .glass-card.queue-card > .queue-picker-row { z-index: 2100; }
     </style>
 
     <!-- 1. HEADER (NAVBAR) FRAGMENT: Assumed to be included via Thymeleaf -->
@@ -1029,7 +1228,7 @@
             <div class="row g-4">
                 <!-- LEFT SIDE: Speaker Queue Management (7/12) -->
                 <div class="col-lg-7">
-                    <div class="glass-card entrance entrance-1 p-4 mb-4 lg-reactive">
+                    <div class="glass-card queue-card entrance entrance-1 p-4 mb-4 lg-reactive">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="card-accent" style="background:linear-gradient(135deg,#06b6d4,#7c3aed);">
                                 <i class="bi bi-list-ol"></i>
@@ -1051,17 +1250,29 @@
                             </button>
                         </div>
 
-                        <!-- Queue picker: custom glass dropdown (populated by script — no typing needed) -->
+                        <!-- Queue picker: searchable custom glass dropdown (populated by script) -->
                         <select id="queue-input" style="display:none;" aria-hidden="true" tabindex="-1">
                             <option value="">Choose a delegate.</option>
                         </select>
-                        <div class="input-group mb-3">
+                        <div class="input-group queue-picker-row mb-3">
                             <div class="svq-select" id="queue-picker">
-                                <button type="button" class="svq-trigger" id="queue-trigger" aria-haspopup="listbox" aria-expanded="false">
-                                    <span class="svq-trigger-text placeholder" id="queue-trigger-text">Choose a delegate.</span>
-                                    <i class="bi bi-chevron-down svq-chevron"></i>
+                                <button type="button" class="svq-trigger" id="queue-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="queue-panel">
+                                    <span class="svq-trigger-leading" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+                                    <span class="svq-trigger-text svq-placeholder" id="queue-trigger-text">Choose a delegate</span>
+                                    <i class="bi bi-chevron-down svq-chevron" aria-hidden="true"></i>
                                 </button>
-                                <div class="svq-panel" id="queue-panel" role="listbox" style="display:none;"></div>
+                                <div class="svq-panel" id="queue-panel" role="dialog" aria-label="Available delegates" aria-hidden="true" style="display:none;">
+                                    <div class="svq-panel-head">
+                                        <span class="svq-panel-title"><i class="bi bi-people" aria-hidden="true"></i> Available delegates</span>
+                                        <span class="svq-result-count" id="svq-result-count">0</span>
+                                    </div>
+                                    <label class="svq-search-wrap" for="queue-search">
+                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                        <input type="search" class="svq-search" id="queue-search" placeholder="Search delegates" autocomplete="off" aria-label="Search delegates">
+                                    </label>
+                                    <div class="svq-options" id="svq-options" role="listbox" aria-label="Delegates"></div>
+                                    <div class="svq-empty" id="svq-empty" hidden>No delegates match your search.</div>
+                                </div>
                             </div>
                             <button class="btn" type="button" id="add-to-queue-btn">
                                 <i class="bi bi-plus-lg"></i> Add
@@ -1300,8 +1511,8 @@
         let nextQueue = [];   // multi-person "next speaking" queue
         
         // Convert the string into an actual array of strings
-        const allPresenterNames = presenterNamesString 
-            ? presenterNamesString.split(',').map(name => name.trim().replace(/^'|'$/g, ''))
+        const allPresenterNames = presenterNamesString
+            ? presenterNamesString.split(',').map(name => name.trim().replace(/^'|'$/g, '')).filter(Boolean)
             : [];
 
         // Presenting / voting name lists - used by the Queue-All-by-Category buttons
@@ -1323,12 +1534,31 @@
         const addToQueueBtn     = document.getElementById('add-to-queue-btn');
         const clearQueueBtn     = document.getElementById('clear-queue-btn');
 
-        // Populate the delegate picker (official list only — no free typing)
+        // Populate the searchable delegate picker (official list only — no free typing)
         const queueTrigger = document.getElementById('queue-trigger');
         const queueTriggerText = document.getElementById('queue-trigger-text');
         const queuePanel = document.getElementById('queue-panel');
         const queuePicker = document.getElementById('queue-picker');
-        allPresenterNames.forEach(name => {
+        const queueOptions = document.getElementById('svq-options');
+        const queueSearch = document.getElementById('queue-search');
+        const queueEmpty = document.getElementById('svq-empty');
+        const queueResultCount = document.getElementById('svq-result-count');
+
+        function filterQueueOptions() {
+            const query = (queueSearch.value || '').trim().toLowerCase();
+            let visibleCount = 0;
+
+            queueOptions.querySelectorAll('.svq-option').forEach(function(option) {
+                const matches = !query || option.dataset.name.toLowerCase().includes(query);
+                option.hidden = !matches;
+                if (matches) visibleCount++;
+            });
+
+            queueResultCount.textContent = visibleCount;
+            queueEmpty.hidden = visibleCount !== 0 && allPresenterNames.length > 0;
+        }
+
+        allPresenterNames.forEach((name, index) => {
             const hidden = document.createElement('option');
             hidden.value = name;
             hidden.textContent = name;
@@ -1337,61 +1567,111 @@
             const item = document.createElement('button');
             item.type = 'button';
             item.className = 'svq-option';
+            item.id = 'svq-option-' + index;
             item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', 'false');
             item.dataset.name = name;
+            item.tabIndex = -1;
+
+            const avatar = document.createElement('span');
+            avatar.className = 'svq-option-avatar';
+            avatar.setAttribute('aria-hidden', 'true');
+            avatar.textContent = name.trim().charAt(0).toUpperCase() || '?';
+
             const label = document.createElement('span');
+            label.className = 'svq-option-name';
             label.textContent = name;
+
             const tick = document.createElement('i');
             tick.className = 'bi bi-check-lg tick';
+            tick.setAttribute('aria-hidden', 'true');
+
+            item.appendChild(avatar);
             item.appendChild(label);
             item.appendChild(tick);
             item.addEventListener('click', function() {
                 queueInput.value = name;
                 syncQueueTrigger();
                 closeQueuePanel();
+                queueTrigger.focus();
             });
-            queuePanel.appendChild(item);
+            queueOptions.appendChild(item);
         });
         if (!allPresenterNames.length) {
-            queuePanel.innerHTML = '<div class="svq-empty">No delegates in this session.</div>';
+            queueEmpty.textContent = 'No delegates in this session.';
+            queueEmpty.hidden = false;
         }
 
         function syncQueueTrigger() {
-            const v = queueInput.value;
-            queueTriggerText.textContent = v || 'Choose a delegate.';
-            queueTriggerText.classList.toggle('placeholder', !v);
-            queueTrigger.classList.toggle('has-value', !!v);
-            queuePanel.querySelectorAll('.svq-option').forEach(function(o) {
-                o.classList.toggle('selected', o.dataset.name === v);
+            const value = queueInput.value;
+            queueTriggerText.textContent = value || 'Choose a delegate';
+            queueTriggerText.classList.toggle('svq-placeholder', !value);
+            queueTrigger.classList.toggle('has-value', !!value);
+            queueTrigger.setAttribute('aria-label', value ? 'Selected delegate: ' + value : 'Choose a delegate');
+            queueOptions.querySelectorAll('.svq-option').forEach(function(option) {
+                const selected = option.dataset.name === value;
+                option.classList.toggle('selected', selected);
+                option.setAttribute('aria-selected', selected ? 'true' : 'false');
             });
         }
         function openQueuePanel() {
-            queuePanel.style.display = 'block';
+            queuePanel.style.display = 'flex';
+            queuePanel.setAttribute('aria-hidden', 'false');
             queueTrigger.setAttribute('aria-expanded', 'true');
             queuePicker.classList.add('open');
+            queueSearch.value = '';
+            filterQueueOptions();
+            window.requestAnimationFrame(function() { queueSearch.focus(); });
             if (window.sciVerseAnime && window.sciVerseAnime.shouldAnimate()) {
                 window.sciVerseAnime.dropdownIn(queuePanel);
-                window.sciVerseAnime.staggerRows('#queue-panel .svq-option');
+                window.sciVerseAnime.staggerRows('#svq-options .svq-option');
             }
         }
         function closeQueuePanel() {
             if (!queuePanel || queuePanel.style.display === 'none') return;
             queuePanel.style.display = 'none';
+            queuePanel.setAttribute('aria-hidden', 'true');
             queueTrigger.setAttribute('aria-expanded', 'false');
             queuePicker.classList.remove('open');
         }
-        queueTrigger.addEventListener('click', function(e) {
-            e.stopPropagation();
+        queueTrigger.addEventListener('click', function(event) {
+            event.stopPropagation();
             if (queuePanel.style.display === 'none' || !queuePanel.style.display) openQueuePanel();
             else closeQueuePanel();
         });
-        document.addEventListener('click', function(e) {
-            if (!queuePicker.contains(e.target)) closeQueuePanel();
+        queueTrigger.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                openQueuePanel();
+            }
         });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeQueuePanel();
+        queueSearch.addEventListener('input', filterQueueOptions);
+        queueSearch.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeQueuePanel();
+                queueTrigger.focus();
+                return;
+            }
+            if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                const firstVisible = Array.from(queueOptions.querySelectorAll('.svq-option')).find(function(option) {
+                    return !option.hidden;
+                });
+                if (firstVisible) firstVisible.click();
+            }
+        });
+        document.addEventListener('click', function(event) {
+            if (!queuePicker.contains(event.target)) closeQueuePanel();
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && queuePanel.style.display !== 'none') {
+                closeQueuePanel();
+                queueTrigger.focus();
+            }
         });
         syncQueueTrigger();
+        filterQueueOptions();
 
         // Utility for messages
         function showMessage(text, type) {
