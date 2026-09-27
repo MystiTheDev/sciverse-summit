@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <!-- Placeholder for common header items (e.g., meta tags, common CSS links) -->
@@ -2429,7 +2429,7 @@
                                     <img src="/images/sciverse_summit_logo_final.png" alt="SciVerse Summit Logo"
                                          class="stg-about-logo-img" />
                                     <div class="stg-about-app-name">SciVerse Summit</div>
-                                    <div class="stg-about-version">Version ${app.version} &middot; Built September 2026</div>
+                                    <div class="stg-about-version" th:text="'Version ' + ${appVersion} + ' · Built September 2026'"></div>
                                     <div class="stg-about-divider"></div>
                                     <div class="stg-about-tagline">&ldquo;Crafted with passion, powered by code. Or so they say&rdquo; &#10024;</div>
                                     <div class="stg-about-author">
@@ -5156,7 +5156,7 @@
                 </a>
                 <div class="version-info">
                     <i class="bi bi-info-circle me-1"></i>
-                    <span>v${app.version}</span>
+                    <span th:text="'v' + ${appVersion}"></span>
                 </div>
             </div>
         </div>

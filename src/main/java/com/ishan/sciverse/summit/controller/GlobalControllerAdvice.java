@@ -5,6 +5,7 @@ import com.ishan.sciverse.summit.entity.User;
 import com.ishan.sciverse.summit.service.SessionService;
 import com.ishan.sciverse.summit.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,19 @@ public class GlobalControllerAdvice {
 
     @Autowired
     private com.ishan.sciverse.summit.repository.UserRepository userRepository;
+
+    /**
+     * The app version shown in the sidebar.
+     * <p>Thymeleaf resolves {@code ${...}} against the model, not the Spring
+     * Environment, so naming a property is not enough - it has to be a model
+     * attribute or the expression renders literally. Sourced from
+     * {@code app.version} in application.properties, which must be kept in
+     * step with the desktop app versions in package.json.
+     */
+    @ModelAttribute("appVersion")
+    public String appVersion(@Value("${app.version}") String version) {
+        return version;
+    }
 
     /** True when the logged-in user is a Chair or Admin (drives sidebar contents). */
     @ModelAttribute("isChair")
