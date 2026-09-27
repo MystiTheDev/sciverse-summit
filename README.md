@@ -115,6 +115,23 @@ Standard **MVC**, plus a desktop shell that never touches web code:
 3.  Chair: **Start Session Server**, share the join URL. Delegates: type it in, Connect. Done.
 4.  Both PCs just need to be on the same network. Internet not required after install.
 
+### Publishing a release
+
+Tag `v<version>` and let CI build the installers. The **release body is the
+changelog** the apps display when an update is offered.
+
+To mark a release as a **major upgrade** — which shows a full-screen prompt
+with the changelog instead of the small overlay, and blocks the update while
+the Chair is running a session — make the very first line of the release body:
+
+```
+type: upgrade
+```
+
+Everything after that line is the changelog. Omit the line (or write
+`type: update`) for a routine update. See
+[`summit-desktop/shared/README.md`](summit-desktop/shared/README.md#updates-upgrades-and-the-changelog).
+
 ### Option B — from source (Developers)
 
 1.  **Prerequisites:** Java 17+, Maven, Node 18+.
