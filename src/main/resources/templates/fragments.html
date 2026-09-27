@@ -2165,6 +2165,15 @@
                                 <div class="stg-section-title"><i class="bi bi-bell-fill me-2"></i>Notifications</div>
                                 <div class="stg-row">
                                     <div class="stg-row-info">
+                                        <div class="stg-row-label"><i class="bi bi-display me-2" style="color:#38bdf8;"></i>Desktop notifications</div>
+                                        <div class="stg-row-desc" id="stg-deskNotifDesc">Show a notification on your desktop when something arrives in another tab</div>
+                                    </div>
+                                    <div class="stg-row-ctrl">
+                                        <button class="stg-action-btn stg-action-save" id="stg-deskNotifBtn" type="button" onclick="summitRequestDesktopNotif()">Enable</button>
+                                    </div>
+                                </div>
+                                <div class="stg-row">
+                                    <div class="stg-row-info">
                                         <div class="stg-row-label"><i class="bi bi-music-note-beamed me-2" style="color:#10b981;"></i>Timer End Chime</div>
                                         <div class="stg-row-desc">Play a sound when any timer reaches zero</div>
                                     </div>
@@ -3112,7 +3121,6 @@
             // The bell polls /api/notifications so every user always receives
             // their notifications (e.g. "voting is live") even after a refresh.
             window._serverUnread = 0;
-            window._serverNotifIds = [];
 
             function notifIconFor(type) {
                 type = String(type || 'GENERAL').toUpperCase();
@@ -3465,7 +3473,6 @@
                     if (notifMsgList)    notifMsgList.innerHTML = '';
                     _msgUnread = 0;
                     window._serverUnread = 0;
-                    window._serverNotifIds = [];
                     if (notifEmptyState) notifEmptyState.style.display = 'flex';
                     if (notifBellBtn)    notifBellBtn.classList.remove('has-notif');
                     if (notifCountBadge) notifCountBadge.style.display = 'none';
@@ -3718,7 +3725,7 @@
 
                 ['motion.changed', 'vote.changed', 'delegate.changed',
                  'session.changed', 'stats.changed', 'notif.changed',
-                 'segment.changed', 'speaker.queued']
+                 'segment.changed']
                     .forEach(function (t) {
                         _es.addEventListener(t, function (e) { fire(t, e.data); });
                     });
@@ -3737,6 +3744,61 @@
 
             connect();
         })();
+        </script>
+        <script>
+        /* Desktop notification permission.
+           The browser asks once, on the first click anywhere, and never
+           re-offers. If that was denied, desktop notifications were off with no
+           explanation and no way back, so Settings surfaces the state and can
+           ask again. */
+        window.summitDesktopNotifState = function () {
+            if (typeof window.SummitNotifPermission === 'undefined') return 'unavailable';
+            return window.SummitNotifPermission.state();
+        };
+
+        window.summitPaintDesktopNotifRow = function () {
+            var btn = document.getElementById('stg-deskNotifBtn');
+            var desc = document.getElementById('stg-deskNotifDesc');
+            if (!btn || !desc) return;
+            var state = window.summitDesktopNotifState();
+            btn.style.opacity = '';
+            if (state === 'granted') {
+                btn.textContent = 'Enabled';
+                btn.disabled = true;
+                btn.style.opacity = '0.65';
+                desc.textContent = 'Notifications pop up on your desktop while this tab is in the background';
+            } else if (state === 'denied') {
+                btn.textContent = 'Blocked';
+                btn.disabled = false;
+                desc.textContent = 'Your browser is blocking notifications. Re-allow them for this site from the permissions icon in the address bar.';
+            } else if (state === 'unsupported' || state === 'unavailable') {
+                btn.textContent = 'Unavailable';
+                btn.disabled = true;
+                btn.style.opacity = '0.65';
+                desc.textContent = 'This browser cannot show desktop notifications';
+            } else {
+                btn.textContent = 'Enable';
+                btn.disabled = false;
+                desc.textContent = 'Show a notification on your desktop when something arrives in another tab';
+            }
+        };
+
+        window.summitRequestDesktopNotif = function () {
+            if (typeof window.SummitNotifPermission === 'undefined') {
+                window.summitPaintDesktopNotifRow();
+                return;
+            }
+            window.SummitNotifPermission.request().then(function () {
+                window.summitPaintDesktopNotifRow();
+            });
+        };
+
+        document.addEventListener('summit-notif-permission', function () {
+            window.summitPaintDesktopNotifRow();
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            window.summitPaintDesktopNotifRow();
+        });
         </script>
 
         <!-- Settings CSS+JS â€” in header fragment so it loads on EVERY page -->
@@ -4715,7 +4777,6 @@
         <link rel="stylesheet" href="/css/lg-notif.css">
 
         <script src="/js/liquid-glass.js"></script>
-        <script src="/js/lg-notif.js"></script>
         <script src="/js/anime.min.js"></script>
         <script src="/js/anime-init.js"></script>
 

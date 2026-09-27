@@ -24,19 +24,14 @@
         return '';
     }
     var currentUser = readCurrentUser();
-    var banner = document.getElementById('notifBanner');
-    var titleEl = document.getElementById('notifBannerTitle');
-    var msgEl = document.getElementById('notifBannerMsg');
-    var dismissBtn = document.getElementById('notifBannerDismiss');
-    var bannerInner = document.getElementById('notifBannerInner');
-    var linkEl = document.getElementById('notifBannerLink');
-    var linkText = document.getElementById('notifBannerLinkText');
-
-    if (!banner) return;
+    // The site has no /favicon.ico; every page already declares this logo as
+    // its icon, so use the same asset for OS notifications.
+    var NOTIF_ICON = '/images/sciverse_summit_logo_final.png';
 
     var STORAGE_KEY = 'notifBannerShownIds';
     var bannerQueue = [];
     var shownIds = {};
+    var unreadPending = {};
     var originalTitle = document.title;
     var titleFlashInterval = null;
     var MAX_VISIBLE = 3;
@@ -52,18 +47,6 @@
         try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(shownIds)); } catch (e) {}
     }
 
-    function notifColor(type) {
-        var m = {
-            'DELEGATE_JOINED': 'linear-gradient(135deg,#10b981,#059669)',
-            'DELEGATE_LEFT': 'linear-gradient(135deg,#ef4444,#dc2626)',
-            'MOTION': 'linear-gradient(135deg,#f59e0b,#d97706)',
-            'VOTING': 'linear-gradient(135deg,#3b82f6,#6366f1)',
-            'SESSION_ENDED': 'linear-gradient(135deg,#ef4444,#b91c1c)',
-            'RESOLUTION': 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
-            'SPEAKER': 'linear-gradient(135deg,#06b6d4,#7c3aed)'
-        };
-        return m[type] || 'linear-gradient(135deg,#3b82f6,#6366f1)';
-    }
 
     function notifIcon(type) {
         var m = {
@@ -120,12 +103,12 @@
     // --- Browser Notification API (desktop notification when tab hidden) ---
     function fireDesktopNotification(n) {
         try {
-            if (!('Notification' in window)) return;
+            if (typeof window.Notification === 'undefined') return;
             if (Notification.permission !== 'granted') return;
             if (!document.hidden) return; // only when user is in another app/tab
 
             var body = n.message || '';
-            var icon = '/favicon.ico';
+            var icon = NOTIF_ICON;
             var notif = new Notification(n.title || 'Notification', {
                 body: body,
                 icon: icon,
@@ -161,10 +144,13 @@
     }
 
     function updateTitleFlash() {
+        // Only count notifications that have been surfaced and are still
+        // unread. Counting everything ever shown made the number grow for the
+        // whole session, so "(7)" could be shown long after 7 were dismissed.
         var unreadCount = 0;
         try {
-            Object.keys(shownIds).forEach(function (id) {
-                if (shownIds[id]) unreadCount++;
+            Object.keys(unreadPending).forEach(function (id) {
+                if (unreadPending[id]) unreadCount++;
             });
         } catch (e) {}
         if (unreadCount > 0 && document.hidden) {
@@ -219,11 +205,7 @@
         if (type === 'VOTING') return { label: 'Go to Voting', href: n.link };
         if (!config.showLink) return null;
         var labels = { MOTION: 'Go to Motions', VOTING: 'Go to Voting', RESOLUTION: 'View Resolutions' };
-        var hideTypes = config.hideTypes || [];
-        if (hideTypes.indexOf(n.type) === -1) {
-            return { label: labels[type] || 'View', href: n.link };
-        }
-        return null;
+        return { label: labels[type] || 'View', href: n.link };
     }
 
     function buildToast(n) {
@@ -274,6 +256,16 @@
 
         fireDesktopNotification(n);
 
+        // Speaker-queue and session notices carry no link, so their bell cards
+        // are not clickable and could only be cleared by hand. Showing the
+        // toast is the delivery, so settle it now instead of leaving the
+        // unread badge lit for the rest of the session.
+        if (!n.link) {
+            markReadOnServer(n.id);
+            delete unreadPending[n.id];
+            updateTitleFlash();
+        }
+
         if ((n.type || '').toUpperCase() === 'SESSION_ENDED' && typeof config.onSessionEnded === 'function') {
             setTimeout(config.onSessionEnded, 3500);
         }
@@ -296,7 +288,21 @@
 
     function markShown(id) {
         shownIds[id] = true;
+        unreadPending[id] = true;
         saveShownIds();
+    }
+
+    // Server-side "mark as read" for a notification the user cannot act on.
+    // Speaker and session alerts have no deep link, so their bell cards were
+    // never clickable and stayed unread forever, keeping the badge lit.
+    function markReadOnServer(id) {
+        if (id == null) return;
+        try {
+            fetch('/api/notifications/read?id=' + encodeURIComponent(id), {
+                method: 'POST',
+                credentials: 'same-origin'
+            }).catch(function () { /* best effort */ });
+        } catch (e) { /* best effort */ }
     }
 
     function poll() {
@@ -312,6 +318,12 @@
                     bannerQueue.push(n);
                 });
 
+                // Drop anything the server now reports as read, so the title
+                // flash count reflects reality rather than session history.
+                items.forEach(function (n) {
+                    if (n && n.read) delete unreadPending[n.id];
+                });
+
                 if (bannerQueue.length > 0) {
                     showNextFromQueue();
                 }
@@ -319,16 +331,39 @@
             }).catch(function (e) { console.warn('[notif-banner] poll failed:', e); });
     }
 
-    if (dismissBtn) dismissBtn.addEventListener('click', function () {
-        hideBanner();
-        showNextFromQueue();
-    });
+    /* Desktop notification permission.
+       Permission used to be requested once, on the first click anywhere, and
+       never re-offered. If it was denied, desktop notifications were simply
+       switched off with no explanation and no way back, so the Settings modal
+       calls these to report the state and re-request. */
+    function notifPermissionState() {
+        if (typeof window.Notification === 'undefined') return 'unsupported';
+        return window.Notification.permission; // 'granted' | 'denied' | 'default'
+    }
 
-    // Request Notification permission on first user interaction
+    function requestNotifPermission() {
+        if (typeof window.Notification === 'undefined') return Promise.resolve('unsupported');
+        var api = window.Notification;
+        if (api.permission !== 'default') return Promise.resolve(api.permission);
+        try {
+            return Promise.resolve(api.requestPermission())
+                .then(function (result) {
+                    window.dispatchEvent(new CustomEvent('summit-notif-permission', { detail: { permission: result } }));
+                    return result;
+                });
+        } catch (e) {
+            return Promise.resolve(api.permission);
+        }
+    }
+
+    // Keep the existing lazy request on first interaction, but announce the
+    // outcome so the Settings row updates if it is granted there.
     (function requestNotifPermission() {
         function tryRequest() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
+            if (typeof window.Notification !== 'undefined' && window.Notification.permission === 'default') {
+                window.Notification.requestPermission().then(function (result) {
+                    window.dispatchEvent(new CustomEvent('summit-notif-permission', { detail: { permission: result } }));
+                }).catch(function () { /* ignored */ });
             }
             document.removeEventListener('pointerdown', tryRequest);
         }
@@ -340,6 +375,10 @@
         poll: poll,
         hideBanner: hideBanner,
         showBanner: showBanner
+    };
+    window.SummitNotifPermission = {
+        state: notifPermissionState,
+        request: requestNotifPermission
     };
 
     poll();
