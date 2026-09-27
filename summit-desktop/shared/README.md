@@ -68,6 +68,50 @@ payload, so most delegate notifications only ever arrived via the poll.
 This is poll-based, not push: with the app closed nothing is listening, so no
 notification is delivered.
 
+## Updates, upgrades and the changelog
+
+`shared/update-ui.js` drives both kinds of update, and `shared/update.css`
+styles them. One implementation, used by both apps — previously the same ~80
+lines of overlay logic was copy-pasted into each renderer, and the copies had
+already drifted.
+
+The kind of update is decided by **one line at the very top of the GitHub
+release body**:
+
+```
+type: upgrade
+```
+
+`type: update` (or omitting the line entirely) is a routine update. The first
+line is consumed as a marker; **everything after it is the changelog**, rendered
+from a safe subset of markdown (headings, lists, bold/italic, inline code,
+links, blockquotes). All input is HTML-escaped before formatting is applied, so
+release notes can never inject markup.
+
+| | routine update | major upgrade |
+| --- | --- | --- |
+| UI | compact overlay | full-screen panel |
+| Changelog | small section in the overlay | rendered in full |
+| Server gate | none | **blocked while a session server is running** |
+| Auto-download | never | never |
+
+`electron-updater` populates `info.releaseNotes` from the release body (with
+`fullChangelog` off, that is the latest release's body), so no extra asset or
+workflow step is involved — the notes you already write are the changelog.
+
+**The server gate is chair-only.** Restarting the app ends the session and
+disconnects every delegate, so the Chair's `Upgrade now` button stays disabled
+while a server is live, with a warning and a link back to the console. The
+Delegate runs no server, so nothing is gated there.
+
+Both apps call `SummitUpdateUI.attach({...})` once. The Chair passes
+`isServerRunning` and `backToConsole`; the Delegate passes nothing. `attach()`
+is idempotent — calling it again merges options rather than re-subscribing,
+which would double-fire every updater event.
+
+To write a release, set the first line to `type: upgrade` for a release that
+changes a lot, and keep the rest as the changelog.
+
 ## Editing the UI
 
 - `shared/theme.css` — tokens, glass panels, buttons, inputs, toggles, modals,

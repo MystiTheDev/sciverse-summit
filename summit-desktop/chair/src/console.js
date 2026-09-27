@@ -31,98 +31,18 @@
     setTimeout(hide, 25000);
   })();
 
-  /* ── Update overlay (unchanged behaviour) ─────────────── */
-  (function () {
-    if (!api) return;
-    const overlay = $('updateOverlay');
-    const title = $('updateTitle');
-    const sub = $('updateSub');
-    const bar = $('updateBar');
-    const pct = $('updatePct');
-    const speed = $('updateSpeed');
-    const tipEl = $('updateTip');
-    const actions = $('updateActions');
-    let tipTimer = null;
-    let tipIdx = 0;
-
-    const tips = () => (typeof UPDATE_TIPS !== 'undefined' && Array.isArray(UPDATE_TIPS) && UPDATE_TIPS.length)
-      ? UPDATE_TIPS : ['Tip: Updates install on restart.'];
-
-    function showTip() {
-      const arr = tips();
-      tipEl.style.opacity = '0';
-      setTimeout(() => {
-        tipEl.textContent = arr[tipIdx % arr.length];
-        tipEl.style.opacity = '1';
-        tipIdx++;
-      }, 320);
-    }
-    function startTips() { tipIdx = Math.floor(Math.random() * tips().length); showTip(); tipTimer = setInterval(showTip, 3200); }
-    function stopTips() { if (tipTimer) clearInterval(tipTimer); tipTimer = null; }
-    function open() { overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false'); }
-    function fmtSpeed(bps) {
-      if (!bps || bps <= 0) return '';
-      const kb = bps / 1024;
-      return kb > 1024 ? (kb / 1024).toFixed(1) + ' MB/s' : Math.round(kb) + ' KB/s';
-    }
-
-    if (api.onUpdateAvailable) api.onUpdateAvailable((info) => {
-      open(); stopTips();
-      const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
-      title.textContent = 'Update available' + ver;
-      sub.textContent = 'A new version is ready to download. Want to update now?';
-      bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
-      tipEl.textContent = 'Tip: You can keep working — download starts only if you choose to.';
-      actions.innerHTML = '<button id="updDownloadBtn" class="primary">Download Update</button><button id="updLaterBtn" class="ghost">Later</button>';
-      actions.style.display = 'flex';
-      const dl = $('updDownloadBtn');
-      const later = $('updLaterBtn');
-      if (dl) dl.addEventListener('click', () => {
-        title.textContent = 'Downloading update…';
-        sub.textContent = 'Hang tight — almost there.';
-        bar.style.width = '6%'; pct.textContent = '6%';
-        actions.style.display = 'none';
-        startTips();
-        if (api.downloadUpdate) api.downloadUpdate();
-      });
-      if (later) later.addEventListener('click', () => { overlay.classList.remove('open'); stopTips(); });
+  /* ── Update overlay (shared: shared/update-ui.js) ────────── */
+  if (window.SummitUpdateUI) {
+    window.SummitUpdateUI.attach({
+      // A live session server must be stopped before an update, because
+      // restarting the app would end the session for every delegate.
+      isServerRunning: function () {
+        return api.serverStatus ? api.serverStatus().then(function (s) { return s === 'running'; }) : false;
+      },
+      backToConsole: function () { if (api.backToConsole) api.backToConsole(); },
     });
+  }
 
-    if (api.onUpdateProgress) api.onUpdateProgress((p) => {
-      open();
-      const n = Math.max(0, Math.min(100, Math.round(p.percent || 0)));
-      bar.style.width = n + '%'; pct.textContent = n + '%';
-      speed.textContent = fmtSpeed(p.bytesPerSecond);
-      title.textContent = 'Downloading update…';
-      sub.textContent = 'Hang tight — almost there.';
-      actions.style.display = 'none';
-      if (!tipTimer) startTips();
-    });
-
-    if (api.onUpdateDownloaded) api.onUpdateDownloaded((info) => {
-      open(); stopTips();
-      const ver = (info && (info.version || info.tag)) ? ' v' + (info.version || info.tag) : '';
-      bar.style.width = '100%'; pct.textContent = '100%'; speed.textContent = '';
-      title.textContent = 'Update ready' + ver;
-      sub.textContent = 'SciVerse Summit ' + ver.trim() + ' is ready — restart to apply it.';
-      actions.innerHTML = '<button id="updateRestartBtn" class="primary">Restart to Update</button><button id="updateLaterBtn2" class="ghost">Later</button>';
-      actions.style.display = 'flex';
-      tipEl.textContent = 'Tip: Click Restart to Update when you are ready.';
-      const rb = $('updateRestartBtn');
-      const lb = $('updateLaterBtn2');
-      if (rb) rb.addEventListener('click', () => { if (api.restartToUpdate) api.restartToUpdate(); });
-      if (lb) lb.addEventListener('click', () => { overlay.classList.remove('open'); });
-    });
-
-    if (api.onUpdateError) api.onUpdateError((msg) => {
-      bar.style.width = '0%'; pct.textContent = '—'; speed.textContent = '';
-      title.textContent = 'Update check failed';
-      sub.textContent = String(msg || 'Will retry next launch. Your current version keeps working.');
-      stopTips(); tipEl.textContent = '';
-      actions.style.display = 'none';
-      setTimeout(() => overlay.classList.remove('open'), 4200);
-    });
-  })();
 
   /* ── Console log (bounded, severity-coloured) ─────────── */
   const logEl = $('log');

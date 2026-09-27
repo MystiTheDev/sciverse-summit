@@ -1,0 +1,108 @@
+/* SciVerse Summit — update overlay, upgrade panel and changelog styles.
+ * Appended to the shared theme so both apps look identical. */
+
+.sv-notes {
+  display: none;
+  max-height: 34vh;
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+.sv-notes.show { display: block; }
+.sv-notes::-webkit-scrollbar { width: 8px; }
+.sv-notes::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+
+.sv-md-h { margin: 0 0 6px; font-weight: 800; line-height: 1.3; }
+.sv-md-h1 { font-size: 1rem; }
+.sv-md-h2 { font-size: 0.92rem; color: var(--sv-cyan-soft); }
+.sv-md-h3, .sv-md-h4 { font-size: 0.84rem; color: var(--sv-violet-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+.sv-notes p, .sv-md-body p { margin: 0 0 8px; font-size: 0.82rem; line-height: 1.55; color: var(--sv-slate-300); }
+.sv-notes p:last-child { margin-bottom: 0; }
+.sv-notes ul { margin: 0 0 8px; padding-left: 18px; }
+.sv-notes li { font-size: 0.82rem; line-height: 1.55; color: var(--sv-slate-300); margin-bottom: 3px; }
+.sv-notes li::marker { color: var(--sv-cyan); }
+.sv-notes code {
+  font-family: var(--sv-mono); font-size: 0.76rem;
+  background: rgba(6, 182, 212, 0.12); color: var(--sv-cyan-soft);
+  padding: 1px 5px; border-radius: 5px;
+}
+.sv-notes strong { color: var(--sv-slate-100); }
+.sv-notes a { color: var(--sv-cyan-soft); text-decoration: underline; text-underline-offset: 2px; }
+.sv-notes blockquote {
+  margin: 0 0 8px; padding: 6px 0 6px 12px;
+  border-left: 2px solid rgba(124, 58, 237, 0.5);
+  color: var(--sv-slate-400); font-style: italic;
+}
+.sv-md-empty { color: var(--sv-slate-500); font-style: italic; }
+
+/* ── Full-screen major upgrade panel ─────────────────────── */
+.sv-upgrade {
+  position: fixed; inset: 0; z-index: 7000;
+  display: none; align-items: center; justify-content: center;
+  padding: 28px;
+  background: rgba(2, 6, 23, 0.72);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+.sv-upgrade.open { display: flex; }
+
+.sv-upgrade__panel {
+  position: relative;
+  width: min(680px, 100%);
+  max-height: 88vh;
+  display: flex; flex-direction: column;
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  animation: sv-pop 0.24s var(--sv-ease);
+}
+.sv-upgrade__panel::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 3;
+  background: linear-gradient(90deg, var(--sv-cyan), var(--sv-violet));
+}
+.sv-upgrade__head { display: flex; align-items: center; gap: 14px; padding: 22px 24px 14px; }
+.sv-upgrade__icon {
+  width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.15rem;
+  background: linear-gradient(135deg, var(--sv-cyan), var(--sv-violet));
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.sv-upgrade__title { font-size: 1.1rem; font-weight: 800; }
+.sv-upgrade__from { font-size: 0.76rem; color: var(--sv-slate-400); margin-top: 2px; }
+.sv-upgrade__body { padding: 0 24px 4px; overflow-y: auto; flex: 1; min-height: 0; }
+.sv-upgrade__foot {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 16px 24px 22px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sv-upgrade__foot .sv-spacer { flex: 1; }
+.sv-upgrade__note { font-size: 0.76rem; color: var(--sv-slate-400); }
+
+.sv-upgrade__warn {
+  display: none; align-items: flex-start; gap: 10px;
+  margin: 0 0 14px; padding: 12px 14px;
+  border-radius: 12px; font-size: 0.8rem; line-height: 1.5;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+.sv-upgrade__warn.show { display: flex; }
+.sv-upgrade__warn i { margin-top: 2px; }
+.sv-upgrade__warn strong { color: #fde68a; }
+
+.sv-upgrade__console {
+  display: none; align-items: center; gap: 6px;
+  font-size: 0.78rem; color: var(--sv-cyan-soft);
+  background: none; border: none; padding: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+  font-family: inherit;
+}
+.sv-upgrade__console.show { display: inline-flex; }
+.sv-upgrade__console:hover { color: #fff; }

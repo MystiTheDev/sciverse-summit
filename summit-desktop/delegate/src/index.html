@@ -6,6 +6,7 @@
 <title>SciVerse Summit Delegate</title>
 <link rel="stylesheet" href="bootstrap-icons.css">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="update.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="app.css">
 </head>
@@ -25,6 +26,7 @@
     <p class="update-sub" id="updateSub">This will only take a moment.</p>
     <div class="update-bar"><span id="updateBar"></span></div>
     <div class="update-meta"><span id="updatePct">—</span><span id="updateSpeed"></span></div>
+    <div class="sv-notes" id="updateNotes"></div>
     <div class="update-tip" id="updateTip"></div>
     <div class="update-actions" id="updateActions" style="display:none"></div>
   </div>
@@ -36,6 +38,36 @@
     <h1 class="splash-title">SciVerse Summit</h1>
     <p class="splash-sub">Delegate</p>
     <div class="splash-bar"><span></span></div>
+  </div>
+</div>
+
+<!-- Full-screen major upgrade (release body starts with "type: upgrade") -->
+<div class="sv-upgrade" id="upgradePanel" role="dialog" aria-modal="true" aria-labelledby="upgTitle" aria-hidden="true">
+  <div class="sv-upgrade__panel">
+    <div class="sv-upgrade__head">
+      <div class="sv-upgrade__icon"><i class="bi bi-stars"></i></div>
+      <div>
+        <div class="sv-upgrade__title" id="upgTitle">Major upgrade available</div>
+        <div class="sv-upgrade__from" id="upgFrom"></div>
+      </div>
+    </div>
+    <div class="sv-upgrade__body">
+      <div class="sv-upgrade__warn" id="upgradeServerWarning">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span><strong>A session server is running.</strong> Updating restarts the app, which ends the session and disconnects every delegate. Stop the server from the Chair console first.</span>
+      </div>
+      <div class="sv-notes show" id="upgNotes"></div>
+    </div>
+    <div class="sv-upgrade__foot">
+      <button class="sv-upgrade__console" id="upgBackToConsole" type="button">
+        <i class="bi bi-arrow-left"></i><span>Back to console</span>
+      </button>
+      <span class="sv-spacer"></span>
+      <button class="sv-btn" id="upgLaterBtn" type="button">Not now</button>
+      <button class="sv-btn sv-btn-primary" id="upgUpgradeBtn" type="button">
+        <i class="bi bi-download"></i><span>Upgrade now</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -213,6 +245,7 @@
 </div>
 
 <script src="update-tips.js"></script>
+<script src="update-ui.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
