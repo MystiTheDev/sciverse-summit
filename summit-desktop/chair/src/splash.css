@@ -1,0 +1,419 @@
+/* SciVerse Summit — splash screen (Chair + Delegate).
+ *
+ * One shared panel, so both apps launch identically. Layout follows a
+ * two-column split: a large logo bleeding off the left edge of the panel, and
+ * a content stack on the right (brand, version, tagline, description,
+ * percentage, progress bar, status, copyright). Geometric triangles break the
+ * panel edges.
+ *
+ * No image assets: the logo is the app's own, the triangles are clip-path, and
+ * the background is gradients.
+ *
+ * Self-contained tokens so this can also load standalone in the delegate's
+ * splash window, where theme.css is not present.
+ */
+
+.sv-splash {
+  /* tokens, redeclared so the splash stands alone */
+  --sv-cyan: #06b6d4;
+  --sv-cyan-soft: #22d3ee;
+  --sv-violet: #7c3aed;
+  --sv-violet-soft: #a78bfa;
+  --sv-slate-950: #020617;
+  --sv-slate-900: #0f172a;
+  --sv-slate-800: #1e293b;
+  --sv-slate-700: #334155;
+  --sv-slate-500: #64748b;
+  --sv-slate-400: #94a3b8;
+  --sv-slate-300: #cbd5e1;
+  --sv-slate-100: #f1f5f9;
+  --sv-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --sv-mono: 'Cascadia Code', Consolas, 'Courier New', monospace;
+
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-family: inherit;
+  color: var(--sv-slate-100);
+  background:
+    radial-gradient(120% 90% at 18% 8%, rgba(124, 58, 237, 0.20), transparent 58%),
+    radial-gradient(100% 80% at 88% 92%, rgba(6, 182, 212, 0.16), transparent 60%),
+    var(--sv-slate-950);
+}
+
+/* ── Ambient drift ─────────────────────────────────────────── */
+
+.sv-splash__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
+}
+.sv-splash__blob--a {
+  width: 46vmax; height: 46vmax;
+  top: -16vmax; left: -12vmax;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.30), transparent 68%);
+  animation: sv-splash-drift-a 26s ease-in-out infinite alternate;
+}
+.sv-splash__blob--b {
+  width: 40vmax; height: 40vmax;
+  bottom: -16vmax; right: -10vmax;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.26), transparent 68%);
+  animation: sv-splash-drift-b 31s ease-in-out infinite alternate;
+}
+
+@keyframes sv-splash-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, 4vmax, 0) scale(1.12); }
+}
+@keyframes sv-splash-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.06); }
+  to   { transform: translate3d(-5vmax, -4vmax, 0) scale(1); }
+}
+
+/* ── Stage: sized to the panel, so the triangles can break its edges ── */
+
+.sv-splash__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  animation: sv-splash-panel-in 500ms var(--sv-ease) both;
+}
+
+@keyframes sv-splash-panel-in {
+  from { opacity: 0; transform: scale(0.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Panel ─────────────────────────────────────────────────── */
+
+.sv-splash__panel {
+  --splash-ar: 1.85;
+  position: relative;
+  aspect-ratio: var(--splash-ar) / 1;
+  height: min(84vh, 560px);
+  width: auto;
+  max-width: 92vw;
+  display: grid;
+  grid-template-columns: 46% 54%;
+  overflow: hidden;                 /* clips the bleeding logo */
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background:
+    radial-gradient(90% 120% at 8% 50%, rgba(124, 58, 237, 0.16), transparent 62%),
+    linear-gradient(155deg, #131c33 0%, #0d1425 52%, #0a1020 100%);
+  box-shadow:
+    0 40px 110px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+/* a hairline of brand colour along the top, echoing the upgrade panel */
+.sv-splash__panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sv-cyan), var(--sv-violet));
+  opacity: 0.85;
+  z-index: 4;
+}
+
+/* ── Left: logo bleeding off the edge ──────────────────────── */
+
+.sv-splash__hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.sv-splash__glow {
+  position: absolute;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.34), transparent 66%);
+  filter: blur(28px);
+  animation: sv-splash-bloom 900ms var(--sv-ease) 150ms both;
+}
+
+@keyframes sv-splash-bloom {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.sv-splash__logo {
+  position: relative;
+  width: 118%;
+  margin-left: -20%;               /* pushes it past the panel's left edge */
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  animation:
+    sv-splash-logo-in 700ms var(--sv-ease) 150ms both,
+    sv-splash-breathe 3.4s ease-in-out 900ms infinite alternate;
+}
+
+@keyframes sv-splash-logo-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes sv-splash-breathe {
+  from { transform: scale(1); }
+  to   { transform: scale(1.012); }
+}
+
+/* ── Right: content stack ──────────────────────────────────── */
+
+.sv-splash__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6% 8%;
+  gap: 0;
+  min-width: 0;
+}
+
+/* The gradient is painted on the heading, but each letter is its own inline
+ * block (needed for the stagger). background-clip:text only reaches text that
+ * belongs to the element carrying the background, so the per-letter spans would
+ * render fully transparent. Painting the gradient on every letter instead, and
+ * clipping it to that letter's own box, keeps both effects working. */
+.sv-splash__brand {
+  margin: 0;
+  font-size: clamp(1.5rem, 4.2vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+.sv-splash__brand span {
+  display: inline-block;
+  white-space: pre;
+  background: linear-gradient(92deg, #ffffff 8%, var(--sv-cyan-soft) 52%, var(--sv-violet-soft) 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sv-splash-letter 520ms var(--sv-ease) both;
+}
+@keyframes sv-splash-letter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sv-splash__version {
+  margin: 0.7em 0 0;
+  font-family: var(--sv-mono);
+  font-size: clamp(0.66rem, 1.5vw, 0.8rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sv-slate-500);
+  animation: sv-splash-rise 420ms var(--sv-ease) 520ms both;
+}
+
+.sv-splash__tagline {
+  margin: 1.5em 0 0;
+  font-size: clamp(0.98rem, 2.5vw, 1.32rem);
+  font-weight: 700;
+  line-height: 1.42;
+  color: var(--sv-slate-100);
+  max-width: 30ch;
+  animation: sv-splash-rise 460ms var(--sv-ease) 620ms both;
+}
+
+.sv-splash__desc {
+  margin: 1em 0 0;
+  font-size: clamp(0.74rem, 1.7vw, 0.87rem);
+  line-height: 1.6;
+  color: var(--sv-slate-400);
+  max-width: 44ch;
+  animation: sv-splash-fade 520ms var(--sv-ease) 760ms both;
+}
+
+@keyframes sv-splash-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sv-splash-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Progress ──────────────────────────────────────────────── */
+
+.sv-splash__pct {
+  margin: 1.7em 0 0.45em;
+  font-size: clamp(1.5rem, 4.4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;   /* so the number does not jitter */
+  color: var(--sv-cyan-soft);
+  text-shadow: 0 0 22px rgba(34, 211, 238, 0.45);
+  animation: sv-splash-fade 420ms var(--sv-ease) 900ms both;
+}
+
+.sv-splash__track {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.sv-splash__fill {
+  position: relative;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sv-cyan), var(--sv-violet));
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.5);
+  transition: width 600ms var(--sv-ease);
+  overflow: hidden;
+}
+
+/* shimmer travelling along the filled part */
+.sv-splash__fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  animation: sv-splash-shimmer 1.8s linear infinite;
+}
+@keyframes sv-splash-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+.sv-splash__status {
+  margin: 0.85em 0 0;
+  min-height: 1.4em;                  /* reserves space so nothing jumps */
+  font-family: var(--sv-mono);
+  font-size: clamp(0.66rem, 1.5vw, 0.76rem);
+  letter-spacing: 0.06em;
+  color: var(--sv-slate-500);
+  transition: color 300ms var(--sv-ease);
+}
+.sv-splash__status.is-error { color: #fcd34d; }
+
+.sv-splash__copy {
+  margin: 1.5em 0 0;
+  font-size: clamp(0.62rem, 1.4vw, 0.7rem);
+  letter-spacing: 0.08em;
+  color: rgba(100, 116, 139, 0.85);
+}
+
+/* ── Triangles: break the panel edges ──────────────────────── */
+
+.sv-splash__tri {
+  position: absolute;
+  z-index: 5;                         /* above the panel, below nothing */
+  pointer-events: none;
+  will-change: transform;
+}
+.sv-splash__tri--tl {
+  width: 104px; height: 132px;
+  top: 4%; left: -44px;
+  background: linear-gradient(150deg, var(--sv-cyan-soft), var(--sv-violet));
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  opacity: 0.9;
+  animation: sv-splash-tri-a 11s ease-in-out infinite alternate;
+}
+.sv-splash__tri--ml {
+  width: 66px; height: 88px;
+  top: 46%; left: -26px;
+  background: linear-gradient(200deg, var(--sv-cyan), var(--sv-violet-soft));
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  opacity: 0.75;
+  animation: sv-splash-tri-b 9s ease-in-out infinite alternate;
+}
+.sv-splash__tri--bl {
+  width: 138px; height: 112px;
+  bottom: -44px; left: 8%;
+  background: linear-gradient(20deg, var(--sv-cyan-soft), var(--sv-violet));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  opacity: 0.85;
+  animation: sv-splash-tri-c 14s ease-in-out infinite alternate;
+}
+.sv-splash__tri--r {
+  width: 92px; height: 124px;
+  top: 10%; right: -38px;
+  background: linear-gradient(210deg, var(--sv-cyan), var(--sv-violet-soft));
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+  opacity: 0.9;
+  animation: sv-splash-tri-b 12s ease-in-out infinite alternate;
+}
+
+@keyframes sv-splash-tri-a {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(5px, -7px, 0); }
+}
+@keyframes sv-splash-tri-b {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-4px, 6px, 0); }
+}
+@keyframes sv-splash-tri-c {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(6px, -5px, 0); }
+}
+
+/* ── Exit ──────────────────────────────────────────────────── */
+
+.sv-splash.is-leaving {
+  animation: sv-splash-out 420ms var(--sv-ease) both;
+}
+.sv-splash.is-leaving .sv-splash__stage {
+  transition: opacity 420ms var(--sv-ease), transform 420ms var(--sv-ease);
+  opacity: 0;
+  transform: scale(1.01) translateY(-10px);
+}
+@keyframes sv-splash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Narrow or short: stack to a single column ─────────────── */
+
+@media (max-width: 860px), (max-aspect-ratio: 1/1) {
+  .sv-splash__panel {
+    grid-template-columns: 1fr;
+    aspect-ratio: auto;
+    height: auto;
+    width: min(94vw, 520px);
+    max-height: 92vh;
+  }
+  .sv-splash__hero { min-height: 168px; }
+  .sv-splash__logo { width: 40%; margin-left: 0; }
+  .sv-splash__content { padding: 6% 7% 8%; }
+  .sv-splash__tri--ml, .sv-splash__tri--r { display: none; }
+}
+
+/* ── Reduced motion: one fade, but the bar still works ─────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-splash__blob,
+  .sv-splash__tri,
+  .sv-splash__logo,
+  .sv-splash__glow,
+  .sv-splash__stage,
+  .sv-splash__brand span,
+  .sv-splash__version,
+  .sv-splash__tagline,
+  .sv-splash__desc,
+  .sv-splash__pct {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .sv-splash__fill { transition: width 200ms linear; }
+  .sv-splash__fill::after { animation: none; }
+  .sv-splash.is-leaving { animation: sv-splash-fade 250ms linear both; }
+}

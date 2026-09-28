@@ -69,8 +69,10 @@ const SPLASH_MS = 14000;
 
 function createSplash() {
   splashWindow = new BrowserWindow({
-    width: 440,
-    height: 600,
+    // Sized for the shared two-column splash panel (1.85:1, max 1040 wide),
+    // plus room for the darker surround so the panel reads as a card.
+    width: 1120,
+    height: 660,
     title: 'SciVerse Summit Delegate',
     icon: path.join(__dirname, '..', 'src', 'logo.png'),
     frame: false,

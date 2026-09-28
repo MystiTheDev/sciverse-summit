@@ -19,8 +19,10 @@ const SHARED = path.join(APP, '..', 'shared');
 const FILES = [
   { name: 'theme.css', dest: path.join(APP, 'src', 'theme.css') },
   { name: 'update.css', dest: path.join(APP, 'src', 'update.css') },
+  { name: 'splash.css', dest: path.join(APP, 'src', 'splash.css') },
   { name: 'notif-bridge.js', dest: path.join(APP, 'src', 'notif-bridge.js') },
   { name: 'update-ui.js', dest: path.join(APP, 'src', 'update-ui.js') },
+  { name: 'splash.js', dest: path.join(APP, 'src', 'splash.js') },
   { name: 'notifications.js', dest: path.join(APP, 'electron', 'notifications.js') },
 ];
 

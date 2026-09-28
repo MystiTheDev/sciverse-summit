@@ -406,11 +406,9 @@ ipcMain.handle('server:info', async () => ({
 // shell injects a floating button on local server pages that returns here.
 ipcMain.handle('app:console', async () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
-    // skipSplash: the in-app loader plays on first open only — coming back
-    // from the Console button must land straight on the console.
-    mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'), {
-      query: { skipSplash: '1' },
-    });
+    // The splash is once-per-launch via sessionStorage, so returning here
+    // lands straight on the console with no query string to thread through.
+    mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
     return 'console';
   }
   return 'no-window';
