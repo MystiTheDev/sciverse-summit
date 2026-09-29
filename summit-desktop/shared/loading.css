@@ -1,0 +1,103 @@
+/* SciVerse Summit — loading screen (Chair + Delegate).
+ *
+ * One shared overlay, so both apps cover their wait identically. Five
+ * equaliser bars bounce in the centre with a status line beneath.
+ *
+ * Self-contained tokens so it loads standalone, like splash.css.
+ */
+
+.sv-load {
+  --sv-cyan: #06b6d4;
+  --sv-cyan-soft: #22d3ee;
+  --sv-violet: #7c3aed;
+  --sv-violet-soft: #a78bfa;
+  --sv-slate-500: #64748b;
+  --sv-slate-400: #94a3b8;
+  --sv-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  font-family: inherit;
+  /* The reference is a full dark-purple field. Kept as a soft radial so the
+   * app's own ambient blobs still read through at the edges. */
+  background:
+    radial-gradient(120% 100% at 50% 45%, #1e1b4b 0%, #131433 45%, #0b1024 100%);
+  opacity: 1;
+  transition: opacity 420ms var(--sv-ease);
+}
+
+.sv-load.is-hiding {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── The equaliser ──────────────────────────────────────────── */
+
+.sv-load__bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 92px;
+}
+
+.sv-load__bar {
+  width: 8px;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--sv-cyan-soft), var(--sv-violet));
+  box-shadow: 0 0 18px rgba(124, 58, 237, 0.45);
+  transform-origin: 50% 50%;
+  /* Each bar runs on its own period, so the group never visibly loops. */
+  animation: sv-load-eq 820ms ease-in-out infinite alternate;
+}
+
+/* Prime-ish, unequal periods either side of the centre. Negative delays start
+ * each bar mid-cycle so the group is already dancing on the first frame
+ * rather than snapping into motion together. */
+.sv-load__bar:nth-child(1) { animation-duration: 760ms;  animation-delay: -180ms; }
+.sv-load__bar:nth-child(2) { animation-duration: 980ms;  animation-delay: -520ms; }
+.sv-load__bar:nth-child(3) { animation-duration: 1120ms; animation-delay: -300ms; }
+.sv-load__bar:nth-child(4) { animation-duration: 900ms;  animation-delay: -700ms; }
+.sv-load__bar:nth-child(5) { animation-duration: 820ms;  animation-delay: -420ms; }
+
+/* Each bar carries its own step of the brand ramp, so the group reads as one
+ * gradient mark rather than five unrelated bars. */
+.sv-load__bar:nth-child(1) { background: linear-gradient(180deg, #67e8f9, #22d3ee); }
+.sv-load__bar:nth-child(2) { background: linear-gradient(180deg, #22d3ee, #818cf8); }
+.sv-load__bar:nth-child(3) { background: linear-gradient(180deg, #38bdf8, #818cf8); }
+.sv-load__bar:nth-child(4) { background: linear-gradient(180deg, #818cf8, #a78bfa); }
+.sv-load__bar:nth-child(5) { background: linear-gradient(180deg, #a78bfa, #7c3aed); }
+
+@keyframes sv-load-eq {
+  from { transform: scaleY(0.18); }
+  to   { transform: scaleY(1); }
+}
+
+/* ── Status line ───────────────────────────────────────────── */
+
+.sv-load__label {
+  margin: 0;
+  min-height: 1.5em;                 /* reserves the line, so nothing jumps */
+  font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.34em;           /* the reference's wide-tracked caps */
+  text-transform: uppercase;
+  text-indent: 0.34em;              /* re-centre against the trailing space */
+  text-align: center;
+  color: var(--sv-slate-500);
+  transition: opacity 220ms var(--sv-ease);
+}
+
+.sv-load__label.is-error { color: #f87171; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-load__bar { animation: none; transform: scaleY(0.6); }
+  .sv-load { transition: opacity 150ms linear; }
+}

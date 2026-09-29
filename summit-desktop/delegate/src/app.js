@@ -6,21 +6,22 @@
   const PORT = 8080;
   const $ = (id) => document.getElementById(id);
 
-  /* ── Splash (unchanged behaviour) ─────────────────────── */
+  /* ── Loading screen (shared: shared/loading.js) ──────────────────
+   * Replaces the old inline splash, which pinned the delegate on a
+   * pre-revamp "S" tile for a minimum of 20 seconds - long enough that the
+   * connect screen could not be reached. The shared overlay has a 700ms
+   * minimum of its own, enough to read as a loading state without holding
+   * the app hostage.
+   */
   (function () {
-    const started = Date.now();
-    function hide() {
-      const wait = Math.max(0, 20000 - (Date.now() - started));
-      setTimeout(() => {
-        const el = $('splash');
-        if (!el) return;
-        el.classList.add('hidden');
-        setTimeout(() => el.remove(), 500);
-      }, wait);
+    if (!window.SummitLoading) return;
+    window.SummitLoading.show('Starting');
+    function done() {
+      window.SummitLoading.set('Ready');
+      window.SummitLoading.hide();
     }
-    if (document.readyState === 'complete') hide();
-    else window.addEventListener('load', hide);
-    setTimeout(hide, 25000);
+    if (document.readyState === 'complete') done();
+    else window.addEventListener('load', done);
   })();
 
   /* ── Update overlay (shared: shared/update-ui.js) ────────── */

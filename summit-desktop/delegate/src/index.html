@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="update.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="loading.css">
 </head>
 <body>
 <div class="sv-ambient" aria-hidden="true">
@@ -39,14 +40,7 @@
   </div>
 </div>
 
-<div id="splash">
-  <div class="splash-inner">
-    <div class="splash-logo">S</div>
-    <h1 class="splash-title">SciVerse Summit</h1>
-    <p class="splash-sub">Delegate</p>
-    <div class="splash-bar"><span></span></div>
-  </div>
-</div>
+<!-- Loading screen is injected by shared/loading.js, so there is no markup here. -->
 
 <!-- Full-screen major upgrade (release body starts with "type: upgrade") -->
 <div class="sv-upgrade" id="upgradePanel" role="dialog" aria-modal="true" aria-labelledby="upgTitle" aria-hidden="true">
@@ -253,6 +247,8 @@
 
 <script src="update-tips.js"></script>
 <script src="update-ui.js"></script>
+<!-- Must load before app.js: app.js shows the overlay on parse. -->
+<script src="loading.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

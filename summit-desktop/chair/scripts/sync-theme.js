@@ -23,6 +23,8 @@ const FILES = [
   { name: 'notif-bridge.js', dest: path.join(APP, 'src', 'notif-bridge.js') },
   { name: 'update-ui.js', dest: path.join(APP, 'src', 'update-ui.js') },
   { name: 'splash.js', dest: path.join(APP, 'src', 'splash.js') },
+  { name: 'loading.css', dest: path.join(APP, 'src', 'loading.css') },
+  { name: 'loading.js', dest: path.join(APP, 'src', 'loading.js') },
   { name: 'notifications.js', dest: path.join(APP, 'electron', 'notifications.js') },
 ];
 

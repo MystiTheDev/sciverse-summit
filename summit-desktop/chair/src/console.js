@@ -15,6 +15,12 @@
   // never started automatically.
   var splash = null;
 
+  /* ── Loading screen (shared: shared/loading.js) ─────────── */
+  // Covers the console's own initialisation, continuing from where the splash
+  // window hands over. It carries a 700ms minimum, so a fast boot still reads
+  // as a loading state rather than a two-frame flash.
+  if (window.SummitLoading) window.SummitLoading.show('Starting the console');
+
   /* ── Update overlay (shared: shared/update-ui.js) ────────── */
   if (window.SummitUpdateUI) {
     window.SummitUpdateUI.attach({
@@ -427,30 +433,44 @@
 
   /* ── Boot ─────────────────────────────────────────────── */
   (async function init() {
-    await loadSettings();
-    if (api && api.onServerExit) {
-      api.onServerExit(() => {
-        startedAt = null;
-        stopTicker();
-        setState('idle', 'Server stopped', 'The server process exited');
-        startBtn.disabled = false;
-        openBtn.disabled = true;
-      });
-    }
     try {
-      if (api && api.serverStatus && await api.serverStatus() === 'running') {
-        startedAt = await currentStartedAt();
-        setState('live', 'Server live', '');
-        startTicker();
-        startBtn.disabled = true;
-        openBtn.disabled = false;
-        append('Reconnected to the running server. Open Chair View, or stop it here.', 'lv-app');
-        await refreshJoin();
+      await loadSettings();
+      if (api && api.onServerExit) {
+        api.onServerExit(() => {
+          startedAt = null;
+          stopTicker();
+          setState('idle', 'Server stopped', 'The server process exited');
+          startBtn.disabled = false;
+          openBtn.disabled = true;
+        });
       }
-    } catch (e) { /* launcher works standalone */ }
-    if (settings.autoStart) {
-      append('Auto-start is on — starting the server.', 'lv-app');
-      startBtn.click();
+      try {
+        if (api && api.serverStatus && await api.serverStatus() === 'running') {
+          startedAt = await currentStartedAt();
+          setState('live', 'Server live', '');
+          startTicker();
+          startBtn.disabled = true;
+          openBtn.disabled = false;
+          append('Reconnected to the running server. Open Chair View, or stop it here.', 'lv-app');
+          await refreshJoin();
+        }
+      } catch (e) { /* launcher works standalone */ }
+      if (settings.autoStart) {
+        append('Auto-start is on — starting the server.', 'lv-app');
+        startBtn.click();
+      }
+    } catch (e) {
+      // The console still has to be usable, so the failure is reported in the
+      // log rather than swallowed.
+      append('Console init failed: ' + e, 'lv-app');
+    } finally {
+      // Dismissed in finally, not on the success path: if boot throws, leaving
+      // the overlay up would strand the user behind animated bars with no
+      // console and no way forward.
+      if (window.SummitLoading) {
+        window.SummitLoading.set('Ready');
+        window.SummitLoading.hide();
+      }
     }
   })();
 })();
