@@ -86,7 +86,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  animation: sv-splash-panel-in 500ms var(--sv-ease) both;
+  animation: sv-splash-panel-in 760ms var(--sv-ease) both;
 }
 
 @keyframes sv-splash-panel-in {
@@ -146,16 +146,16 @@
   pointer-events: none;
   background: linear-gradient(
     104deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.10) 47%,
-    rgba(34, 211, 238, 0.13) 51%,
-    rgba(255, 255, 255, 0.08) 55%,
-    transparent 64%
+    transparent 36%,
+    rgba(255, 255, 255, 0.20) 46%,
+    rgba(34, 211, 238, 0.26) 51%,
+    rgba(255, 255, 255, 0.15) 56%,
+    transparent 66%
   );
   background-size: 260% 100%;
   background-repeat: no-repeat;
   opacity: 0;
-  animation: sv-splash-sheen 1500ms var(--sv-ease) 120ms 1 both;
+  animation: sv-splash-sheen 2300ms var(--sv-ease) 320ms 1 both;
 }
 
 @keyframes sv-splash-sheen {
@@ -176,12 +176,12 @@
   border: 1px solid rgba(34, 211, 238, 0.55);
   box-shadow: 0 0 22px rgba(34, 211, 238, 0.35) inset;
   opacity: 0;
-  animation: sv-splash-ignite 1250ms var(--sv-ease) 90ms 1 both;
+  animation: sv-splash-ignite 1900ms var(--sv-ease) 150ms 1 both;
 }
 
 @keyframes sv-splash-ignite {
   0%   { opacity: 0;   transform: scale(0.34); }
-  18%  { opacity: 0.85; }
+  18%  { opacity: 1; }
   100% { opacity: 0;   transform: scale(1.5); }
 }
 
@@ -249,7 +249,7 @@
    * ends on a whole-pixel raster. The idle breathe deliberately does NOT use
    * transform: a fractional scale would resample the image on every frame and
    * blur it continuously, so the idle motion is opacity only. */
-  animation: sv-splash-logo-in 700ms var(--sv-ease) 150ms both;
+  animation: sv-splash-logo-in 1050ms var(--sv-ease) 220ms both;
 }
 
 @keyframes sv-splash-logo-in {
@@ -297,7 +297,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: sv-splash-letter 520ms var(--sv-ease) both;
+  animation: sv-splash-letter 700ms var(--sv-ease) both;
 }
 @keyframes sv-splash-letter {
   from { opacity: 0; transform: translateY(14px); }
@@ -311,7 +311,7 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--sv-slate-500);
-  animation: sv-splash-rise 420ms var(--sv-ease) 520ms both;
+  animation: sv-splash-rise 600ms var(--sv-ease) 760ms both;
 }
 
 .sv-splash__tagline {
@@ -321,7 +321,7 @@
   line-height: 1.42;
   color: var(--sv-slate-100);
   max-width: 30ch;
-  animation: sv-splash-rise 460ms var(--sv-ease) 620ms both;
+  animation: sv-splash-rise 660ms var(--sv-ease) 980ms both;
 }
 
 .sv-splash__desc {
@@ -330,7 +330,7 @@
   line-height: 1.6;
   color: var(--sv-slate-400);
   max-width: 44ch;
-  animation: sv-splash-fade 520ms var(--sv-ease) 760ms both;
+  animation: sv-splash-fade 700ms var(--sv-ease) 1220ms both;
 }
 
 @keyframes sv-splash-rise {
@@ -352,7 +352,7 @@
   font-variant-numeric: tabular-nums;   /* so the number does not jitter */
   color: var(--sv-cyan-soft);
   text-shadow: 0 0 22px rgba(34, 211, 238, 0.45);
-  animation: sv-splash-fade 420ms var(--sv-ease) 900ms both;
+  animation: sv-splash-fade 620ms var(--sv-ease) 1420ms both;
 }
 
 .sv-splash__track {
@@ -367,7 +367,7 @@
   /* Opacity-only, like the rest of the entrance: the bar used to snap into
    * existence already full-width while everything around it was still
    * fading in, which read as a glitch rather than as a sequence. */
-  animation: sv-splash-fade 460ms var(--sv-ease) 880ms both;
+  animation: sv-splash-fade 640ms var(--sv-ease) 1520ms both;
 }
 
 .sv-splash__fill {
@@ -404,13 +404,13 @@
   transition: color 300ms var(--sv-ease);
   /* min-height above reserves the line, so fading it in cannot shift
    * anything below it. */
-  animation: sv-splash-fade 460ms var(--sv-ease) 980ms both;
+  animation: sv-splash-fade 640ms var(--sv-ease) 1700ms both;
 }
 .sv-splash__status.is-error { color: #fcd34d; }
 
 /* Last to arrive, so the card finishes assembling top-to-bottom. */
 .sv-splash__copy {
-  animation: sv-splash-fade 520ms var(--sv-ease) 1100ms both;
+  animation: sv-splash-fade 700ms var(--sv-ease) 1900ms both;
   margin: 1.5em 0 0;
   font-size: clamp(0.62rem, 1.4vw, 0.7rem);
   letter-spacing: 0.08em;

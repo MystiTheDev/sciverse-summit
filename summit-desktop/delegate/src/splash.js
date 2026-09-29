@@ -11,11 +11,11 @@
   'use strict';
 
   var NAME_LETTERS = 'SciVerse Summit';
-  var STAGGER_MS = 34;
+  var STAGGER_MS = 52;
 
   /* Timings follow the entrance choreography: panel 500ms, logo to 850ms,
    * brand letters finish ~1070ms, description ~1280ms. */
-  var MIN_MS = 1600;
+  var MIN_MS = 3000;
   var CAP_MS = 4000;
 
   function escapeHtml(s) {
@@ -50,7 +50,7 @@
   function build(opts) {
     opts = opts || {};
     var letters = String(NAME_LETTERS).split('').map(function (ch, i) {
-      return '<span style="animation-delay:' + (350 + i * STAGGER_MS) + 'ms">' + escapeHtml(ch) + '</span>';
+      return '<span style="animation-delay:' + (420 + i * STAGGER_MS) + 'ms">' + escapeHtml(ch) + '</span>';
     }).join('');
 
     var role = escapeHtml(opts.role || '');
