@@ -153,6 +153,21 @@
   animation: sv-splash-bloom 900ms var(--sv-ease) 150ms both;
 }
 
+/* The idle "breathe" lives here rather than on the logo. A blurred gradient
+ * can be resampled or scaled every frame without anyone seeing it, whereas
+ * the same transform on the logo permanently softens it. The motion reads
+ * identically, because the glow is what appears to be pulsing anyway. */
+.sv-splash__hero::after {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.22), transparent 68%);
+  filter: blur(34px);
+  pointer-events: none;
+  animation: sv-splash-breathe 3.4s ease-in-out 900ms infinite alternate;
+}
+
 @keyframes sv-splash-bloom {
   from { opacity: 0; transform: scale(0.55); }
   to   { opacity: 1; transform: scale(1); }
@@ -165,25 +180,35 @@
 .sv-splash__logo {
   position: relative;
   display: block;
-  /* Wide enough to read at a glance, and pushed left so the ring crosses the
-   * card boundary rather than sitting inside it. */
-  width: min(112%, 460px);
+  /* logo.png is 406x406. Never render it larger than that: upscaling a
+   * 406px asset to 460px resamples the ring and the wordmark and leaves the
+   * whole mark soft. Capping at the native size keeps every source pixel
+   * intact, and the bleed below makes it read as large regardless. */
+  width: min(100%, 406px);
   margin-left: -20%;
   max-width: none;
+  /* Above both glow layers: ::after is generated as the hero's last child and
+   * would otherwise paint on top of the mark. */
+  z-index: 1;
   user-select: none;
   -webkit-user-drag: none;
-  animation:
-    sv-splash-logo-in 700ms var(--sv-ease) 150ms both,
-    sv-splash-breathe 3.4s ease-in-out 900ms infinite alternate;
+  /* The entrance scales the layer once and settles at exactly scale(1), so it
+   * ends on a whole-pixel raster. The idle breathe deliberately does NOT use
+   * transform: a fractional scale would resample the image on every frame and
+   * blur it continuously, so the idle motion is opacity only. */
+  animation: sv-splash-logo-in 700ms var(--sv-ease) 150ms both;
 }
 
 @keyframes sv-splash-logo-in {
   from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
 }
+
+/* Idle motion without resampling. Opacity and filter do not change the
+ * rasterised scale, so the mark stays sharp while it still breathes. */
 @keyframes sv-splash-breathe {
-  from { transform: scale(1); }
-  to   { transform: scale(1.012); }
+  from { opacity: 1; filter: saturate(1) brightness(1); }
+  to   { opacity: 0.92; filter: saturate(1.06) brightness(1.05); }
 }
 
 /* ── Right: content stack ──────────────────────────────────── */
