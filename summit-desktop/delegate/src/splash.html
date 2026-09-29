@@ -26,7 +26,14 @@
     description: 'No setup, no accounts, no internet. Your chair\u2019s address is all you need to join the session and take your seat.',
     version: q.v || '',
     logo: 'logo.png',
-    year: '2026'
+    year: '2026',
+    // A backstop for a page that never gets a handoff, not a schedule. Well
+    // clear of the real ~1.6s minimum plus exit, so it cannot cut the splash
+    // short or close the window out from under the app while it loads.
+    capMs: 12000,
+    // The main process reveals the app on this signal, so the splash keeps
+    // its own minimum hold and exit instead of being cut short.
+    onReady: function () { try { window.close(); } catch (e) { /* host closes us */ } }
   });
 
   // Delegate boot has no long stages of its own: start honest, then creep
@@ -43,6 +50,15 @@
     }
     splash.set(pct, label);
   }, 130);
+
+  // The connect screen tells us when it is genuinely up.
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'splash:done') {
+      clearInterval(t);
+      splash.set(100, 'Ready');
+      splash.ready();
+    }
+  });
 })();
 </script>
 </body>

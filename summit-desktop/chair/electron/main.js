@@ -87,13 +87,17 @@ function dataDir() {
   return path.join(app.getPath('userData'), 'data');
 }
 
-// Native splash: logo + name for a fixed brand moment before the app opens.
-const SPLASH_MS = 14000;
+// Native splash: a wide panel that hands over to the console. The page owns its
+// own minimum hold and exit; this is only a failsafe in case it never reports
+// back, so it is generous and never fires in normal use.
+const SPLASH_FALLBACK_MS = 15000;
 
 function createSplash() {
   splashWindow = new BrowserWindow({
-    width: 440,
-    height: 600,
+    // Sized for the shared two-column splash panel (1.85:1, max 1040 wide),
+    // with room for the darker surround so the panel reads as a card.
+    width: 1120,
+    height: 660,
     title: 'SciVerse Summit Chair',
     icon: path.join(__dirname, '..', 'src', 'logo.png'),
     frame: false,
@@ -111,9 +115,34 @@ function createSplash() {
   splashWindow.loadFile(path.join(__dirname, '..', 'src', 'splash.html'), {
     query: { v: app.getVersion() },
   });
-  splashWindow.on('closed', () => {
-    splashWindow = null;
+  // The splash page closes its own window once it has held for its minimum
+  // and finished its exit, so the console is revealed by the splash's own
+  // lifecycle rather than by a fixed timer here. A failsafe covers the case
+  // where the page never reports back.
+  const win = splashWindow;
+  win.on('closed', () => {
+    if (splashWindow === win) splashWindow = null;
+    revealMainWindow();
   });
+  splashTimer = setTimeout(() => {
+    splashTimer = null;
+    try {
+      if (win && !win.isDestroyed()) win.close();
+    } catch { /* already gone */ }
+    if (splashWindow === win) splashWindow = null;
+    revealMainWindow();
+  }, SPLASH_FALLBACK_MS);
+}
+
+/** Shows the console once, after the splash has handed over. */
+function revealMainWindow() {
+  if (splashTimer) {
+    clearTimeout(splashTimer);
+    splashTimer = null;
+  }
+  if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+    mainWindow.show();
+  }
 }
 
 function resourceBase() {
@@ -173,15 +202,21 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
 
-  // Fixed-timer handoff: close the splash and reveal the app after SPLASH_MS.
-  splashTimer = setTimeout(() => {
-    splashTimer = null;
+  // Tell the splash the console is up, so it can finish its exit animation
+  // and close itself. The window handle is captured locally: the splash can
+  // close itself first, which nulls the module-level global, and reading
+  // that global later would throw.
+  const splashWin = splashWindow;
+  mainWindow.webContents.once('did-finish-load', () => {
+    // Only tell the splash the console is up. It reveals the console itself
+    // once it has held for its minimum and finished its exit, so showing the
+    // window here would put the console behind the still-animating splash.
     try {
-      if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
-    } catch { /* already gone */ }
-    splashWindow = null;
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
-  }, SPLASH_MS);
+      if (splashWin && !splashWin.isDestroyed()) {
+        splashWin.webContents.send('splash:done');
+      }
+    } catch { /* splash already gone */ }
+  });
 
   // Server UI links that open a new window -> system browser instead.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

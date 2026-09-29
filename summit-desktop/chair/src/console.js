@@ -7,29 +7,13 @@
   const BASE = 'http://127.0.0.1:' + PORT;
   const $ = (id) => document.getElementById(id);
 
-  /* ── Splash (shared panel, real boot stages) ────────────── */
-  // The old splash waited out a fixed 20 seconds regardless of readiness.
-  // This one reports the app's own boot and exits on completion: the server
-  // is deliberately not part of it, since starting it is a user action.
-  // Not dismissible, and once per launch: when the user returns from the web
-  // UI and this page reloads, the splash must not replay.
+  /* ── Splash ─────────────────────────────────────────────── */
+  // The shared splash window (electron/splash.html) already covered the
+  // launch, so nothing is mounted here. The console used to carry its own
+  // inline copy, which flashed a second time over the top of the window one.
+  // The boot stages that used to drive it still run, and the server is still
+  // never started automatically.
   var splash = null;
-  var splashSeen = false;
-  try { splashSeen = window.sessionStorage && sessionStorage.getItem('svSplashSeen') === '1'; } catch (e) { /* noop */ }
-  if (window.Splash && !splashSeen) {
-    splash = window.Splash.mount($('splashRoot'), {
-      role: 'Chair',
-      tagline: 'A Committee Session Platform. For The Chair.',
-      description: 'Whether it\u2019s your first session or your fiftieth, SciVerse Summit keeps every delegate, motion and vote on your own machine. Start it, share the address, and get to work.',
-      version: '3.1.0',
-      logo: 'logo.png',
-      year: '2026',
-      onDone: function () {
-        try { if (window.sessionStorage) sessionStorage.setItem('svSplashSeen', '1'); } catch (e) { /* noop */ }
-      },
-    });
-    if (splash) splash.set(12, 'Loading the interface…');
-  }
 
   /* ── Update overlay (shared: shared/update-ui.js) ────────── */
   if (window.SummitUpdateUI) {
@@ -443,9 +427,7 @@
 
   /* ── Boot ─────────────────────────────────────────────── */
   (async function init() {
-    if (splash) splash.set(46, 'Reading your settings…');
     await loadSettings();
-    if (splash) splash.set(78, 'Preparing the console…');
     if (api && api.onServerExit) {
       api.onServerExit(() => {
         startedAt = null;
@@ -467,13 +449,8 @@
       }
     } catch (e) { /* launcher works standalone */ }
     if (settings.autoStart) {
-      if (splash) splash.set(100, 'Ready');
-      if (splash) splash.ready();
       append('Auto-start is on — starting the server.', 'lv-app');
       startBtn.click();
-    } else if (splash) {
-      splash.set(100, 'Ready');
-      splash.ready();
     }
   })();
 })();

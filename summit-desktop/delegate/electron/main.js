@@ -64,8 +64,10 @@ function loadStore() {
   applyLaunchAtLogin();
 }
 
-// Native splash: logo + name for a fixed brand moment before the app opens.
-const SPLASH_MS = 14000;
+// Native splash: a wide panel that hands over to the connect screen. The page
+// owns its own minimum hold and exit; this is only a failsafe in case it never
+// reports back, so it is generous and never fires in normal use.
+const SPLASH_FALLBACK_MS = 15000;
 
 function createSplash() {
   splashWindow = new BrowserWindow({
@@ -90,9 +92,32 @@ function createSplash() {
   splashWindow.loadFile(path.join(__dirname, '..', 'src', 'splash.html'), {
     query: { v: app.getVersion() },
   });
-  splashWindow.on('closed', () => {
-    splashWindow = null;
+  // The handle is captured locally: the splash can close itself first, and
+  // only the window that actually closed may clear the module-level global.
+  const win = splashWindow;
+  win.on('closed', () => {
+    if (splashWindow === win) splashWindow = null;
+    revealMainWindow();
   });
+  splashTimer = setTimeout(() => {
+    splashTimer = null;
+    try {
+      if (win && !win.isDestroyed()) win.close();
+    } catch { /* already gone */ }
+    if (splashWindow === win) splashWindow = null;
+    revealMainWindow();
+  }, SPLASH_FALLBACK_MS);
+}
+
+/** Shows the connect screen once, after the splash has handed over. */
+function revealMainWindow() {
+  if (splashTimer) {
+    clearTimeout(splashTimer);
+    splashTimer = null;
+  }
+  if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+    mainWindow.show();
+  }
 }
 
 /* ── Recents ────────────────────────────────────────────── */
@@ -187,15 +212,20 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
 
-  // Fixed-timer handoff: close the splash and reveal the app after SPLASH_MS.
-  splashTimer = setTimeout(() => {
-    splashTimer = null;
+  // The splash page closes its own window once it has held for its minimum
+  // and finished its exit, so the connect screen is revealed by the splash's
+  // own lifecycle rather than by a fixed timer here.
+  // Only tell the splash the app is up. It reveals the window itself once it
+  // has held for its minimum and finished its exit. The handle is captured
+  // locally because the splash can close itself first, nulling the global.
+  const splashWin = splashWindow;
+  mainWindow.webContents.once('did-finish-load', () => {
     try {
-      if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
-    } catch { /* already gone */ }
-    splashWindow = null;
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
-  }, SPLASH_MS);
+      if (splashWin && !splashWin.isDestroyed()) {
+        splashWin.webContents.send('splash:done');
+      }
+    } catch { /* splash already gone */ }
+  });
 
   // Inject the custom /login design only on the server's login page.
   // did-finish-load fires on every full navigation, including the redirect

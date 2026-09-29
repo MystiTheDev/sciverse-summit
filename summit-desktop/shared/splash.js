@@ -45,6 +45,7 @@
    * @param {string} opts.version    e.g. '3.1.0'
    * @param {string} opts.logo       src for the logo image
    * @param {string} opts.year       copyright year
+   * @param {string} [opts.copyright] true to append "All rights reserved."
    */
   function build(opts) {
     opts = opts || {};
@@ -135,11 +136,27 @@
         setTimeout(function () {
           if (root && root.parentNode) root.parentNode.removeChild(root);
           if (typeof opts.onDone === 'function') opts.onDone(err || null);
+          // A standalone host window uses this to hand over, so the splash
+          // owns its minimum hold and exit rather than being cut short.
+          if (typeof opts.onReady === 'function') opts.onReady(err || null);
         }, 460);
       }, wait);
     }
 
     render();
+
+    // A host window sends this once the real UI is loaded. The splash then
+    // finishes its own exit and closes itself, so the minimum hold and the
+    // animation both complete instead of being cut off by the main process.
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('message', function (e) {
+        if (e && e.data && e.data.type === 'splash:done') {
+          set(100, 'Ready');
+          finish(null);
+        }
+      });
+    }
+
     return {
       id: 'svSplash',
       // The bar only ever moves forward; a regression would read as a bug.
