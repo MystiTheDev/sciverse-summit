@@ -80,6 +80,9 @@
       '<p class="sv-splash__status" id="svStatus"></p>' +
       '<p class="sv-splash__copy">&copy; ' + year + ' SciVerse</p>' +
       '</div>' +
+      // The triangles sit outside the panel so they can break its edge. Inside
+      // it they were painted over the card and read as part of the artwork
+      // rather than as shapes crossing the boundary.
       '<div class="sv-splash__tri sv-splash__tri--tl" aria-hidden="true"></div>' +
       '<div class="sv-splash__tri sv-splash__tri--ml" aria-hidden="true"></div>' +
       '<div class="sv-splash__tri sv-splash__tri--bl" aria-hidden="true"></div>' +

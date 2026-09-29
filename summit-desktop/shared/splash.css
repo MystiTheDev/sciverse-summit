@@ -35,21 +35,26 @@
   z-index: 50;
   display: grid;
   place-items: center;
-  overflow: hidden;
+  /* Room for the panel plus the artwork that deliberately breaks its edges. */
+  padding: 56px;
+  overflow: visible;
   font-family: inherit;
   color: var(--sv-slate-100);
-  background:
-    radial-gradient(120% 90% at 18% 8%, rgba(124, 58, 237, 0.20), transparent 58%),
-    radial-gradient(100% 80% at 88% 92%, rgba(6, 182, 212, 0.16), transparent 60%),
-    var(--sv-slate-950);
+  /* No backdrop: the panel and its bleed are the whole screen. The splash
+   * window is transparent, so the desktop shows through. */
+  background: none;
 }
 
 /* ── Ambient drift ─────────────────────────────────────────── */
 
 .sv-splash__blob {
+  /* Muted: the artwork is meant to read against the desktop, not float over
+   * a lit backdrop. Kept at low opacity so a busy desktop still has something
+   * for the panel to sit on. */
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
+  opacity: 0.3;
   pointer-events: none;
   will-change: transform;
 }
@@ -95,12 +100,17 @@
   --splash-ar: 1.85;
   position: relative;
   aspect-ratio: var(--splash-ar) / 1;
-  height: min(84vh, 560px);
+  height: min(74vh, 520px);
   width: auto;
-  max-width: 92vw;
+  max-width: min(92vw, 1120px);
   display: grid;
   grid-template-columns: 46% 54%;
-  overflow: hidden;                 /* clips the bleeding logo */
+  /* Visible, not hidden: the logo and the triangles are meant to break past
+   * the card edge, the way the reference composition does. Clipping here
+   * cropped the logo and sliced the triangles flat. The card's own rounded
+   * corners are drawn by its background, so nothing else needs clipping. */
+  overflow: visible;
+  isolation: isolate;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   background:
@@ -128,16 +138,18 @@
   position: relative;
   display: grid;
   place-items: center;
+  /* Visible so the logo can cross the card edge; the card clips it. */
   overflow: visible;
+  min-width: 0;
 }
 
 .sv-splash__glow {
   position: absolute;
-  width: 58%;
+  width: 54%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.34), transparent 66%);
-  filter: blur(28px);
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.30), transparent 66%);
+  filter: blur(30px);
   animation: sv-splash-bloom 900ms var(--sv-ease) 150ms both;
 }
 
@@ -146,10 +158,17 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* The logo is a full badge — gradient ring, emblem, wreath and wordmark — and
+ * the ring is the outermost element, so the whole file is the artwork and is
+ * shown whole. It bleeds off the left edge like the reference composition,
+ * clipped by the card rather than by its own frame. */
 .sv-splash__logo {
   position: relative;
-  width: 118%;
-  margin-left: -20%;               /* pushes it past the panel's left edge */
+  display: block;
+  /* Wide enough to read at a glance, and pushed left so the ring crosses the
+   * card boundary rather than sitting inside it. */
+  width: min(112%, 460px);
+  margin-left: -20%;
   max-width: none;
   user-select: none;
   -webkit-user-drag: none;
@@ -313,39 +332,42 @@
 
 /* ── Triangles: break the panel edges ──────────────────────── */
 
+/* Shapes that break the card edge, positioned against the stage. Negative
+ * offsets are the bleed: half the shape sits outside the panel, which is what
+ * the reference composition does. */
 .sv-splash__tri {
   position: absolute;
-  z-index: 5;                         /* above the panel, below nothing */
+  z-index: 5;                         /* above the card, so the overlap reads */
   pointer-events: none;
   will-change: transform;
 }
 .sv-splash__tri--tl {
-  width: 104px; height: 132px;
-  top: 4%; left: -44px;
+  width: 120px; height: 150px;
+  top: -34px; left: -52px;
   background: linear-gradient(150deg, var(--sv-cyan-soft), var(--sv-violet));
   clip-path: polygon(0 0, 100% 50%, 0 100%);
   opacity: 0.9;
   animation: sv-splash-tri-a 11s ease-in-out infinite alternate;
 }
 .sv-splash__tri--ml {
-  width: 66px; height: 88px;
-  top: 46%; left: -26px;
+  width: 74px; height: 98px;
+  top: 44%; left: -32px;
   background: linear-gradient(200deg, var(--sv-cyan), var(--sv-violet-soft));
   clip-path: polygon(0 0, 100% 50%, 0 100%);
   opacity: 0.75;
   animation: sv-splash-tri-b 9s ease-in-out infinite alternate;
 }
 .sv-splash__tri--bl {
-  width: 138px; height: 112px;
-  bottom: -44px; left: 8%;
+  width: 152px; height: 124px;
+  bottom: -46px; left: 6%;
   background: linear-gradient(20deg, var(--sv-cyan-soft), var(--sv-violet));
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
   opacity: 0.85;
   animation: sv-splash-tri-c 14s ease-in-out infinite alternate;
 }
 .sv-splash__tri--r {
-  width: 92px; height: 124px;
-  top: 10%; right: -38px;
+  width: 104px; height: 138px;
+  top: 8%; right: -44px;
   background: linear-gradient(210deg, var(--sv-cyan), var(--sv-violet-soft));
   clip-path: polygon(100% 0, 0 50%, 100% 100%);
   opacity: 0.9;
