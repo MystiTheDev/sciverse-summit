@@ -44,4 +44,7 @@ contextBridge.exposeInMainWorld('summitAPI', {
   onUpdateError: (cb) => { const l = (_e, msg) => cb(msg); ipcRenderer.on('update:error', l); return () => ipcRenderer.removeListener('update:error', l); },
   downloadUpdate: () => ipcRenderer.invoke('update:download'),
   restartToUpdate: () => ipcRenderer.invoke('update:restart'),
+  // Fires when the main window becomes visible, so shared/loading.js can
+  // start its minimum-visible hold at the moment the user can see it.
+  onWindowShown: (cb) => { const l = () => cb(); ipcRenderer.on('window:shown', l); return () => ipcRenderer.removeListener('window:shown', l); },
 });

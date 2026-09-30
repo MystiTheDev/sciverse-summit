@@ -212,6 +212,15 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
 
+  // The loading screen (shared/loading.js) holds its minimum-visible
+  // time from this moment. Timed from script parse it finished and was
+  // removed while this window was still hidden, so it was never seen.
+  mainWindow.on('show', () => {
+    try {
+      if (!mainWindow.isDestroyed()) mainWindow.webContents.send('window:shown');
+    } catch { /* window closed before the renderer could be told */ }
+  });
+
   // The splash page closes its own window once it has held for its minimum
   // and finished its exit, so the connect screen is revealed by the splash's
   // own lifecycle rather than by a fixed timer here.

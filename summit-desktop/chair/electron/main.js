@@ -202,6 +202,15 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
 
+  // The loading screen (shared/loading.js) holds its minimum-visible
+  // time from this moment. Timed from script parse it finished and was
+  // removed while this window was still hidden, so it was never seen.
+  mainWindow.on('show', () => {
+    try {
+      if (!mainWindow.isDestroyed()) mainWindow.webContents.send('window:shown');
+    } catch { /* window closed before the renderer could be told */ }
+  });
+
   // Tell the splash the console is up, so it can finish its exit animation
   // and close itself. The window handle is captured locally: the splash can
   // close itself first, which nulls the module-level global, and reading
