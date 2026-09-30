@@ -13,10 +13,19 @@
   var NAME_LETTERS = 'SciVerse Summit';
   var STAGGER_MS = 52;
 
-  /* Timings follow the entrance choreography: panel 500ms, logo to 850ms,
-   * brand letters finish ~1070ms, description ~1280ms. */
-  var MIN_MS = 3000;
-  var CAP_MS = 4000;
+  /* The entrance choreography runs to about 2620ms: panel open 760ms, logo
+   * to 1270ms, brand letters to 1848ms, description to 1920ms, copyright
+   * last at 2600ms. MIN_MS is the hold on top of that, and it is the only
+   * thing controlling how long the finished card sits on screen before the
+   * window goes - at 3000ms it got 380ms of rest, which read as the splash
+   * being cut off rather than landing.
+   *
+   * CAP_MS is the failsafe for a page that never receives a hand-off, not a
+   * schedule, so it must stay comfortably above MIN_MS. Both apps override it
+   * with capMs: 12000 anyway; this is the fallback for a host that does not.
+   */
+  var MIN_MS = 3800;
+  var CAP_MS = 5200;
 
   // Handle the host uses to hand over. See mount() for why this is a function
   // call rather than an ipcRenderer channel.
