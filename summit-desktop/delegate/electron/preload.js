@@ -13,6 +13,11 @@ contextBridge.exposeInMainWorld('summitAPI', {
   clearRecent: () => ipcRenderer.invoke('recent:clear'),
   getLastHost: () => ipcRenderer.invoke('recent:last'),
   probeServer: (host, port, path, timeout) => ipcRenderer.invoke('server:probe', { host: host, port: port, path: path, timeout: timeout }),
+  // Returns this window to the launcher ("Join a session"). The delegate
+  // navigates this same window to the chair's session page, which replaces the
+  // launcher, so the settings behind it become unreachable without this.
+  // Available on the session page too, because the preload is per-window.
+  backToLauncher: () => ipcRenderer.invoke('app:back-to-launcher'),
   // Used by src/notif-bridge.js, injected into every server page.
   showDesktopNotification: (n) => ipcRenderer.invoke('notif:show', n),
   desktopNotificationsEnabled: () => ipcRenderer.invoke('notif:enabled'),

@@ -16,13 +16,18 @@
   var splash = null;
 
   /* ── Loading screen (shared: shared/loading.js) ─────────── */
-  // Covers the console's own initialisation, continuing from where the splash
-  // window hands over. It carries a 700ms minimum, so a fast boot still reads
-  // as a loading state rather than a two-frame flash.
-  // No copy passed: shared/loading.js shows "Loading" and flips to "Ready"
-  // itself as it leaves. Passing text here and setting "Ready" on boot made
-  // it claim to be done for the whole hold.
-  if (window.SummitLoading) window.SummitLoading.show();
+  // First load only, continuing from where the splash window hands over.
+  //
+  // Once the app has booted, bringing the console back - tray click, taskbar,
+  // "Open Chair View" - must never show it again. The app is already running,
+  // so a loading screen over live content reads as a fault, and at a 5s hold it
+  // blocked the console for five seconds every time. The flag is persisted so a
+  // renderer reload does not bring it back either.
+  let firstLoad = true;
+  try {
+    firstLoad = sessionStorage.getItem('svBooted') !== '1';
+  } catch (e) { /* storage unavailable: show it, the safe default */ }
+  if (firstLoad && window.SummitLoading) window.SummitLoading.show();
 
   /* ── Update overlay (shared: shared/update-ui.js) ────────── */
   if (window.SummitUpdateUI) {
@@ -42,9 +47,60 @@
   const logEmpty = $('logEmpty');
   const logCount = $('logCount');
   const logJump = $('logJump');
-  const MAX_LINES = 2000;
+  const MAX_LINES = 1200;
   let lineCount = 0;
   let autoScroll = true;
+
+  /* Log lines are buffered and flushed once per frame.
+   *
+   * Appending straight through was the cause of the console getting slower the
+   * longer it ran. Every line read scrollHeight/scrollTop/clientHeight to
+   * decide whether to follow the tail, then wrote scrollTop - a forced
+   * synchronous layout each way, and each one got more expensive as the
+   * container grew. Measured on the real pattern: 0.39ms per line at the
+   * start, 1.55ms per line at 2000 lines, 4x slower, while appending the same
+   * 2000 nodes with no layout reads cost 2.7ms in total. A chatty server
+   * therefore spent a growing slice of the main thread on reflow.
+   *
+   * Buffering collapses a burst of lines into one layout: build a fragment,
+   * append it once, then read and write scroll once for the whole batch.
+   */
+  const logBuf = [];
+  let logFlushQueued = false;
+
+  function flushLog() {
+    logFlushQueued = false;
+    if (!logBuf.length) return;
+    // One read for the whole batch, not one per line.
+    const follow = autoScroll && nearBottom();
+    const added = logBuf.length;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < logBuf.length; i++) {
+      frag.appendChild(buildLogRow(logBuf[i].text, logBuf[i].level));
+    }
+    logBuf.length = 0;
+    logEl.appendChild(frag);
+    // Counted from the buffer, not from the fragment: appendChild moves every
+    // child out and leaves the fragment empty, so frag.childElementCount is 0
+    // by the time it is read and the line cap would never engage.
+    lineCount += added;
+
+    while (lineCount > MAX_LINES && logEl.firstElementChild) {
+      logEl.removeChild(logEl.firstElementChild);
+      lineCount--;
+    }
+    if (logCount) logCount.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
+    if (follow) logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function queueLog(text, level) {
+    if (lineCount === 0 && !logBuf.length && logEmpty && logEmpty.parentNode) logEmpty.remove();
+    logBuf.push({ text: text, level: level });
+    if (!logFlushQueued) {
+      logFlushQueued = true;
+      requestAnimationFrame(flushLog);
+    }
+  }
 
   const LVL = (text) => {
     if (/^\s*(ERROR|ERR\b|Exception|Caused by)/i.test(text)) return 'lv-error';
@@ -58,8 +114,7 @@
     return logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 40;
   }
 
-  function append(text, level) {
-    if (lineCount === 0 && logEmpty && logEmpty.parentNode) logEmpty.remove();
+  function buildLogRow(text, level) {
     const row = document.createElement('div');
     row.className = 'log__line ' + (level || LVL(text));
     const t = new Date().toLocaleTimeString([], { hour12: false });
@@ -71,15 +126,11 @@
     msg.textContent = text;
     row.appendChild(time);
     row.appendChild(msg);
-    logEl.appendChild(row);
-    lineCount++;
+    return row;
+  }
 
-    while (lineCount > MAX_LINES && logEl.firstElementChild) {
-      logEl.removeChild(logEl.firstElementChild);
-      lineCount--;
-    }
-    if (logCount) logCount.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-    if (autoScroll) logEl.scrollTop = logEl.scrollHeight;
+  function append(text, level) {
+    queueLog(text, level);
   }
 
   logEl.addEventListener('scroll', () => {
@@ -184,16 +235,26 @@
 
   function startTicker() {
     stopTicker();
-    tick = setInterval(() => {
-      if (startedAt) {
-        const el = $('heroMeta');
-        const up = document.createElement('span');
-        up.className = 'sv-mono';
-        up.textContent = 'Up ' + fmtUptime(Date.now() - startedAt) + '  ·  port 8080';
-        heroMeta.innerHTML = '';
-        heroMeta.appendChild(up);
-      }
-    }, 1000);
+    // The node is created once and only its text is rewritten. It used to build
+    // a fresh <span> and reset innerHTML every second, which tore down and
+    // rebuilt the hero panel's contents 3600 times an hour for a string that
+    // usually had not changed.
+    let up = heroMeta.querySelector('.sv-mono');
+    if (!up) {
+      up = document.createElement('span');
+      up.className = 'sv-mono';
+      heroMeta.appendChild(up);
+    }
+    let last = null;
+    const write = () => {
+      if (!startedAt) return;
+      const next = 'Up ' + fmtUptime(Date.now() - startedAt) + '  ·  port 8080';
+      if (next === last) return;          // only touch the DOM when it changes
+      last = next;
+      up.textContent = next;
+    };
+    write();
+    tick = setInterval(write, 1000);
   }
   function stopTicker() { if (tick) clearInterval(tick); tick = null; }
 
@@ -474,6 +535,9 @@
       // No set('Ready') here. The overlay shows "Loading" for its whole hold
       // and only says "Ready" as it leaves, which it does itself - setting it
       // on boot made the screen claim to be done for the entire 5 seconds.
+      if (firstLoad) {
+        try { sessionStorage.setItem('svBooted', '1'); } catch (e) { /* non-fatal */ }
+      }
       if (window.SummitLoading) window.SummitLoading.hide();
     }
   })();

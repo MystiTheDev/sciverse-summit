@@ -44,6 +44,40 @@ body { display: block; min-height: 100vh; }
 .hero__meta .sv-mono { color: var(--sv-slate-300); }
 .hero__actions { margin-top: 16px; display: flex; flex-direction: column; gap: 9px; }
 
+/* "Open Chair View" is a link out of the app, not a peer of Start, so it is
+ * given the outline treatment: a gradient hairline instead of a flat fill, a
+ * quieter surface, and an arrow that steps outward on hover. It was a plain
+ * .sv-btn, which read as a third equally-weighted action in the same stack. */
+.sv-btn-launch {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid transparent !important;
+  background-clip: padding-box !important;
+  box-shadow: none;
+}
+/* The gradient edge, drawn on a pseudo-element so the border can be a gradient
+ * without the background bleeding under the rounded corners. */
+.sv-btn-launch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(34, 211, 238, 0.55), rgba(167, 139, 250, 0.42));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.65;
+  transition: opacity .18s ease;
+  pointer-events: none;
+}
+.sv-btn-launch:hover:not(:disabled)::before { opacity: 1; }
+.sv-btn-launch:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08) !important; }
+.sv-btn-launch:disabled { opacity: 0.42; }
+.sv-btn-launch i { transition: transform .18s var(--sv-ease); }
+.sv-btn-launch:hover:not(:disabled) i { transform: translate(2px, -2px); }
+
 /* ── Join address ───────────────────────────────────────── */
 .join__url {
   display: flex; align-items: center; gap: 10px;

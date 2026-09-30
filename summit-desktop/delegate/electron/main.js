@@ -210,7 +210,70 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
+  const launcherFile = path.join(__dirname, '..', 'src', 'index.html');
+  mainWindow.loadFile(launcherFile);
+
+  /* Back to the launcher.
+   *
+   * Joining a session does window.location.href = <chair>/delegate, so this
+   * window is replaced by the chair's page and the launcher behind it - the
+   * address field, Recent Chairs, the settings - becomes unreachable. Since
+   * the page we land on belongs to the server, there is nowhere on it to put a
+   * button, so the launcher button is injected from here and shown on any
+   * page that is not the launcher. It is a fixed overlay in the corner and
+   * re-adds itself if the page replaces the DOM.
+   */
+  ipcMain.handle('app:back-to-launcher', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.loadFile(launcherFile);
+  });
+
+  const BACK_BUTTON = `(() => {
+    if (document.getElementById('svBackLauncher')) return;
+    const add = () => {
+      if (document.getElementById('svBackLauncher')) return;
+      const b = document.createElement('button');
+      b.id = 'svBackLauncher';
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Back to the launcher');
+      b.textContent = '\\u2190  Launcher';
+      b.style.cssText = [
+        'position:fixed', 'top:14px', 'right:14px', 'z-index:2147483000',
+        'display:inline-flex', 'alignItems:center', 'gap:8px',
+        'padding:9px 15px', 'borderRadius:12px', 'cursor:pointer',
+        'font:600 13px/1 -apple-system,Segoe UI,system-ui,sans-serif',
+        'color:#e8ecf8', 'letterSpacing:0.02em',
+        'background:rgba(22,28,48,0.82)',
+        'border:1px solid rgba(140,160,220,0.34)',
+        'boxShadow:0 8px 26px rgba(0,0,0,0.42)',
+        'backdropFilter:blur(10px)', 'WebkitBackdropFilter:blur(10px)',
+        'transition:transform .15s ease,border-color .15s ease',
+      ].join(';');
+      b.onmouseenter = () => { b.style.borderColor = 'rgba(160,190,255,0.6)'; b.style.transform = 'translateY(-1px)'; };
+      b.onmouseleave = () => { b.style.borderColor = 'rgba(140,160,220,0.34)'; b.style.transform = 'none'; };
+      b.onclick = () => {
+        try { if (window.summitAPI && window.summitAPI.backToLauncher) window.summitAPI.backToLauncher(); } catch (e) {}
+      };
+      (document.body || document.documentElement).appendChild(b);
+    };
+    add();
+    // The session page is a single-page app, so it can replace the body and
+    // take the button with it. Re-add if that happens.
+    if (document.body && !window.__svBackWatch) {
+      window.__svBackWatch = new MutationObserver(add);
+      window.__svBackWatch.observe(document.body, { childList: true });
+    }
+  })();`;
+
+  function injectBackButton() {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    const url = mainWindow.webContents.getURL();
+    // Nothing to add on the launcher itself.
+    if (!url || url.startsWith('file://') && url.endsWith('index.html')) return;
+    mainWindow.webContents.executeJavaScript(BACK_BUTTON, true).catch(() => {});
+  }
+
+  mainWindow.webContents.on('did-finish-load', injectBackButton);
+  mainWindow.webContents.on('did-navigate-in-page', injectBackButton);
 
   // The loading screen (shared/loading.js) holds its minimum-visible
   // time from this moment. Timed from script parse it finished and was

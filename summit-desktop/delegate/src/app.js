@@ -7,16 +7,26 @@
   const $ = (id) => document.getElementById(id);
 
   /* ── Loading screen (shared: shared/loading.js) ──────────────────
-   * Replaces the old inline splash, which pinned the delegate on a
-   * pre-revamp "S" tile for a minimum of 20 seconds - long enough that the
-   * connect screen could not be reached. The shared overlay has a 700ms
-   * minimum of its own, enough to read as a loading state without holding
-   * the app hostage.
+   * First load only. It replaces the old inline splash, which pinned the
+   * delegate on a pre-revamp "S" tile for a minimum of 20 seconds - long
+   * enough that the connect screen could not be reached.
+   *
+   * The guard matters because this page is reloaded whenever the user comes
+   * back from a session: the app is already running at that point, and a
+   * loading screen over live content reads as a fault. Persisted, so it does
+   * not come back on a reload either.
    */
   (function () {
     if (!window.SummitLoading) return;
+    let firstLoad = true;
+    try {
+      firstLoad = sessionStorage.getItem('svBooted') !== '1';
+    } catch (e) { /* storage unavailable: show it, the safe default */ }
+    if (!firstLoad) { window.SummitLoading.hide(); return; }
+
     window.SummitLoading.show();
     function done() {
+      try { sessionStorage.setItem('svBooted', '1'); } catch (e) { /* non-fatal */ }
       window.SummitLoading.hide();
     }
     if (document.readyState === 'complete') done();
