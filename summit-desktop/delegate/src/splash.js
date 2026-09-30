@@ -18,6 +18,12 @@
   var MIN_MS = 3000;
   var CAP_MS = 4000;
 
+  // Handle the host uses to hand over. See mount() for why this is a function
+  // call rather than an ipcRenderer channel.
+  var host = (typeof window !== 'undefined' && window)
+    ? (window.SummitSplashHost = window.SummitSplashHost || {})
+    : null;
+
   function escapeHtml(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;')
@@ -146,29 +152,42 @@
       }, wait);
     }
 
+    /* Progress setter. Named rather than inlined in the returned object so the
+     * host hand-off below can use it too - an inline `set:` property is not a
+     * binding in scope, and calling set(...) from here used to throw
+     * "set is not defined". */
+    function setProgress(n, text) {
+      var p = Math.max(0, Math.min(100, Number(n) || 0));
+      if (p > shown) shown = p;
+      if (typeof text === 'string' && status) status.textContent = text;
+      render();
+    }
+
     render();
 
-    // A host window sends this once the real UI is loaded. The splash then
-    // finishes its own exit and closes itself, so the minimum hold and the
-    // animation both complete instead of being cut off by the main process.
-    if (typeof window !== 'undefined' && window.addEventListener) {
-      window.addEventListener('message', function (e) {
-        if (e && e.data && e.data.type === 'splash:done') {
-          set(100, 'Ready');
-          finish(null);
-        }
-      });
+    /* Host hand-off. The main process calls this once the real window has
+     * loaded; the splash then finishes its own exit and closes itself, so the
+     * minimum hold and the animation both complete instead of being cut off.
+     *
+     * This is a plain function the host invokes with executeJavaScript, not an
+     * ipcRenderer channel. The splash window runs with contextIsolation on and
+     * no preload, so webContents.send() has nowhere to land: it delivers to
+     * ipcRenderer.on(), not to a window 'message' listener, and it carries no
+     * payload for a listener to inspect. A listener written against
+     * addEventListener('message') therefore never fires, and the splash sits
+     * at its last progress value until the cap forces it out.
+     */
+    if (host) {
+      host.done = function () {
+        setProgress(100, 'Ready');
+        finish(null);
+      };
     }
 
     return {
       id: 'svSplash',
       // The bar only ever moves forward; a regression would read as a bug.
-      set: function (n, text) {
-        var p = Math.max(0, Math.min(100, Number(n) || 0));
-        if (p > shown) shown = p;
-        if (typeof text === 'string' && status) status.textContent = text;
-        render();
-      },
+      set: setProgress,
       ready: function () { finish(null); },
       error: function (err) { finish(err || new Error('Splash failed')); },
       minMs: MIN_MS,

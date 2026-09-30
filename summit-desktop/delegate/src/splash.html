@@ -51,14 +51,10 @@
     splash.set(pct, label);
   }, 130);
 
-  // The connect screen tells us when it is genuinely up.
-  window.addEventListener('message', function (e) {
-    if (e.data && e.data.type === 'splash:done') {
-      clearInterval(t);
-      splash.set(100, 'Ready');
-      splash.ready();
-    }
-  });
+  // The host hands over by calling window.SummitSplashHost.done(), which
+  // shared/splash.js exposes from mount(). It is a function call rather
+  // than a message event because this window has no preload, so
+  // webContents.send() has no ipcRenderer.on() to arrive in.
 })();
 </script>
 </body>

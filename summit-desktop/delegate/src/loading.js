@@ -23,7 +23,6 @@
 
   var el = null;
   var label = null;
-  var mountedAt = 0;
   var windowShownAt = null;   // when the host window actually became visible
   var hideTimer = null;
   var maxTimer = null;
@@ -60,7 +59,6 @@
     el = built.root;
     label = built.label;
     document.body.appendChild(el);
-    mountedAt = Date.now();
     windowShownAt = null;
 
     listenForWindowShown();
@@ -77,7 +75,16 @@
    */
   function listenForWindowShown() {
     var api = global.summitAPI;
-    if (!api || typeof api.onWindowShown !== 'function') return;
+    if (!api || typeof api.onWindowShown !== 'function') {
+      // No bridge: a preload that failed, or the page opened outside the app.
+      // Treat the window as already visible, so the overlay still holds for the
+      // normal minimum and then goes. Returning quietly here instead would
+      // leave windowShownAt null and make every launch wait out the full
+      // SHOWN_WAIT_MS - a four-second stall on every start, in the one
+      // situation where something has already gone wrong.
+      windowShownAt = Date.now();
+      return;
+    }
     api.onWindowShown(function () { markWindowShown(); });
   }
 

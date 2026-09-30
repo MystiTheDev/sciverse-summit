@@ -222,7 +222,13 @@ function createWindow() {
     // window here would put the console behind the still-animating splash.
     try {
       if (splashWin && !splashWin.isDestroyed()) {
-        splashWin.webContents.send('splash:done');
+        // Called as a function, not sent as an ipcRenderer channel: the
+        // splash window has no preload, so webContents.send() has no
+        // ipcRenderer.on() to land in. A window 'message' listener does not
+        // receive it, so the splash used to wait out its 12s cap.
+        splashWin.webContents.executeJavaScript(
+          'window.SummitSplashHost && window.SummitSplashHost.done()'
+        ).catch(() => {});
       }
     } catch { /* splash already gone */ }
   });
