@@ -30,6 +30,11 @@
   var RAMP_START = 12;
   var RAMP_CEIL = 99;
 
+  /* How long the card's entrance takes (see the choreography note above). The
+   * progress ramp waits this out before it starts, so the bar is not already
+   * two-thirds full at the moment it first becomes visible. */
+  var ENTRY_MS = 2620;
+
   // Handle the host uses to hand over. See mount() for why this is a function
   // call rather than an ipcRenderer channel.
   var host = (typeof window !== 'undefined' && window)
@@ -135,8 +140,13 @@
     var stages = Array.isArray(opts.stages) ? opts.stages : [];
     var rampTimer = null;
     var rampStopped = false;
-    var rampStart = born;
-    var rampMs = Math.max(600, holdMs - 500);
+    /* The ramp does not start at mount. The card is still running its entrance
+     * for the first ENTRY_MS, and because the bar is a child of that card the
+     * progress was already running while nothing was visible - so the first
+     * time you could see it, it read about 65%. It now starts once the card has
+     * landed, and runs to just before the exit. */
+    var rampStart = born + ENTRY_MS;
+    var rampMs = Math.max(600, holdMs - ENTRY_MS - 500);
 
     var capTimer = setTimeout(function () {
       finish(new Error('Splash timed out waiting for the app to be ready'));
@@ -218,8 +228,11 @@
 
     function rampStep() {
       if (rampStopped) return;
-      var t = Math.min(1, (Date.now() - rampStart) / rampMs);
-      var eased = 1 - Math.pow(1 - t, 2);   // ease-out: moves early, settles late
+      var t = Math.max(0, Math.min(1, (Date.now() - rampStart) / rampMs));
+      // Smoothstep, not ease-out. Ease-out front-loads the movement - 75% of the
+      // bar's travel happened in the first quarter of the ramp - so it shot
+      // forward and then crawled. This one starts slow, speeds up, and settles.
+      var eased = t * t * (3 - 2 * t);
       var target = RAMP_START + (RAMP_CEIL - RAMP_START) * eased;
       setProgress(target, labelFor(target));
       if (t >= 1) stopRamp();

@@ -21,6 +21,7 @@
    * a flicker rather than a loading state. Timed from the reveal, not from
    * script parse - see listenForWindowShown. */
   var MIN_VISIBLE_MS = 5000;
+  var READY_HOLD_MS = 1100;   // "Ready" on screen this long before it fades
   var EXIT_MS = 420;          // must match the opacity transition in loading.css
   var MAX_MS = 60000;         // failsafe: never leave the user stuck
   var SHOWN_WAIT_MS = 4000;   // if the host never reveals the window, do not hang
@@ -29,6 +30,7 @@
   var label = null;
   var windowShownAt = null;   // when the host window actually became visible
   var hideTimer = null;
+  var readyTimer = null;
   var maxTimer = null;
 
   function build(text) {
@@ -124,17 +126,24 @@
     // "Ready" belongs to the very end, not the whole wait. It used to be set
     // the moment boot finished, so a 5s loading screen read READY for 5s.
     if (label && !label.classList.contains('is-error')) label.textContent = 'Ready';
-    el.classList.add('is-hiding');
-    setTimeout(function () {
-      if (el && el.parentNode) el.parentNode.removeChild(el);
-      el = null;
-      label = null;
-    }, EXIT_MS);
+    // ...and it is held for a beat before the screen goes. Setting Ready and
+    // fading on the same frame meant it was legible for a split second, which
+    // reads as a glitch rather than as an arrival.
+    readyTimer = setTimeout(function () {
+      if (!el) return;
+      el.classList.add('is-hiding');
+      setTimeout(function () {
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+        el = null;
+        label = null;
+      }, EXIT_MS);
+    }, READY_HOLD_MS);
   }
 
   function hide(force) {
     if (!el) return api;
     clearTimeout(hideTimer);
+    clearTimeout(readyTimer);
     clearTimeout(maxTimer);
 
     var now = Date.now();
@@ -160,7 +169,8 @@
     set: set,
     hide: hide,
     markWindowShown: markWindowShown,
-    MIN_VISIBLE_MS: MIN_VISIBLE_MS
+    MIN_VISIBLE_MS: MIN_VISIBLE_MS,
+    READY_HOLD_MS: READY_HOLD_MS
   };
   global.SummitLoading = api;
 })(window);
