@@ -13,19 +13,22 @@
   var NAME_LETTERS = 'SciVerse Summit';
   var STAGGER_MS = 52;
 
-  /* The entrance choreography runs to about 2620ms: panel open 760ms, logo
-   * to 1270ms, brand letters to 1848ms, description to 1920ms, copyright
-   * last at 2600ms. MIN_MS is the hold on top of that, and it is the only
-   * thing controlling how long the finished card sits on screen before the
-   * window goes - at 3000ms it got 380ms of rest, which read as the splash
-   * being cut off rather than landing.
+  /* The entrance choreography runs to about 2620ms. MIN_MS is the hold on top
+   * of that and is what decides how long the card is on screen.
    *
    * CAP_MS is the failsafe for a page that never receives a hand-off, not a
    * schedule, so it must stay comfortably above MIN_MS. Both apps override it
-   * with capMs: 12000 anyway; this is the fallback for a host that does not.
+   * with capMs: 12000 anyway; this is only the fallback for a host that does
+   * not pass one.
    */
-  var MIN_MS = 3800;
-  var CAP_MS = 5200;
+  var MIN_MS = 5000;
+  var CAP_MS = 6600;
+
+  /* The progress ramp never reaches 100% while the splash is still up: 100%
+   * means "leaving now", and it is applied at the exit. Holding at 99 leaves a
+   * little visible motion right up to the hand-off. */
+  var RAMP_START = 12;
+  var RAMP_CEIL = 99;
 
   // Handle the host uses to hand over. See mount() for why this is a function
   // call rather than an ipcRenderer channel.
@@ -127,6 +130,13 @@
     var born = Date.now();
     var finished = false;
     var shown = 0;
+    var handedOff = false;
+    var holdMs = typeof opts.minMs === 'number' ? opts.minMs : MIN_MS;
+    var stages = Array.isArray(opts.stages) ? opts.stages : [];
+    var rampTimer = null;
+    var rampStopped = false;
+    var rampStart = born;
+    var rampMs = Math.max(600, holdMs - 500);
 
     var capTimer = setTimeout(function () {
       finish(new Error('Splash timed out waiting for the app to be ready'));
@@ -143,13 +153,22 @@
       if (finished) return;
       finished = true;
       if (capTimer) clearTimeout(capTimer);
-      var wait = Math.max(0, (typeof opts.minMs === 'number' ? opts.minMs : MIN_MS) - (Date.now() - born));
+      var wait = Math.max(0, holdMs - (Date.now() - born));
       if (err && status) {
         status.textContent = String((err && err.message) || err || 'Something went wrong.');
         status.classList.add('is-error');
         render();
       }
       setTimeout(function () {
+        // The ramp is stopped here, not above. finish() is called the moment
+        // the host hands over - around 1.5s - while the hold runs to 5s, so
+        // stopping it on entry froze the bar for the remaining 3.5s. It has to
+        // keep climbing until the splash is genuinely leaving.
+        stopRamp();
+        // 100% is only true at the instant the splash leaves. Reaching it any
+        // earlier is what made the bar read as broken: it hit 100% on hand-off
+        // and then sat there for the rest of the hold.
+        if (!err) setProgress(100, 'Ready');
         if (root) root.classList.add('is-leaving');
         setTimeout(function () {
           if (root && root.parentNode) root.parentNode.removeChild(root);
@@ -174,6 +193,68 @@
 
     render();
 
+    /* Progress ramp, owned here rather than in each splash page.
+     *
+     * The pages used to run their own setInterval with a fixed step, which was
+     * three problems at once: the step was unrelated to how long the splash was
+     * held, so the bar reached its ceiling early and then sat (chair 78% after
+     * 2.0s, delegate 92% after 5.2s); the chair and delegate had different
+     * ceilings and step sizes for no reason; and nothing stopped the interval
+     * at hand-off, so it kept overwriting the status line after the bar had
+     * already reached 100% - a full bar sitting next to a stale stage label.
+     *
+     * This is time-based against the hold instead: it eases from RAMP_START to
+     * RAMP_CEIL and lands just before the splash leaves, so the bar is moving
+     * for the whole time it is on screen. 100% is reserved for the exit.
+     */
+    function labelFor(p) {
+      if (handedOff && p >= 96) return 'Ready';
+      var label = '';
+      for (var i = 0; i < stages.length; i++) {
+        if (p >= stages[i][0]) label = stages[i][1];
+      }
+      return label;
+    }
+
+    function rampStep() {
+      if (rampStopped) return;
+      var t = Math.min(1, (Date.now() - rampStart) / rampMs);
+      var eased = 1 - Math.pow(1 - t, 2);   // ease-out: moves early, settles late
+      var target = RAMP_START + (RAMP_CEIL - RAMP_START) * eased;
+      setProgress(target, labelFor(target));
+      if (t >= 1) stopRamp();
+    }
+
+    /* A self-rescheduling timeout rather than setInterval. Same behaviour, and
+     * it keeps the module dependent only on setTimeout/clearTimeout - which is
+     * what the headless test harness models - and makes cancelling the ramp a
+     * single clearTimeout with no interval id to leak.
+     *
+     * The id is cleared on entry, before stepping. It has to be: a fired
+     * timeout is not reset to null, so leaving it set made the
+     * `rampTimer === null` reschedule guard permanently false and the ramp ran
+     * exactly once. The bar went 12% -> 14% and then sat there for the whole
+     * hold, which is the "progress bar does not work" symptom.
+     *
+     * It also must not test `finished`. That flag is set the moment the host
+     * hands over - around 1.5s - while the hold runs to 5s, so gating on it
+     * killed the ramp three and a half seconds early. The ramp has its own
+     * flag, set only when the splash is actually leaving. */
+    function rampTick() {
+      rampTimer = null;
+      if (rampStopped) return;
+      rampStep();
+      if (rampTimer === null && !rampStopped) rampTimer = setTimeout(rampTick, 60);
+    }
+
+    function stopRamp() {
+      rampStopped = true;
+      if (rampTimer) { clearTimeout(rampTimer); rampTimer = null; }
+    }
+
+    setProgress(RAMP_START, labelFor(RAMP_START));
+    rampTimer = setTimeout(rampTick, 60);
+
     /* Host hand-off. The main process calls this once the real window has
      * loaded; the splash then finishes its own exit and closes itself, so the
      * minimum hold and the animation both complete instead of being cut off.
@@ -188,7 +269,11 @@
      */
     if (host) {
       host.done = function () {
-        setProgress(100, 'Ready');
+        // Only records that the app is up. It deliberately does not jump the
+        // bar to 100%: the ramp is already heading for the end of the hold, so
+        // forcing 100% here is what left a full bar stranded next to a stale
+        // status line for the rest of the splash.
+        handedOff = true;
         finish(null);
       };
     }

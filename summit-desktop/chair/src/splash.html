@@ -21,15 +21,17 @@
   } catch (e) { /* defaults stand in */ }
 
   var splash = window.Splash.mount(document.getElementById('splashRoot'), {
+    stages: stage,
     role: 'Chair',
     tagline: 'A Committee Session Platform. For The Chair.',
     description: 'An operating system for the chairs of SciVerse Summit.',
     version: q.v || '',
     logo: 'logo.png',
     year: '2026',
-    // A backstop for a page that never gets a handoff, not a schedule. Well
-    // clear of the real ~1.6s minimum plus exit, so it cannot cut the splash
-    // short or close the window out from under the app while it loads.
+    // A backstop for a page that never gets a handoff, not a schedule. It
+    // has to clear the real minimum hold (5s) plus the exit animation, or it
+    // would cut the splash short and close the window out from under the app
+    // while it is still loading.
     capMs: 12000,
     // The main process reveals the console on this signal, so the splash
     // owns its own minimum and exit instead of being cut short.
@@ -38,17 +40,14 @@
 
   // The console reports real boot stages. The splash stays visible for its
   // minimum regardless, so this reads as progress rather than a wait.
-  var pct = 12;
-  splash.set(pct, stage[0][1]);
-  var t = setInterval(function () {
-    if (pct >= 78) { clearInterval(t); return; }
-    pct = Math.min(78, pct + 4);
-    var label = stage[0][1];
-    for (var i = 0; i < stage.length; i++) {
-      if (pct >= stage[i][0]) label = stage[i][1];
-    }
-    splash.set(pct, label);
-  }, 120);
+  // The progress ramp is owned by shared/splash.js, which times it against
+  // this splash's own hold so the bar keeps moving for as long as the card
+  // is on screen, and reaches 100% only as it leaves. `stage` below is just
+  // the labels it steps through on the way.
+  //
+  // A per-page setInterval used to live here: a fixed step unrelated to the
+  // hold, a different ceiling per app, and nothing stopped it at hand-off, so
+  // it went on overwriting the status line after the bar had reached 100%.
 
   // The host hands over by calling window.SummitSplashHost.done(), which
   // shared/splash.js exposes from mount(). It is a function call rather

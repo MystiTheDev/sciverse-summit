@@ -16,7 +16,11 @@
 (function (global) {
   'use strict';
 
-  var MIN_VISIBLE_MS = 700;   // below this it is a flash, not a loading state
+  /* How long the overlay stays up once the window is actually visible. It was
+   * 700ms, which was long enough to avoid a flash but short enough to read as
+   * a flicker rather than a loading state. Timed from the reveal, not from
+   * script parse - see listenForWindowShown. */
+  var MIN_VISIBLE_MS = 5000;
   var EXIT_MS = 420;          // must match the opacity transition in loading.css
   var MAX_MS = 60000;         // failsafe: never leave the user stuck
   var SHOWN_WAIT_MS = 4000;   // if the host never reveals the window, do not hang
@@ -45,6 +49,11 @@
 
     var p = document.createElement('p');
     p.className = 'sv-load__label';
+    // Reads LOADING for the whole wait. It used to be given per-app copy that
+    // already said things like "Starting the console", and the apps then set
+    // it to "Ready" the instant boot finished - which sat on screen for the
+    // whole 5s hold, so the loading screen spent its entire life claiming to
+    // be done.
     p.textContent = text || 'Loading';
     root.appendChild(p);
 
@@ -112,6 +121,9 @@
 
   function fadeOut() {
     if (!el) return;
+    // "Ready" belongs to the very end, not the whole wait. It used to be set
+    // the moment boot finished, so a 5s loading screen read READY for 5s.
+    if (label && !label.classList.contains('is-error')) label.textContent = 'Ready';
     el.classList.add('is-hiding');
     setTimeout(function () {
       if (el && el.parentNode) el.parentNode.removeChild(el);

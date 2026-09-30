@@ -19,7 +19,10 @@
   // Covers the console's own initialisation, continuing from where the splash
   // window hands over. It carries a 700ms minimum, so a fast boot still reads
   // as a loading state rather than a two-frame flash.
-  if (window.SummitLoading) window.SummitLoading.show('Starting the console');
+  // No copy passed: shared/loading.js shows "Loading" and flips to "Ready"
+  // itself as it leaves. Passing text here and setting "Ready" on boot made
+  // it claim to be done for the whole hold.
+  if (window.SummitLoading) window.SummitLoading.show();
 
   /* ── Update overlay (shared: shared/update-ui.js) ────────── */
   if (window.SummitUpdateUI) {
@@ -467,10 +470,11 @@
       // Dismissed in finally, not on the success path: if boot throws, leaving
       // the overlay up would strand the user behind animated bars with no
       // console and no way forward.
-      if (window.SummitLoading) {
-        window.SummitLoading.set('Ready');
-        window.SummitLoading.hide();
-      }
+      //
+      // No set('Ready') here. The overlay shows "Loading" for its whole hold
+      // and only says "Ready" as it leaves, which it does itself - setting it
+      // on boot made the screen claim to be done for the entire 5 seconds.
+      if (window.SummitLoading) window.SummitLoading.hide();
     }
   })();
 })();

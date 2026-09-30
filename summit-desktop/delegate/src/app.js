@@ -15,9 +15,8 @@
    */
   (function () {
     if (!window.SummitLoading) return;
-    window.SummitLoading.show('Starting');
+    window.SummitLoading.show();
     function done() {
-      window.SummitLoading.set('Ready');
       window.SummitLoading.hide();
     }
     if (document.readyState === 'complete') done();
